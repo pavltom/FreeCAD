@@ -42,6 +42,7 @@ namespace TechDrawGui
 {
 class QGIFace;
 class QGIEdge;
+class QGIMatting;
 
 class TechDrawGuiExport QGIViewPart : public QGIView
 {
@@ -112,6 +113,8 @@ protected:
     bool formatGeomFromCenterLine(std::string cTag, QGIEdge* item);
 
     bool m_isExporting;
+
+    QGIMatting *m_matting;
 
 private:
     QList<QGraphicsItem*> deleteItems;

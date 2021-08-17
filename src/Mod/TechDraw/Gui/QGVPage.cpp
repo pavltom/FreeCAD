@@ -109,6 +109,7 @@
 #include "ViewProviderPage.h"
 #include "QGVPage.h"
 #include "MDIViewPage.h"
+#include "QEnhancedSvgGenerator.h"
 
 // used SVG namespaces
 #define CC_NS_URI "http://creativecommons.org/ns#"
@@ -806,7 +807,7 @@ void QGVPage::saveSvg(QString filename)
                              QString::fromUtf8(" exported from FreeCAD document: ") +
                              docName;
 
-    QSvgGenerator svgGen;
+    QEnhancedSvgGenerator svgGen;
     QTemporaryFile temporaryFile;
     svgGen.setOutputDevice(&temporaryFile);
 

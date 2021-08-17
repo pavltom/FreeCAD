@@ -47,7 +47,8 @@ QGIPrimPath::QGIPrimPath():
     m_capStyle(Qt::RoundCap),
     m_fillStyleCurrent (Qt::NoBrush),
 //    m_fillStyleCurrent (Qt::SolidPattern),
-    m_fillOverride(false)
+    m_fillOverride(false),
+    m_clipPath(nullptr)
 {
     setCacheMode(QGraphicsItem::NoCache);
     setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -335,6 +336,11 @@ void QGIPrimPath::paint ( QPainter * painter, const QStyleOptionGraphicsItem * o
     m_brush.setStyle(m_fillStyleCurrent);
     setBrush(m_brush);
 
-    QGraphicsPathItem::paint (painter, &myOption, widget);
-}
+    if (m_clipPath != nullptr) {
+        painter->setClipPath(*m_clipPath, Qt::ReplaceClip);
+    }
 
+    QGraphicsPathItem::paint (painter, &myOption, widget);
+
+    painter->setClipping(false);
+}

@@ -70,6 +70,9 @@ public:
     QColor getFillColor(void) { return m_colDefFill; }
     void setFillOverride(bool b) { m_fillOverride = b; }
 
+    const QPainterPath *getClipPath() { return m_clipPath; }
+    void setClipPath(const QPainterPath *path) { m_clipPath = path; }
+
 protected:
     virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
     virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
@@ -103,6 +106,8 @@ protected:
     Qt::BrushStyle m_styleSelect;               //Select/preSelect fill style
 
     bool m_fillOverride;
+
+    const QPainterPath *m_clipPath;                    // clipping path for detail views
 
 private:
 

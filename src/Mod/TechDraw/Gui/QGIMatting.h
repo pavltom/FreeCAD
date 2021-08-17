@@ -51,9 +51,12 @@ public:
     virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0 );
     virtual QRectF boundingRect() const;
 
+    virtual const QPainterPath *getClipPath() const { return &m_clipPath; }
+    virtual QGraphicsPathItem *getBackgroundItem() const { return m_mat; }
+
     virtual void setSize(double w, double h) {m_height = h; m_width = w;}
     //virtual void setHoleStyle(int hs) {m_holeStyle = hs;}
-    virtual void setRadius(double r)  {m_radius = r;}
+    virtual void setRadius(double r);
     virtual void draw(void);
 
 protected:
@@ -61,7 +64,9 @@ protected:
     double m_width;
     //int    m_holeStyle;    //round or rect
     double m_radius;
-    int getHoleStyle(void);
+
+    int getHoleStyle(void) const;
+    void updateClipPath(void);
 
     QGraphicsPathItem* m_mat;
     QGraphicsPathItem* m_border;
@@ -74,7 +79,7 @@ private:
     QBrush m_brush;
     QPen m_penB;
     QBrush m_brushB;
-
+    QPainterPath m_clipPath;
 };
 
 } // namespace MDIViewPageGui

@@ -200,6 +200,8 @@ SET(TechDrawGui_SRCS
     TaskCosmeticLine.ui
     TaskCosmeticLine.cpp
     TaskCosmeticLine.h
+    QEnhancedSvgGenerator.cpp
+    QEnhancedSvgGenerator.h
 )
 
 SET(TechDrawGuiView_SRCS

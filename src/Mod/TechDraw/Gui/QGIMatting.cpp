@@ -55,18 +55,15 @@ QGIMatting::QGIMatting() :
     setFlag(QGraphicsItem::ItemIsMovable, false);
 
     m_mat = new QGraphicsPathItem();
-    addToGroup(m_mat);
+//    addToGroup(m_mat);
+
     m_border = new QGraphicsPathItem();
     addToGroup(m_border);
 
-    m_pen.setColor(Qt::white);
-//    m_pen.setColor(Qt::black);
-//    m_pen.setStyle(Qt::DashLine);
+    m_pen.setStyle(Qt::NoPen);
     m_brush.setColor(Qt::white);
-//    m_brush.setColor(Qt::black);
     m_brush.setStyle(Qt::SolidPattern);
-//    m_brush.setStyle(Qt::CrossPattern);
-//    m_brush.setStyle(Qt::NoBrush);
+
     m_penB.setColor(Qt::black);
     m_brushB.setStyle(Qt::NoBrush);
 
@@ -76,34 +73,22 @@ QGIMatting::QGIMatting() :
     m_border->setBrush(m_brushB);
 
     setZValue(ZVALUE::MATTING);
+
+    updateClipPath();
 }
 
 void QGIMatting::draw()
 {
     prepareGeometryChange();
-    double radiusFudge = 1.5;       //keep slightly larger than fudge in App/DVDetail to prevent bleed through
-    m_width = m_radius * radiusFudge;
-    m_height = m_radius * radiusFudge;
-    QRectF outline(-m_width,-m_height,2.0 * m_width,2.0 * m_height);
-    QPainterPath ppOut;
-    ppOut.addRect(outline);
-    QPainterPath ppCut;
-    if (getHoleStyle() == 0) {
-        QRectF roundCutout (-m_radius,-m_radius,2.0 * m_radius,2.0 * m_radius);
-        ppCut.addEllipse(roundCutout);
-    } else {
-        double squareSize = m_radius/ 1.4142;                                 //fit just within radius
-        QRectF squareCutout (-squareSize,-squareSize,2.0 * squareSize,2.0 * squareSize);
-        ppCut.addRect(squareCutout);
-    }
-    ppOut.addPath(ppCut);
-    m_mat->setPath(ppOut);
-    m_border->setPath(ppCut);
-    m_mat->setZValue(ZVALUE::MATTING);
-    m_border->setZValue(ZVALUE::MATTING);
+
+    m_border->setPath(m_clipPath);
+    m_border->setZValue(+ZVALUE::MATTING);
+
+    m_mat->setPath(m_clipPath);
+    m_mat->setZValue(-ZVALUE::MATTING);
 }
 
-int QGIMatting::getHoleStyle()
+int QGIMatting::getHoleStyle() const
 {
     return PreferencesGui::mattingStyle();
 }
@@ -111,9 +96,31 @@ int QGIMatting::getHoleStyle()
 //need this because QQGIG only updates BR when items added/deleted.
 QRectF QGIMatting::boundingRect() const
 {
-    QRectF result ;
-    result = childrenBoundingRect().adjusted(-1,-1,1,1);
-    return result;
+    return QRectF(-m_width - 1.0, -m_height - 1.0, 2.0*(m_width + 1.0), 2.0*(m_height + 1.0));
+}
+
+void QGIMatting::setRadius(double r)
+{
+    m_radius = r;
+
+    updateClipPath();
+}
+
+void QGIMatting::updateClipPath()
+{
+    m_clipPath = QPainterPath();
+
+    if (getHoleStyle() == 0) {
+        m_clipPath.addEllipse(QRectF(-m_radius, -m_radius, 2.0*m_radius, 2.0*m_radius));
+    }
+    else {
+        double halfSide = m_radius/M_SQRT2;
+        m_clipPath.addRect(QRectF(-halfSide, -halfSide, 2.0*halfSide, 2.0*halfSide));
+    }
+
+   double radiusFudge = 1.5;       //keep slightly larger than fudge in App/DVDetail to prevent bleed through
+   m_width = m_radius*radiusFudge;
+   m_height = m_radius*radiusFudge;
 }
 
 void QGIMatting::paint ( QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) {

@@ -96,7 +96,7 @@ using namespace std;
 const float lineScaleFactor = Rez::guiX(1.);   // temp fiddle for devel
 
 QGIViewPart::QGIViewPart() :
-    m_isExporting(false)
+    m_isExporting(false), m_matting(nullptr)
 {
     setCacheMode(QGraphicsItem::NoCache);
     setHandlesChildEvents(false);
@@ -430,8 +430,12 @@ void QGIViewPart::draw() {
         return;
     }
 
-    drawViewPart();
+    removePrimitives();      //clean the slate
+    removeDecorations();
+
     drawMatting();
+    drawViewPart();
+
     //this is old C/L
     drawCenterLines(true);   //have to draw centerlines after border to get size correct.
     drawAllSectionLines();   //same for section lines
@@ -445,8 +449,6 @@ void QGIViewPart::drawViewPart()
     }
 //    Base::Console().Message("QGIVP::DVP() - %s / %s\n", viewPart->getNameInDocument(), viewPart->Label.getValue());
     if (!viewPart->hasGeometry()) {
-        removePrimitives();                      //clean the slate
-        removeDecorations();
         return;
     }
 
@@ -462,8 +464,6 @@ void QGIViewPart::drawViewPart()
     bool showAll = vp->ShowAllEdges.getValue();
 
     prepareGeometryChange();
-    removePrimitives();                      //clean the slate
-    removeDecorations();
 
 #if MOD_TECHDRAW_HANDLE_FACES
     if (viewPart->handleFaces()) {
@@ -528,6 +528,11 @@ void QGIViewPart::drawViewPart()
             newFace->setDrawEdges(drawEdges);                                        //pref. for debugging only
             newFace->setZValue(ZVALUE::FACE);
             newFace->setPrettyNormal();
+
+            if (m_matting != nullptr) {
+                newFace->setClipPath(m_matting->getClipPath());
+            }
+
             newFace->draw();
         }
     }
@@ -598,6 +603,11 @@ void QGIViewPart::drawViewPart()
                 item->setWidth(lineWidthIso);
             }
             item->setPrettyNormal();
+
+            if (m_matting != nullptr) {
+                item->setClipPath(m_matting->getClipPath());
+            }
+
             if (!showAll) {             //view level "show" status
                 if (!showItem) {        //individual edge "show" status
                     item->hide();
@@ -983,22 +993,25 @@ void QGIViewPart::drawHighlight(TechDraw::DrawViewDetail* viewDetail, bool b)
 
 void QGIViewPart::drawMatting()
 {
-    auto viewPart( dynamic_cast<TechDraw::DrawViewPart *>(getViewObject()) );
-    TechDraw::DrawViewDetail* dvd = nullptr;
-    if (viewPart && viewPart->isDerivedFrom(TechDraw::DrawViewDetail::getClassTypeId())) {
-        dvd = static_cast<TechDraw::DrawViewDetail*>(viewPart);
-    } else {
+    auto viewPart(dynamic_cast<TechDraw::DrawViewPart *>(getViewObject()));
+    if (viewPart == nullptr || !viewPart->isDerivedFrom(TechDraw::DrawViewDetail::getClassTypeId())) {
         return;
     }
 
-    double scale = dvd->getScale();
-    double radius = dvd->Radius.getValue() * scale;
-    QGIMatting* mat = new QGIMatting();
-    addToGroup(mat);
-    mat->setRadius(Rez::guiX(radius));
-    mat->setPos(0.0,0.0);
-    mat->draw();
-    mat->show();
+    TechDraw::DrawViewDetail *dvd = static_cast<TechDraw::DrawViewDetail *>(viewPart);
+
+    m_matting = new QGIMatting();
+    addToGroup(m_matting);
+
+    m_matting->setRadius(Rez::guiX( dvd->Radius.getValue()*dvd->getScale()));
+    m_matting->setPos(0.0,0.0);
+    m_matting->draw();
+    m_matting->show();
+
+    QGraphicsPathItem *matBack = m_matting->getBackgroundItem();
+    addToGroup(matBack);
+    matBack->setPos(0.0,0.0);
+    matBack->show();
 }
 
 // As called by arc of ellipse case:

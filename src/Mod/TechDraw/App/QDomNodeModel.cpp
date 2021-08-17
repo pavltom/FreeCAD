@@ -35,6 +35,7 @@
 #include <QSourceLocation>
 #include <QVariant>
 
+
 class PrivateDomNodeWrapper: public QDomNode
 {
 public:
@@ -183,13 +184,20 @@ QXmlName QDomNodeModel::name ( const QXmlNodeModelIndex & ni ) const
             }
         }
 
-        QVector<QXmlName> ns(namespaceBindings(ni));
-        int x;
-        for (x = 0; x < ns.size(); ++x)
-            if (ns.at(x).prefix(m_Pool) == p) break;
+        if (n.isAttr() && p.isEmpty()) {
+            return QXmlName(m_Pool, t, QString::fromUtf8(""), p);
+        }
 
-        if (x < ns.size())
-            return QXmlName(m_Pool, t, ns.at(x).namespaceUri(m_Pool), p);
+        QVector<QXmlName> ns(namespaceBindings(ni));
+
+        int x;
+        for (x = 0; x < ns.size(); ++x) {
+            if (ns.at(x).prefix(m_Pool) == p) {
+                return QXmlName(m_Pool, t, ns.at(x).namespaceUri(m_Pool), p);
+            }
+         }
+
+        return QXmlName(m_Pool, n.nodeName(), QString(), p);
     }
 
     return QXmlName(m_Pool, n.nodeName(), QString(), QString());
