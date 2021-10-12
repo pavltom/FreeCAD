@@ -294,8 +294,11 @@ class TechDrawExport Face
     public:
         Face() = default;
         ~Face();
+
         TopoDS_Face toOccFace(void) const;
         std::vector<Wire *> wires;
+
+        Base::Vector3d getCenterOfMass() const;
 };
 
 class TechDrawExport Vertex

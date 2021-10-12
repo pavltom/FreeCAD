@@ -45,6 +45,8 @@
 #include <Precision.hxx>
 #include <BRep_Builder.hxx>
 #include <BRepAdaptor_Curve.hxx>
+#include <BRepBuilderAPI_MakeVertex.hxx>
+#include <BRepClass_FaceClassifier.hxx>
 #include <BRepExtrema_DistShapeShape.hxx>
 #include <BRepGProp.hxx>
 #include <BRepLProp_CLProps.hxx>
@@ -787,6 +789,22 @@ Base::Vector3d DrawUtil::getFaceCenter(TopoDS_Face f)
     const gp_Pnt gv = prop.Value();
     Base::Vector3d v(gv.X(), gv.Y(), gv.Z());
     return v;
+}
+
+bool DrawUtil::isPointOnFace(Base::Vector3d pt, TopoDS_Face f)
+{
+    gp_Pnt point(pt.x, pt.y, pt.z);
+    TopoDS_Vertex vertex = BRepBuilderAPI_MakeVertex(point);
+
+    BRepExtrema_DistShapeShape extrema(f, vertex);
+    if (extrema.IsDone() && (fabs(extrema.Value()) <= Precision::Confusion())) {
+        BRepClass_FaceClassifier classifier = BRepClass_FaceClassifier(f, point, Precision::Confusion());
+        if (classifier.State() == TopAbs_IN || classifier.State() == TopAbs_ON) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // Supplementary mathematical functions

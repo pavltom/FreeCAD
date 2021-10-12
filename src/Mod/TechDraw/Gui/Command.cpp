@@ -838,6 +838,17 @@ bool _checkDirectPlacement(const QGIViewPart *viewPart, const std::vector<std::s
             return true;
         }
     }
+    else if (geoType == "Face") {
+        unsigned int index = TechDraw::DrawUtil::getIndexFromName(subNames[0]);
+        const std::vector<TechDraw::Face *> &geoms = static_cast<DrawViewPart *>(viewPart->getViewObject())->getFaceGeometry();
+        if (index < geoms.size()) {
+            Base::Vector3d massCenter(geoms[index]->getCenterOfMass());
+            if (DrawUtil::isPointOnFace(massCenter, geoms[index]->toOccFace())) {
+                placement = viewPart->mapToScene(Rez::guiX(massCenter.x), Rez::guiX(massCenter.y));
+                return true;
+            }
+        }
+    }
 
     return false;
 }

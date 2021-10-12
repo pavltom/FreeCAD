@@ -27,6 +27,7 @@
 #include <BRepBndLib.hxx>
 #include <BRepAdaptor_Curve.hxx>
 #include <BRep_Tool.hxx>
+#include <BRepGProp.hxx>
 #include <BRepTools.hxx>
 #include <BRepLib.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
@@ -40,6 +41,7 @@
 #include <gce_MakeCirc.hxx>
 #include <GC_MakeEllipse.hxx>
 #include <GC_MakeArcOfCircle.hxx>
+#include <GProp_GProps.hxx>
 #include <gp_Lin.hxx>
 #include <gp_Circ.hxx>
 #include <gp_Elips.hxx>
@@ -169,6 +171,20 @@ Face::~Face()
         delete it;
     }
     wires.clear();
+}
+
+Base::Vector3d Face::getCenterOfMass() const
+{
+    TopoDS_Face occFace = toOccFace();
+    if (!occFace.IsNull()) {
+        GProp_GProps props;
+        BRepGProp::SurfaceProperties(occFace, props);
+
+        gp_Pnt center = props.CentreOfMass();
+        return Base::Vector3d(center.X(), center.Y(), center.Z());
+    }
+
+    return Base::Vector3d();
 }
 
 BaseGeom::BaseGeom() :
