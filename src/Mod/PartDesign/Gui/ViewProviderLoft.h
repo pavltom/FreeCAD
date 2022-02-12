@@ -53,6 +53,8 @@ public:
     void highlightSection(bool on);
     void highlightReferences(Reference mode, bool on);
     
+    virtual bool allowTreeOrderSwap(const App::DocumentObject *, const App::DocumentObject *) const { return false; }
+
 protected:
     virtual QIcon getIcon(void) const;
     virtual bool setEdit(int ModNum);

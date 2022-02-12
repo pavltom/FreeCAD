@@ -77,6 +77,8 @@ public:
     virtual void attach(App::DocumentObject *obj) override;
     virtual void onChanged(const App::Property *prop) override;
 
+    virtual bool allowTreeOrderSwap(const App::DocumentObject *, const App::DocumentObject *) const { return false; }
+
 private:
     enum {
         Synchronize = 0,
