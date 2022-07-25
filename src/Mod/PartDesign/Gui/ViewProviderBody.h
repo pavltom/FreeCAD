@@ -25,6 +25,7 @@
 #define PARTGUI_ViewProviderBody_H
 
 #include <Mod/Part/Gui/ViewProvider.h>
+#include <Mod/PartDesign/PartDesignGlobal.h>
 #include <Gui/ViewProviderOriginGroupExtension.h>
 #include <QCoreApplication>
 
@@ -93,6 +94,10 @@ protected:
     void unifyVisualProperty(const App::Property* prop);
     /// Set Feature viewprovider into visual body mode
     void setVisualBodyMode(bool bodymode);
+
+private:
+    void copyColorsfromTip(App::DocumentObject* tip);
+
 private:
     static const char* BodyModeEnum[];
 

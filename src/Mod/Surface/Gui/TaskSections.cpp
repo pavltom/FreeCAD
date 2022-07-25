@@ -31,6 +31,7 @@
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <TopTools_ListIteratorOfListOfShape.hxx>
 
+#include <App/Document.h>
 #include <Gui/ViewProvider.h>
 #include <Gui/Application.h>
 #include <Gui/Document.h>
@@ -105,7 +106,7 @@ QIcon ViewProviderSections::getIcon(void) const
 
 void ViewProviderSections::highlightReferences(ShapeType type, const References& refs, bool on)
 {
-    for (auto it : refs) {
+    for (const auto& it : refs) {
         Part::Feature* base = dynamic_cast<Part::Feature*>(it.first);
         if (base) {
             PartGui::ViewProviderPartExt* svp = dynamic_cast<PartGui::ViewProviderPartExt*>(
@@ -119,7 +120,7 @@ void ViewProviderSections::highlightReferences(ShapeType type, const References&
                         TopExp::MapShapes(base->Shape.getValue(), TopAbs_VERTEX, vMap);
                         colors.resize(vMap.Extent(), svp->PointColor.getValue());
 
-                        for (auto jt : it.second) {
+                        for (const auto& jt : it.second) {
                             // check again that the index is in range because it's possible that the
                             // sub-names are invalid
                             std::size_t idx = static_cast<std::size_t>(std::stoi(jt.substr(6)) - 1);
@@ -140,7 +141,7 @@ void ViewProviderSections::highlightReferences(ShapeType type, const References&
                         TopExp::MapShapes(base->Shape.getValue(), TopAbs_EDGE, eMap);
                         colors.resize(eMap.Extent(), svp->LineColor.getValue());
 
-                        for (auto jt : it.second) {
+                        for (const auto& jt : it.second) {
                             std::size_t idx = static_cast<std::size_t>(std::stoi(jt.substr(4)) - 1);
                             // check again that the index is in range because it's possible that the
                             // sub-names are invalid
@@ -161,7 +162,7 @@ void ViewProviderSections::highlightReferences(ShapeType type, const References&
                         TopExp::MapShapes(base->Shape.getValue(), TopAbs_FACE, fMap);
                         colors.resize(fMap.Extent(), svp->ShapeColor.getValue());
 
-                        for (auto jt : it.second) {
+                        for (const auto& jt : it.second) {
                             std::size_t idx = static_cast<std::size_t>(std::stoi(jt.substr(4)) - 1);
                             // check again that the index is in range because it's possible that the
                             // sub-names are invalid
@@ -187,7 +188,7 @@ class SectionsPanel::ShapeSelection : public Gui::SelectionFilterGate
 {
 public:
     ShapeSelection(SectionsPanel::SelectionMode& mode, Surface::Sections* editedObject)
-        : Gui::SelectionFilterGate(static_cast<Gui::SelectionFilter*>(nullptr))
+        : Gui::SelectionFilterGate(nullPointer())
         , mode(mode)
         , editedObject(editedObject)
     {
@@ -228,9 +229,9 @@ private:
             return false;
 
         auto links = editedObject->NSections.getSubListValues();
-        for (auto it : links) {
+        for (const auto& it : links) {
             if (it.first == pObj) {
-                for (auto jt : it.second) {
+                for (const auto& jt : it.second) {
                     if (jt == sSubName)
                         return !appendEdges;
                 }
@@ -294,8 +295,8 @@ void SectionsPanel::setEditedObject(Surface::Sections* fea)
         ui->listSections->addItem(item);
 
         QString text = QString::fromLatin1("%1.%2")
-                .arg(QString::fromUtf8(obj->Label.getValue()))
-                .arg(QString::fromStdString(edge));
+                .arg(QString::fromUtf8(obj->Label.getValue()),
+                     QString::fromStdString(edge));
         item->setText(text);
 
         // The user data field of a list widget item
@@ -427,8 +428,8 @@ void SectionsPanel::onSelectionChanged(const Gui::SelectionChanges& msg)
 
             Gui::SelectionObject sel(msg);
             QString text = QString::fromLatin1("%1.%2")
-                    .arg(QString::fromUtf8(sel.getObject()->Label.getValue()))
-                    .arg(QString::fromLatin1(msg.pSubName));
+                    .arg(QString::fromUtf8(sel.getObject()->Label.getValue()),
+                         QString::fromLatin1(msg.pSubName));
             item->setText(text);
 
             QList<QVariant> data;
@@ -554,7 +555,7 @@ TaskSections::TaskSections(ViewProviderSections* vp, Surface::Sections* obj)
     widget1 = new SectionsPanel(vp, obj);
     Gui::TaskView::TaskBox* taskbox1 = new Gui::TaskView::TaskBox(
         Gui::BitmapFactory().pixmap("Surface_Sections"),
-        widget1->windowTitle(), true, 0);
+        widget1->windowTitle(), true, nullptr);
     taskbox1->groupLayout()->addWidget(widget1);
     Content.push_back(taskbox1);
 }

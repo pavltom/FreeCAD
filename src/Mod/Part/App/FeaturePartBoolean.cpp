@@ -20,19 +20,20 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
+# include <memory>
+
 # include <BRepAlgoAPI_BooleanOperation.hxx>
 # include <BRepCheck_Analyzer.hxx>
 # include <Standard_Failure.hxx>
-# include <memory>
 #endif
+
+#include <App/Application.h>
+#include <Base/Parameter.h>
 
 #include "FeaturePartBoolean.h"
 #include "modelRefine.h"
-#include <App/Application.h>
-#include <Base/Parameter.h>
 
 
 using namespace Part;
@@ -42,8 +43,8 @@ PROPERTY_SOURCE_ABSTRACT(Part::Boolean, Part::Feature)
 
 Boolean::Boolean(void)
 {
-    ADD_PROPERTY(Base,(0));
-    ADD_PROPERTY(Tool,(0));
+    ADD_PROPERTY(Base,(nullptr));
+    ADD_PROPERTY(Tool,(nullptr));
     ADD_PROPERTY_TYPE(History,(ShapeHistory()), "Boolean", (App::PropertyType)
         (App::Prop_Output|App::Prop_Transient|App::Prop_Hidden), "Shape history");
     History.setSize(0);

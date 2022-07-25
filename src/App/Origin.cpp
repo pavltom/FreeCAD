@@ -28,13 +28,13 @@
 #include <string>
 #endif
 
+#include <App/Document.h>
 #include <Base/Exception.h>
 #include <Base/Placement.h>
 
-#include <App/Document.h>
+#include "Origin.h"
 #include "OriginFeature.h"
 
-#include "Origin.h"
 
 #ifndef M_PI
 #define M_PI       3.14159265358979323846
@@ -49,7 +49,7 @@ const char* Origin::AxisRoles[3] = {"X_Axis", "Y_Axis", "Z_Axis"};
 const char* Origin::PlaneRoles[3] = {"XY_Plane", "XZ_Plane", "YZ_Plane"};
 
 Origin::Origin(void) : extension(this) {
-    ADD_PROPERTY_TYPE ( OriginFeatures, (0), 0, App::Prop_Hidden,
+    ADD_PROPERTY_TYPE ( OriginFeatures, (nullptr), 0, App::Prop_Hidden,
             "Axis and baseplanes controlled by the origin" );
 
     setStatus(App::NoAutoExpand,true);
@@ -197,7 +197,7 @@ void Origin::OriginExtension::initExtension(ExtensionContainer* obj) {
 }
 
 bool Origin::OriginExtension::extensionGetSubObject(DocumentObject *&ret, const char *subname,
-                                                    PyObject **, Base::Matrix4D *, bool, int) const {
+                                                    PyObject **pyobj, Base::Matrix4D *mat, bool, int depth) const {
     if (!subname || subname[0] == '\0') {
         return false;
     }
@@ -217,6 +217,14 @@ bool Origin::OriginExtension::extensionGetSubObject(DocumentObject *&ret, const 
 
     try {
         ret = obj->getOriginFeature(name.c_str());
+        if (!ret)
+            return false;
+        const char *dot = strchr(subname, '.');
+        if (dot)
+            subname = dot+1;
+        else
+            subname = "";
+        ret = ret->getSubObject(subname, pyobj, mat, true, depth+1);
         return true;
     }
     catch (const Base::Exception& e) {

@@ -25,6 +25,7 @@
 #ifndef BASE_FILEINFO_H
 #define BASE_FILEINFO_H
 
+#include <boost/filesystem.hpp>
 #include <string>
 #include <vector>
 #include <Base/TimeInfo.h>
@@ -66,7 +67,8 @@ public:
     std::string fileName () const;
     /// Returns the name of the file, excluding the path and the extension.
     std::string fileNamePure () const;
-    /// Convert the path name into a UCS-2 encoded wide string format.
+    /// Convert the path name into a UTF-16 encoded wide string format.
+    /// @note: Use this function on Windows only.
     std::wstring toStdWString() const;
     /** Returns the extension of the file.
      * The extension consists of all characters in the file after (but not including)
@@ -116,6 +118,8 @@ public:
     //@{
     /// Creates a directory. Returns true if successful; otherwise returns false.
     bool createDirectory( ) const;
+    /// Creates a directory and all its parent directories. Returns true if successful; otherwise returns false.
+    bool createDirectories() const;
     /// Get a list of the directory content
     std::vector<Base::FileInfo> getDirectoryContent() const;
     /// Delete an empty directory
@@ -137,6 +141,10 @@ public:
     static std::string getTempFileName(const char* FileName=nullptr, const char* path=nullptr);
     /// Get the path to the dir which is considered to temp files
     static const std::string &getTempPath();
+    /// Convert from filesystem path to string
+    static std::string pathToString(const boost::filesystem::path& p);
+    /// Convert from string to filesystem path
+    static boost::filesystem::path stringToPath(const std::string& str);
     //@}
 
 protected:

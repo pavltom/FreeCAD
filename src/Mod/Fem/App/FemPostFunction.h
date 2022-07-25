@@ -20,18 +20,19 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef Fem_FemPostFunction_H
 #define Fem_FemPostFunction_H
 
-#include "FemPostObject.h"
-#include <App/PropertyUnits.h>
-
-#include <vtkSmartPointer.h>
+#include <vtkBoundingBox.h>
 #include <vtkImplicitFunction.h>
 #include <vtkPlane.h>
 #include <vtkSphere.h>
-#include <vtkBoundingBox.h>
+#include <vtkSmartPointer.h>
+
+#include <App/PropertyUnits.h>
+
+#include "FemPostObject.h"
+
 
 namespace Fem
 {
@@ -101,6 +102,8 @@ public:
 
 protected:
     virtual void onChanged(const App::Property* prop);
+    /// get called after a document has been fully restored
+    virtual void onDocumentRestored();
 
     vtkSmartPointer<vtkPlane> m_plane;
 };

@@ -36,9 +36,9 @@
 #include <Mod/Spreadsheet/App/Utils.h>
 #include "../App/Sheet.h"
 #include <Gui/Command.h>
+#include <Base/Interpreter.h>
 #include <Base/Tools.h>
 #include <Base/UnitsApi.h>
-#include <boost_bind_bind.hpp>
 
 using namespace SpreadsheetGui;
 using namespace Spreadsheet;
@@ -77,86 +77,15 @@ int SheetModel::columnCount(const QModelIndex &parent) const
     return 26 * 26 + 26;
 }
 
-#if 0 // obsolete function
-static void appendUnit(int l, bool isNumerator, std::string unit, std::vector<std::string> & v)
-{
-    if (l == 0)
-        return;
-    if ((l < 0) ^ isNumerator ) {
-        std::ostringstream s;
-
-        s << unit;
-        if (abs(l) > 1)
-            s << "^" << abs(l);
-
-        v.push_back(s.str());
-    }
-}
-
-static std::string getUnitString(const Base::Unit & unit)
-{
-    std::vector<std::string> numerator;
-    std::vector<std::string> denominator;
-    const Base::UnitSignature & sig = unit.getSignature();
-
-    // Nominator
-    appendUnit(sig.Length, true, "mm", numerator);
-    appendUnit(sig.Mass, true, "kg", numerator);
-    appendUnit(sig.Time, true, "s", numerator);
-    appendUnit(sig.ElectricCurrent, true, "A", numerator);
-    appendUnit(sig.ThermodynamicTemperature, true, "K", numerator);
-    appendUnit(sig.AmountOfSubstance, true, "mol", numerator);
-    appendUnit(sig.LuminousIntensity, true, "cd", numerator);
-    appendUnit(sig.Angle, true, "deg", numerator);
-
-    // Denominator
-    appendUnit(sig.Length, false, "mm", denominator);
-    appendUnit(sig.Mass, false, "kg", denominator);
-    appendUnit(sig.Time, false, "s", denominator);
-    appendUnit(sig.ElectricCurrent, false, "A", denominator);
-    appendUnit(sig.ThermodynamicTemperature, false, "K", denominator);
-    appendUnit(sig.AmountOfSubstance, false, "mol", denominator);
-    appendUnit(sig.LuminousIntensity, false, "cd", denominator);
-    appendUnit(sig.Angle, false, "deg", denominator);
-
-    std::string unitStr;
-
-    if (numerator.size() > 0) {
-        for (std::size_t i = 0; i < numerator.size(); ++i) {
-            if (i > 0)
-                unitStr += "*";
-            unitStr += numerator[i];
-        }
-    }
-
-    if (denominator.size() > 0) {
-        if (numerator.size() == 0)
-            unitStr = "1";
-        unitStr += "/";
-
-        if (denominator.size() > 1)
-            unitStr += "(";
-        for (std::size_t i = 0; i < denominator.size(); ++i) {
-            if (i > 0)
-                unitStr += "*";
-            unitStr += denominator[i];
-        }
-        if (denominator.size() > 1)
-            unitStr += ")";
-    }
-
-    return unitStr;
-}
-#endif
 
 QVariant SheetModel::data(const QModelIndex &index, int role) const
 {
-    static const Cell * emptyCell = new Cell(CellAddress(0, 0), 0);
+    static const Cell * emptyCell = new Cell(CellAddress(0, 0), nullptr);
     int row = index.row();
     int col = index.column();
     const Cell * cell = sheet->getCell(CellAddress(row, col));
 
-    if (cell == 0)
+    if (!cell)
         cell = emptyCell;
 
 //#define DEBUG_DEPS
@@ -387,11 +316,6 @@ QVariant SheetModel::data(const QModelIndex &index, int role) const
                 }
             }
             else {
-                //QString number = QLocale().toString(floatProp->getValue(),'f',Base::UnitsApi::getDecimals());
-                //if (!computedUnit.isEmpty())
-                //    v = number + Base::Tools::fromStdString(" " + getUnitString(computedUnit));
-                //else
-                //    v = number;
 
                 // When displaying a quantity then use the globally set scheme
                 // See: https://forum.freecadweb.org/viewtopic.php?f=3&t=50078
@@ -539,6 +463,25 @@ QVariant SheetModel::headerData(int section, Qt::Orientation orientation, int ro
     return QVariant();
 }
 
+void SheetModel::setCellData(QModelIndex index, QString str)
+{
+    try {
+        CellAddress address(index.row(), index.column());
+        Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Edit cell"));
+        // Because of possible complication of recursively escaped
+        // characters, let's take a shortcut and bypass the command
+        // interface for now.
+
+        sheet->setContent(address, str.toUtf8().constData());
+        Gui::Command::commitCommand();
+        Gui::Command::doCommand(Gui::Command::Doc, "App.ActiveDocument.recompute()");
+    }
+    catch (const Base::Exception& e) {
+        e.ReportException();
+        Gui::Command::abortCommand();
+    }
+}
+
 bool SheetModel::setData(const QModelIndex & index, const QVariant & value, int role)
 {
     if (role == Qt::DisplayRole) {
@@ -547,39 +490,19 @@ bool SheetModel::setData(const QModelIndex & index, const QVariant & value, int 
     else if (role == Qt::EditRole) {
         CellAddress address(index.row(), index.column());
 
-        try {
-            QString str = value.toString();
+        QString str = value.toString();
 
-            // Check to see if this is already the value in the cell, and skip the update if so
-            auto cell = sheet->getCell(address);
-            if (cell) {
-                std::string oldContent;
-                cell->getStringContent(oldContent);
-                if (str == QString::fromStdString(oldContent))
-                    return true;
-            }
+        // Check to see if this is already the value in the cell, and skip the update if so
+        auto cell = sheet->getCell(address);
+        if (cell) {
+            std::string oldContent;
+            cell->getStringContent(oldContent);
+            if (str == QString::fromStdString(oldContent))
+                return true;
+        }
 
-            Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Edit cell"));
-            // Because of possible complication of recursively escaped
-            // characters, let's take a shortcut and bypass the command
-            // interface for now.
-#if 0
-            std::string strAddress = address.toString();
-            str.replace(QString::fromUtf8("\\"), QString::fromUtf8("\\\\"));
-            str.replace(QString::fromUtf8("'"), QString::fromUtf8("\\'"));
-            FCMD_OBJ_CMD(sheet,"set('" << strAddress << "','" <<
-                    str.toUtf8().constData() << "')");
-#else
-            sheet->setContent(address, str.toUtf8().constData());
-#endif
-            Gui::Command::commitCommand();
-            Gui::Command::doCommand(Gui::Command::Doc, "App.ActiveDocument.recompute()");
-        }
-        catch (const Base::Exception& e) {
-            e.ReportException();
-            Gui::Command::abortCommand();
-            return false;
-        }
+        QMetaObject::invokeMethod(this, "setCellData", Qt::QueuedConnection,
+                                  Q_ARG(QModelIndex, index), Q_ARG(QString, str));
     }
     return true;
 }
@@ -593,7 +516,7 @@ void SheetModel::cellUpdated(CellAddress address)
 {
     QModelIndex i = index(address.row(), address.col());
 
-    dataChanged(i, i);
+    Q_EMIT dataChanged(i, i);
 }
 
 void SheetModel::rangeUpdated(const Range &range)
@@ -601,7 +524,7 @@ void SheetModel::rangeUpdated(const Range &range)
     QModelIndex i = index(range.from().row(), range.from().col());
     QModelIndex j = index(range.to().row(), range.to().col());
 
-    dataChanged(i, j);
+    Q_EMIT dataChanged(i, j);
 }
 
 #include "moc_SheetModel.cpp"

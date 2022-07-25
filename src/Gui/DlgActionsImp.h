@@ -53,7 +53,7 @@ class DlgCustomActionsImp : public CustomizeActionPage
     Q_OBJECT
 
 public:
-    DlgCustomActionsImp( QWidget* parent = 0 );
+    DlgCustomActionsImp( QWidget* parent = nullptr );
     ~DlgCustomActionsImp();
 
 Q_SIGNALS:
@@ -84,8 +84,6 @@ protected Q_SLOTS:
 private:
     /** Shows all actions and their pixmaps if available  */
     void showActions();
-    /** Name for the new created action */
-    QString newActionName();
 
 private:
     std::unique_ptr<Ui_DlgCustomActions> ui;

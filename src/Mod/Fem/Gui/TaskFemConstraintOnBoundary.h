@@ -21,21 +21,19 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_TASKVIEW_TaskFemConstraintOnBoundary_H
 #define GUI_TASKVIEW_TaskFemConstraintOnBoundary_H
 
-#include <Gui/TaskView/TaskView.h>
+#include <QObject>
+
 #include <Gui/Selection.h>
+#include <Gui/Widgets.h>
 #include <Gui/TaskView/TaskDialog.h>
-#include <Base/Quantity.h>
+#include <Gui/TaskView/TaskView.h>
+#include <Mod/Fem/FemGlobal.h>
 
 #include "TaskFemConstraint.h"
 
-#include <QObject>
-#include <Base/Console.h>
-#include <App/DocumentObject.h>
-#include <QKeyEvent>
 
 namespace FemGui {
 
@@ -50,23 +48,22 @@ class TaskFemConstraintOnBoundary : public TaskFemConstraint
     Q_OBJECT
 
 public:
-    TaskFemConstraintOnBoundary(ViewProviderFemConstraint *ConstraintView, QWidget *parent = 0, const char* pixmapname = "");
+    TaskFemConstraintOnBoundary(ViewProviderFemConstraint *ConstraintView, QWidget *parent = nullptr, const char* pixmapname = "");
     ~TaskFemConstraintOnBoundary();
 
 protected Q_SLOTS:
-    void _addToSelection(bool checked);
+    void onButtonToggled(QAbstractButton *button, bool checked);
     virtual void addToSelection() = 0;
-    void _removeFromSelection(bool checked);
     virtual void removeFromSelection() = 0;
 
 protected:
-    enum SelectionChangeModes {none, refAdd, refRemove};
+    enum class SelectionChangeModes {none, refAdd, refRemove};
     virtual void onSelectionChanged(const Gui::SelectionChanges&) override;
     virtual void clearButtons(const SelectionChangeModes notThis) = 0;
-    void exitSelectionChangeMode();
 
 protected:
     enum SelectionChangeModes selChangeMode;
+    Gui::ButtonGroup *buttonGroup;
 };
 
 } // namespace FemGui

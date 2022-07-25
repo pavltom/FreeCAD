@@ -20,23 +20,19 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp_Elips2d.hxx>
-# include <Geom2d_Ellipse.hxx>
 # include <GCE2d_MakeArcOfEllipse.hxx>
-# include <GCE2d_MakeEllipse.hxx>
+# include <Geom2d_Ellipse.hxx>
 # include <Geom2d_TrimmedCurve.hxx>
+# include <gp_Elips2d.hxx>
 #endif
 
-#include <Mod/Part/App/Geometry2d.h>
-#include <Mod/Part/App/Geom2d/ArcOfEllipse2dPy.h>
-#include <Mod/Part/App/Geom2d/ArcOfEllipse2dPy.cpp>
-#include <Mod/Part/App/Geom2d/Ellipse2dPy.h>
-#include <Mod/Part/App/OCCError.h>
+#include "Geom2d/ArcOfEllipse2dPy.h"
+#include "Geom2d/ArcOfEllipse2dPy.cpp"
+#include "Geom2d/Ellipse2dPy.h"
+#include "OCCError.h"
 
-#include <Base/GeometryPyCXX.h>
 
 using namespace Part;
 
@@ -64,7 +60,7 @@ int ArcOfEllipse2dPy::PyInit(PyObject* args, PyObject* /*kwds*/)
         try {
             Handle(Geom2d_Ellipse) ellipse = Handle(Geom2d_Ellipse)::DownCast
                 (static_cast<Ellipse2dPy*>(o)->getGeom2dEllipsePtr()->handle());
-            GCE2d_MakeArcOfEllipse arc(ellipse->Elips2d(), u1, u2, PyObject_IsTrue(sense) ? Standard_True : Standard_False);
+            GCE2d_MakeArcOfEllipse arc(ellipse->Elips2d(), u1, u2, Base::asBoolean(sense));
             if (!arc.IsDone()) {
                 PyErr_SetString(PartExceptionOCCError, gce_ErrorStatusText(arc.Status()));
                 return -1;
@@ -119,7 +115,7 @@ Py::Object ArcOfEllipse2dPy::getEllipse(void) const
 
 PyObject *ArcOfEllipse2dPy::getCustomAttributes(const char* ) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ArcOfEllipse2dPy::setCustomAttributes(const char* , PyObject *)

@@ -20,18 +20,15 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
-#ifndef _PreComp_
-#endif
 
 #include "HLRBRep/HLRToShapePy.h"
 #include "HLRBRep/HLRToShapePy.cpp"
 #include "HLRBRep/HLRBRep_AlgoPy.h"
-#include <Mod/Part/App/TopoShapePy.h>
+#include "TopoShapePy.h"
+
 
 using namespace Part;
-
 
 PyObject *HLRToShapePy::PyMake(struct _typeobject *, PyObject *, PyObject *)
 {
@@ -255,14 +252,12 @@ PyObject* HLRToShapePy::compoundOfEdges(PyObject *args, PyObject *kwds)
     if (shape) {
         TopoDS_Shape input = static_cast<TopoShapePy*>(shape)->getTopoShapePtr()->getShape();
         TopoDS_Shape result = getHLRBRep_HLRToShapePtr()->CompoundOfEdges(input, static_cast<HLRBRep_TypeOfResultingEdge>(type),
-                                                                          PyObject_IsTrue(visible) ? Standard_True : Standard_False,
-                                                                          PyObject_IsTrue(in3d) ? Standard_True : Standard_False);
+                                                                          Base::asBoolean(visible), Base::asBoolean(in3d));
         return new TopoShapePy(new TopoShape(result));
     }
     else {
         TopoDS_Shape result = getHLRBRep_HLRToShapePtr()->CompoundOfEdges(static_cast<HLRBRep_TypeOfResultingEdge>(type),
-                                                                          PyObject_IsTrue(visible) ? Standard_True : Standard_False,
-                                                                          PyObject_IsTrue(in3d) ? Standard_True : Standard_False);
+                                                                          Base::asBoolean(visible), Base::asBoolean(in3d));
         return new TopoShapePy(new TopoShape(result));
     }
 }

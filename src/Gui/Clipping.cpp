@@ -29,12 +29,10 @@
 # include <Inventor/sensors/SoTimerSensor.h>
 # include <QDockWidget>
 # include <QPointer>
-# include <cmath>
 #endif
 
 #include "Clipping.h"
 #include "ui_Clipping.h"
-#include "Application.h"
 #include "DockWindowManager.h"
 #include "View3DInventor.h"
 #include "View3DInventorViewer.h"
@@ -76,7 +74,7 @@ public:
         clipView->plane.setValue(SbPlane(SbVec3f(0,0,1),0));
         clipView->ref();
 
-        node = 0;
+        node = nullptr;
         sensor = new SoTimerSensor(moveCallback, this);
     }
     ~Private()
@@ -90,7 +88,7 @@ public:
     static void moveCallback(void * data, SoSensor * sensor)
     {
         Q_UNUSED(sensor);
-        Private* self = reinterpret_cast<Private*>(data);
+        Private* self = static_cast<Private*>(data);
         if (self->view) {
             Gui::View3DInventorViewer* view = self->view->getViewer();
             SoClipPlane* clip = self->clipView;

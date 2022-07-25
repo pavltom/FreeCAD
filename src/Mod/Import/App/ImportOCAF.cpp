@@ -75,11 +75,7 @@
 # include <TopoDS_Iterator.hxx>
 # include <APIHeaderSection_MakeHeader.hxx>
 # include <OSD_Exception.hxx>
-#if OCC_VERSION_HEX >= 0x060500
 # include <TDataXtd_Shape.hxx>
-# else
-# include <TDataStd_Shape.hxx>
-# endif
 #endif
 
 #include <boost/algorithm/string.hpp>
@@ -270,7 +266,7 @@ void ImportOCAF::loadShapes(const TDF_Label& label, const TopLoc_Location& loc,
 
             if (!localValue.empty()) {
                 if (aShapeTool->IsAssembly(label)) {
-                    App::Part *pcPart = NULL;
+                    App::Part *pcPart = nullptr;
                     pcPart = static_cast<App::Part*>(doc->addObject("App::Part",asm_name.c_str()));
                     pcPart->Label.setValue(asm_name);
                     pcPart->addObjects(localValue);
@@ -310,7 +306,7 @@ void ImportOCAF::createShape(const TDF_Label& label, const TopLoc_Location& loc,
         TopExp_Explorer xp;
         int ctSolids = 0, ctShells = 0, ctVertices = 0, ctEdges = 0;
         std::vector<App::DocumentObject *> localValue;
-        App::Part *pcPart = NULL;
+        App::Part *pcPart = nullptr;
 
         if (mergeShape) {
 

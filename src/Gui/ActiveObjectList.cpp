@@ -24,19 +24,17 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-
-#endif
-
-#include <Base/Console.h>
-#include "ActiveObjectList.h"
+#include <App/Document.h>
 #include <Gui/Application.h>
 #include <Gui/Document.h>
 #include <Gui/Selection.h>
 #include <Gui/ViewProviderDocumentObject.h>
+
+#include "ActiveObjectList.h"
 #include "Tree.h"
 
-FC_LOG_LEVEL_INIT("MDIView",true,true)
+
+FC_LOG_LEVEL_INIT("MDIView", true, true)
 
 using namespace Gui;
 
@@ -92,7 +90,7 @@ Gui::ActiveObjectList::ObjectInfo Gui::ActiveObjectList::getObjectInfo(App::Docu
         // If the input object is not from this document, it must be brought in
         // by some link type object of this document. We only accept the object
         // if we can find such object in the current selection.
-        auto sels = Gui::Selection().getSelection(_Doc->getDocument()->getName(),false);
+        auto sels = Gui::Selection().getSelection(_Doc->getDocument()->getName(), ResolveMode::NoResolve);
         for (auto &sel : sels) {
             if (sel.pObject == obj || sel.pObject->getLinkedObject(true)==obj) {
                 info.obj = sel.pObject;

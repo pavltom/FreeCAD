@@ -20,12 +20,13 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef PART_CROSSSECTION_H
 #define PART_CROSSSECTION_H
 
 #include <list>
 #include <TopTools_IndexedMapOfShape.hxx>
+#include <Mod/Part/PartGlobal.h>
+
 
 class TopoDS_Shape;
 class TopoDS_Wire;

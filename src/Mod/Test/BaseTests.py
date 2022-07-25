@@ -101,6 +101,11 @@ class ConsoleTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def testILoggerBlocker(self):
+        if FreeCAD.GuiUp:
+            import QtUnitGui
+            QtUnitGui.testILoggerBlocker()
+
 class ParameterTestCase(unittest.TestCase):
     def setUp(self):
         self.TestPar = FreeCAD.ParamGet("System parameter:Test")
@@ -114,6 +119,15 @@ class ParameterTestCase(unittest.TestCase):
         self.TestPar.RemGroup("44")
         self.assertTrue(self.TestPar.HasGroup("44"),"A referenced group must not be deleted")
         Temp = 0
+
+    def testGroupNames(self):
+        with self.assertRaises(ValueError):
+            # no empty groups allowed
+            self.TestPar.GetGroup("")
+        grp1 = self.TestPar.GetGroup("////Sub1/////Sub2/////")
+        grp2 = self.TestPar.GetGroup("Sub1/Sub2")
+        self.assertEqual(grp1.GetGroupName(), "Sub2")
+        self.assertEqual(grp2.GetGroupName(), "Sub2")
 
     # check on special conditions
     def testInt(self):
@@ -156,11 +170,60 @@ class ParameterTestCase(unittest.TestCase):
         self.TestPar.RemString("44")
         self.assertEqual(self.TestPar.GetString("44","hallo"), "hallo","Deletion error at String")
 
+    def testNesting(self):
+        # Parameter testing
+        #FreeCAD.Console.PrintLog("Base::ParameterTestCase::testNesting\n")
+        for i in range(50):
+            self.TestPar.SetFloat(str(i),4711.4711)
+            self.TestPar.SetInt(str(i),4711)
+            self.TestPar.SetBool(str(i),1)
+            Temp = self.TestPar.GetGroup(str(i))
+            for l in range(50):
+                Temp.SetFloat(str(l),4711.4711)
+                Temp.SetInt(str(l),4711)
+                Temp.SetBool(str(l),1)
+        Temp = 0
+
+    def testExportImport(self):
+        # Parameter testing
+        #FreeCAD.Console.PrintLog("Base::ParameterTestCase::testNesting\n")
+        self.TestPar.SetFloat("ExTest",4711.4711)
+        self.TestPar.SetInt("ExTest",4711)
+        self.TestPar.SetString("ExTest","4711")
+        self.TestPar.SetBool("ExTest",1)
+        Temp = self.TestPar.GetGroup("ExTest")
+        Temp.SetFloat("ExTest",4711.4711)
+        Temp.SetInt("ExTest",4711)
+        Temp.SetString("ExTest","4711")
+        Temp.SetBool("ExTest",1)
+        TempPath = tempfile.gettempdir() + os.sep + "ExportTest.FCExport"
+
+        self.TestPar.Export(TempPath)
+        Temp = self.TestPar.GetGroup("ImportTest")
+        Temp.Import(TempPath)
+        self.assertEqual(Temp.GetFloat("ExTest"), 4711.4711,"ExportImport error")
+        Temp = 0
+
+    def tearDown(self):
+        #remove all
+        TestPar = FreeCAD.ParamGet("System parameter:Test")
+        TestPar.Clear()
+
+class AlgebraTestCase(unittest.TestCase):
+    def setUp(self):
+        pass
+
     def testAngle(self):
         v1 = FreeCAD.Vector(0,0,0.000001)
         v2 = FreeCAD.Vector(0,0.000001,0)
         self.assertAlmostEqual(v1.getAngle(v2), math.pi/2)
         self.assertAlmostEqual(v2.getAngle(v1), math.pi/2)
+
+    def testVector2d(self):
+        v = FreeCAD.Base.Vector2d(1.0, 1.0)
+        v.rotate(math.pi/2)
+        self.assertAlmostEqual(v.x, -1.0)
+        self.assertAlmostEqual(v.y, 1.0)
 
     def testAngleWithNullVector(self):
         v1 = FreeCAD.Vector(0,0,0)
@@ -266,6 +329,11 @@ class ParameterTestCase(unittest.TestCase):
         self.assertAlmostEqual(a[2], 30.0)
         self.assertTrue(r.isSame(s, 1e-12))
 
+    def testInverted(self):
+        p = FreeCAD.Placement()
+        p.Rotation.Angle = math.pi / 2
+        self.assertEqual(abs(p.inverse().Rotation.Angle), p.Rotation.Angle)
+
     def testYawPitchRoll(self):
         def getYPR1(yaw, pitch, roll):
             r = FreeCAD.Rotation()
@@ -313,48 +381,16 @@ class ParameterTestCase(unittest.TestCase):
         self.assertFalse(b.intersected(FreeCAD.BoundBox(4,4,4,6,6,6)).isValid(),"Bbox should not intersect with Bbox outside")
         self.assertEqual(b.intersected(FreeCAD.BoundBox(-2,-2,-2,2,2,2)).Center, b.Center,"Bbox is not a full subset")
 
-    def testNesting(self):
-        # Parameter testing
-        #FreeCAD.Console.PrintLog("Base::ParameterTestCase::testNesting\n")
-        for i in range(50):
-            self.TestPar.SetFloat(str(i),4711.4711)
-            self.TestPar.SetInt(str(i),4711)
-            self.TestPar.SetBool(str(i),1)
-            Temp = self.TestPar.GetGroup(str(i))
-            for l in range(50):
-                Temp.SetFloat(str(l),4711.4711)
-                Temp.SetInt(str(l),4711)
-                Temp.SetBool(str(l),1)
-        Temp = 0
-
-    def testExportImport(self):
-        # Parameter testing
-        #FreeCAD.Console.PrintLog("Base::ParameterTestCase::testNesting\n")
-        self.TestPar.SetFloat("ExTest",4711.4711)
-        self.TestPar.SetInt("ExTest",4711)
-        self.TestPar.SetString("ExTest","4711")
-        self.TestPar.SetBool("ExTest",1)
-        Temp = self.TestPar.GetGroup("ExTest")
-        Temp.SetFloat("ExTest",4711.4711)
-        Temp.SetInt("ExTest",4711)
-        Temp.SetString("ExTest","4711")
-        Temp.SetBool("ExTest",1)
-        TempPath = tempfile.gettempdir() + os.sep + "ExportTest.FCExport"
-
-        self.TestPar.Export(TempPath)
-        Temp = self.TestPar.GetGroup("ImportTest")
-        Temp.Import(TempPath)
-        self.assertEqual(Temp.GetFloat("ExTest"), 4711.4711,"ExportImport error")
-        Temp = 0
-
-    def tearDown(self):
-        #remove all
-        TestPar = FreeCAD.ParamGet("System parameter:Test")
-        TestPar.Clear()
-
 class MatrixTestCase(unittest.TestCase):
     def setUp(self):
         self.mat = FreeCAD.Matrix()
+
+    def testOrder(self):
+        self.mat = FreeCAD.Matrix(1.0,2.0,3.0,4.0)
+        self.assertEqual(self.mat.A11, 1.0)
+        self.assertEqual(self.mat.A12, 2.0)
+        self.assertEqual(self.mat.A13, 3.0)
+        self.assertEqual(self.mat.A14, 4.0)
 
     def testScalar(self):
         res = self.mat * 0.0
@@ -379,6 +415,11 @@ class MatrixTestCase(unittest.TestCase):
         self.assertEqual(vec.y, 1.0)
         self.assertEqual(vec.z, 1.0)
 
+    def testVectorMult(self):
+        vec = FreeCAD.Vector(1, 1, 1)
+        with self.assertRaises(TypeError):
+            vec * "string"
+
     def testRotation(self):
         rot = FreeCAD.Rotation()
         res = self.mat * rot
@@ -393,6 +434,24 @@ class MatrixTestCase(unittest.TestCase):
         mat = FreeCAD.Matrix()
         res = self.mat * mat
         self.assertEqual(type(res), FreeCAD.Matrix)
+
+    def testMatrixPlacementMatrix(self):
+        # Example taken from https://forum.freecadweb.org/viewtopic.php?f=3&t=61000
+        mat = FreeCAD.Matrix(-0.470847778020266,
+                             0.8150598976807029,
+                             0.3376088628746235,
+                             -11.25290913640202,
+                             -0.8822144756796808,
+                             -0.4350066260577338,
+                             -0.180185641360483,
+                             -2876.45492562325,
+                             1.955470978815492e-9,
+                             -0.3826834326750831,
+                             0.923879538425552,
+                             941.3822018176414)
+        plm = FreeCAD.Placement(mat)
+        mat = plm.toMatrix()
+        self.assertEqual(mat.hasScale(), FreeCAD.ScaleType.NoScaling)
 
     def testAnything(self):
         with self.assertRaises(NotImplementedError):
@@ -422,13 +481,42 @@ class MatrixTestCase(unittest.TestCase):
     def testScale(self):
         self.mat.scale(1., 2., 3.)
         self.assertEqual(self.mat.determinant(), 6.0)
-        self.assertEqual(self.mat.hasScale(), -1)
+        self.assertEqual(self.mat.hasScale(), FreeCAD.ScaleType.NonUniformLeft)
         self.mat.unity()
-        self.assertEqual(self.mat.hasScale(), 0)
+        self.assertEqual(self.mat.hasScale(), FreeCAD.ScaleType.NoScaling)
         self.mat.scale(2., 2., 2.)
-        self.assertEqual(self.mat.hasScale(), 1)
+        self.assertEqual(self.mat.hasScale(), FreeCAD.ScaleType.Uniform)
         self.mat.rotateX(1.0)
-        self.assertEqual(self.mat.hasScale(), 1)
+        self.assertEqual(self.mat.hasScale(), FreeCAD.ScaleType.Uniform)
+        self.mat.scale(1., 2., 3.)
+        self.assertEqual(self.mat.hasScale(), FreeCAD.ScaleType.NonUniformLeft)
+        self.mat.unity()
+        self.mat.scale(1., 2., 3.)
+        self.mat.rotateX(1.0)
+        self.assertEqual(self.mat.hasScale(), FreeCAD.ScaleType.NonUniformRight)
+        self.mat.unity()
+        self.mat.setCol(0, FreeCAD.Vector(1,2,3))
+        self.mat.setCol(1, FreeCAD.Vector(1,2,3))
+        self.mat.setCol(2, FreeCAD.Vector(1,2,3))
+        self.assertEqual(self.mat.hasScale(), FreeCAD.ScaleType.Other)
+        self.mat.unity()
+        self.mat.setRow(0, FreeCAD.Vector(1,2,3))
+        self.mat.setRow(1, FreeCAD.Vector(1,2,3))
+        self.mat.setRow(2, FreeCAD.Vector(1,2,3))
+        self.assertEqual(self.mat.hasScale(), FreeCAD.ScaleType.Other)
+
+    def testShearing(self):
+        self.mat.setRow(1, FreeCAD.Vector(0,1,1))
+        self.assertEqual(self.mat.hasScale(), FreeCAD.ScaleType.Other)
+
+    def testMultLeftOrRight(self):
+        mat1 = FreeCAD.Matrix()
+        mat1.rotateX(1.0)
+
+        mat2 = FreeCAD.Matrix()
+        mat2.scale(1., 2., 3.)
+        self.assertEqual((mat1 * mat2).hasScale(), FreeCAD.ScaleType.NonUniformRight)
+        self.assertEqual((mat2 * mat1).hasScale(), FreeCAD.ScaleType.NonUniformLeft)
 
     def testNull(self):
         self.assertFalse(self.mat.isNull())

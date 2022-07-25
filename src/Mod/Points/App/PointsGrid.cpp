@@ -124,7 +124,7 @@ void PointsGrid::Rebuild (int iCtGridPerAxis)
 
 void PointsGrid::InitGrid ()
 {
-  assert(_pclPoints != nullptr);
+  assert(_pclPoints);
 
   unsigned long i, j;
 
@@ -147,17 +147,26 @@ void PointsGrid::InitGrid ()
   {
     // Offset fGridLen/2
     //
-    _fGridLenX = (1.0f + fLengthX) / double(_ulCtGridsX);
+    unsigned long num = _ulCtGridsX;
+    if (num == 0)
+        num = 1;
+    _fGridLenX = (1.0f + fLengthX) / double(num);
     _fMinX = clBBPts.MinX - 0.5f;
   }
 
   {
-    _fGridLenY = (1.0f + fLengthY) / double(_ulCtGridsY);
+      unsigned long num = _ulCtGridsY;
+      if (num == 0)
+          num = 1;
+    _fGridLenY = (1.0f + fLengthY) / double(num);
     _fMinY = clBBPts.MinY - 0.5f;
   }
 
   {
-    _fGridLenZ = (1.0f + fLengthZ) / double(_ulCtGridsZ);
+      unsigned long num = _ulCtGridsZ;
+      if (num == 0)
+          num = 1;
+    _fGridLenZ = (1.0f + fLengthZ) / double(num);
     _fMinZ = clBBPts.MinZ - 0.5f;
   }
   }
@@ -194,7 +203,7 @@ unsigned long PointsGrid::InSide (const Base::BoundBox3d &rclBB, std::vector<uns
     }
   }
 
-  if (bDelDoubles == true)
+  if (bDelDoubles)
   {
     // remove duplicate mentions
     std::sort(raulElements.begin(), raulElements.end());
@@ -228,7 +237,7 @@ unsigned long PointsGrid::InSide (const Base::BoundBox3d &rclBB, std::vector<uns
     }
   }
 
-  if (bDelDoubles == true)
+  if (bDelDoubles)
   {
     // remove duplicate mentions
     std::sort(raulElements.begin(), raulElements.end());
@@ -460,7 +469,7 @@ void PointsGrid::SearchNearestFromPoint (const Base::Vector3d &rclPt, std::set<u
   raclInd.clear();
   Base::BoundBox3d  clBB = GetBoundBox();
 
-  if (clBB.IsInBox(rclPt) == true)
+  if (clBB.IsInBox(rclPt))
   { // Point lies within
     unsigned long ulX, ulY, ulZ;
     Position(rclPt, ulX, ulY, ulZ);
@@ -647,7 +656,7 @@ void PointsGrid::Validate (const PointKernel &rclPoints)
 
 void PointsGrid::Validate ()
 {
-  if (_pclPoints == nullptr)
+  if (!_pclPoints)
     return;
 
   if (_pclPoints->size() != _ulCtElements)
@@ -669,7 +678,7 @@ bool PointsGrid::Verify() const
     for ( std::vector<unsigned long>::iterator itP = aulElements.begin(); itP != aulElements.end(); ++itP )
     {
       const Base::Vector3d& cP = _pclPoints->getPoint(*itP);
-      if ( it.GetBoundBox().IsInBox( cP ) == false )
+      if (!it.GetBoundBox().IsInBox(cP))
         return false; // point doesn't lie inside the grid element
     }
   }
@@ -748,7 +757,7 @@ bool PointsGridIterator::InitOnRay (const Base::Vector3d &rclPt, const Base::Vec
   _bValidRay = false;
 
   // point lies within global BB
-  if ((_rclGrid.GetBoundBox().IsInBox(rclPt)) == true)
+  if (_rclGrid.GetBoundBox().IsInBox(rclPt))
   {  // determine the voxel by the starting point
     _rclGrid.Position(rclPt, _ulX, _ulY, _ulZ);
     raulElements.insert(raulElements.end(), _rclGrid._aulGrid[_ulX][_ulY][_ulZ].begin(), _rclGrid._aulGrid[_ulX][_ulY][_ulZ].end());
@@ -757,7 +766,7 @@ bool PointsGridIterator::InitOnRay (const Base::Vector3d &rclPt, const Base::Vec
   else
   { // StartPoint outside
     Base::Vector3d cP0, cP1;
-    if (_rclGrid.GetBoundBox().IntersectWithLine(rclPt, rclDir, cP0, cP1) == true)
+    if (_rclGrid.GetBoundBox().IntersectWithLine(rclPt, rclDir, cP0, cP1))
     {  // determine the next point
       if ((cP0 - rclPt).Length() < (cP1 - rclPt).Length())
         _rclGrid.Position(cP0, _ulX, _ulY, _ulZ);
@@ -774,7 +783,7 @@ bool PointsGridIterator::InitOnRay (const Base::Vector3d &rclPt, const Base::Vec
 
 bool PointsGridIterator::NextOnRay (std::vector<unsigned long> &raulElements)
 {
-  if (_bValidRay == false)
+  if (!_bValidRay)
     return false;  // not initialized or beam exited
 
   raulElements.clear();
@@ -812,7 +821,7 @@ bool PointsGridIterator::NextOnRay (std::vector<unsigned long> &raulElements)
       _bValidRay = false; // grid element already visited => result from GetSideFromRay invalid
   }
 
-  if ((_bValidRay == true) && (_rclGrid.CheckPos(_ulX, _ulY, _ulZ) == true))
+  if (_bValidRay && _rclGrid.CheckPos(_ulX, _ulY, _ulZ))
   {
     GridElement pos(_ulX, _ulY, _ulZ); _cSearchPositions.insert(pos);
     raulElements.insert(raulElements.end(), _rclGrid._aulGrid[_ulX][_ulY][_ulZ].begin(), _rclGrid._aulGrid[_ulX][_ulY][_ulZ].end());

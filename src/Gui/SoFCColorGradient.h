@@ -20,15 +20,15 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_SOFCCOLORGRADIENT_H
 #define GUI_SOFCCOLORGRADIENT_H
 
-#include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/SbBox2f.h>
-#include "SoFCColorBar.h"
-#include <App/ColorModel.h>
 #include <vector>
+#include <Inventor/SbBox2f.h>
+#include <Inventor/nodes/SoSeparator.h>
+
+#include "SoFCColorBar.h"
+
 
 class SoCoordinate3;
 class SoMFString;
@@ -68,9 +68,8 @@ public:
   float getMaxValue () const { return _cColGrad.getMaxValue(); }
   /**
    * Opens a dialog to customize the current settings of the color gradient bar.
-   * Returns true if the settings have been changed, false otherwise.
    */
-  bool customize();
+  void customize(SoFCColorBarBase*);
   /** Returns the name of the color bar. */
   const char* getColorBarName() const { return "Color Gradient"; }
 
@@ -89,10 +88,10 @@ protected:
    * Sets the color style of the underlying color gradient to \a tStyle. \a tStyle either can
    * be \c FLOW or \c ZERO_BASED
    */
-  void setColorStyle (App::ColorGradient::TStyle tStyle);
+  void setColorStyle (App::ColorBarStyle tStyle);
   /** Rebuild the gradient bar. */
   void rebuildGradient();
-  /** Returns a list of \a count labels within the ranhe [\a fMin, \a fMax].  */
+  /** Returns a list of \a count labels within the range [\a fMin, \a fMax].  */
   std::vector<float> getMarkerValues(float fMin, float fMax, int count) const;
 
 private:
@@ -104,7 +103,6 @@ private:
   SoCoordinate3* coords;
   SoSeparator* labels;
   SbBox2f _bbox;
-  bool  _bOutInvisible;
   int _precision;
   App::ColorGradient _cColGrad;
 };

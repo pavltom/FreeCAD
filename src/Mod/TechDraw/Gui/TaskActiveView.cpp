@@ -23,17 +23,19 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-
-#endif // #ifndef _PreComp_
-
 #include <QApplication>
+#include <QPushButton>
 #include <QStatusBar>
 #include <QGraphicsScene>
 #include <QTemporaryFile>
+#endif // #ifndef _PreComp_
+
 
 #include <Base/Console.h>
 #include <Base/Tools.h>
 #include <Base/UnitsApi.h>
+
+#include <App/Document.h>
 
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
@@ -52,7 +54,6 @@
 
 #include <Mod/TechDraw/Gui/ui_TaskActiveView.h>
 
-#include "DrawGuiStd.h"
 #include "QGVPage.h"
 #include "QGIView.h"
 #include "Grabber3d.h"
@@ -154,8 +155,7 @@ TechDraw::DrawViewSymbol* TaskActiveView::createActiveView(void)
 
     App::DocumentObject* newObj = m_pageFeat->getDocument()->getObject(symbolName.c_str());
     TechDraw::DrawViewSymbol* newSym = dynamic_cast<TechDraw::DrawViewSymbol*>(newObj);
-    if ( (newObj == nullptr) ||
-         (newSym == nullptr) ) {
+    if (!newObj || !newSym) {
         throw Base::RuntimeError("TaskActiveView - new symbol object not found");
     }
 
@@ -210,7 +210,7 @@ TaskDlgActiveView::TaskDlgActiveView(TechDraw::DrawPage* page)
 {
     widget  = new TaskActiveView(page);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_ActiveView"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

@@ -23,22 +23,20 @@
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <cassert>
-# include <gp_Pln.hxx>
-# include <gp_Lin.hxx>
+# include <BRep_Tool.hxx>
 # include <BRepAdaptor_Curve.hxx>
 # include <BRepAdaptor_Surface.hxx>
 # include <BRepBuilderAPI_MakeEdge.hxx>
 # include <BRepBuilderAPI_MakeFace.hxx>
 # include <BRepLProp_SLProps.hxx>
 # include <BRepMesh_IncrementalMesh.hxx>
-# include <BRep_Tool.hxx>
 # include <CSLib.hxx>
 # include <Geom_BSplineSurface.hxx>
+# include <Geom_Line.hxx>
 # include <Geom_Plane.hxx>
+# include <Geom_Point.hxx>
 # include <GeomAPI_IntSS.hxx>
 # include <GeomAPI_ProjectPointOnSurf.hxx>
-# include <Geom_Line.hxx>
-# include <Geom_Point.hxx>
 # include <GeomAdaptor_Curve.hxx>
 # include <GeomLib.hxx>
 # include <GeomLProp_SLProps.hxx>
@@ -47,14 +45,17 @@
 # include <GeomPlate_MakeApprox.hxx>
 # include <GeomPlate_PlateG0Criterion.hxx>
 # include <GeomPlate_PointConstraint.hxx>
+# include <gp_Lin.hxx>
+# include <gp_Pln.hxx>
+# include <gp_Quaternion.hxx>
 # include <Poly_Connect.hxx>
 # include <Poly_Triangulation.hxx>
 # include <Precision.hxx>
 # include <Standard_Mutex.hxx>
 # include <Standard_TypeMismatch.hxx>
 # include <Standard_Version.hxx>
-# include <TColStd_ListOfTransient.hxx>
 # include <TColStd_ListIteratorOfListOfTransient.hxx>
+# include <TColStd_ListOfTransient.hxx>
 # include <TColgp_SequenceOfXY.hxx>
 # include <TColgp_SequenceOfXYZ.hxx>
 # include <TopoDS.hxx>
@@ -65,7 +66,9 @@
 #endif
 
 #include <Base/Vector3D.h>
+
 #include "Tools.h"
+
 
 void Part::closestPointsOnLines(const gp_Lin& lin1, const gp_Lin& lin2, gp_Pnt& p1, gp_Pnt& p2)
 {
@@ -613,18 +616,25 @@ Handle (Poly_Triangulation) Part::Tools::triangulationOfFace(const TopoDS_Face& 
     double v1 = adapt.FirstVParameter();
     double v2 = adapt.LastVParameter();
 
-    // recreate a face with a clear boundary
-    u1 = std::max(-50.0, u1);
-    u2 = std::min( 50.0, u2);
-    v1 = std::max(-50.0, v1);
-    v2 = std::min( 50.0, v2);
+    auto selectRange = [](double& p1, double& p2) {
+        if (Precision::IsInfinite(p1) && Precision::IsInfinite(p2)) {
+            p1 = -50.0;
+            p2 =  50.0;
+        }
+        else if (Precision::IsInfinite(p1)) {
+            p1 = p2 - 100.0;
+        }
+        else if (Precision::IsInfinite(p2)) {
+            p2 = p1 + 100.0;
+        }
+    };
+
+    // recreate a face with a clear boundary in case it's infinite
+    selectRange(u1, u2);
+    selectRange(v1, v2);
 
     Handle(Geom_Surface) surface = BRep_Tool::Surface(face);
-    BRepBuilderAPI_MakeFace mkBuilder(surface, u1, u2, v1, v2
-#if OCC_VERSION_HEX >= 0x060502
-      , Precision::Confusion()
-#endif
-    );
+    BRepBuilderAPI_MakeFace mkBuilder(surface, u1, u2, v1, v2, Precision::Confusion() );
 
     TopoDS_Shape shape = mkBuilder.Shape();
     shape.Location(loc);
@@ -663,7 +673,7 @@ Handle(Poly_Polygon3D) Part::Tools::polygonOfEdge(const TopoDS_Edge& edge, TopLo
 // helper function to use in getNormal, here we pass the local properties
 // of the surface given by the #LProp_SLProps objects
 template <typename T>
-void getNormalBySLProp(T prop, double u, double v, Standard_Real lastU, Standard_Real lastV,
+void getNormalBySLProp(T& prop, double u, double v, Standard_Real lastU, Standard_Real lastV,
                      const Standard_Real tol, gp_Dir& dir, Standard_Boolean& done)
 {
     if (prop.D1U().Magnitude() > tol &&
@@ -712,4 +722,17 @@ void Part::Tools::getNormal(const TopoDS_Face& face, double u, double v,
 
     if (face.Orientation() == TopAbs_REVERSED)
         dir.Reverse();
+}
+
+TopLoc_Location Part::Tools::fromPlacement(const Base::Placement& plm)
+{
+    Base::Rotation r = plm.getRotation();
+    double q1, q2, q3, q4;
+    r.getValue(q1, q2, q3, q4);
+    Base::Vector3d t = plm.getPosition();
+
+    gp_Trsf trf;
+    trf.SetTranslation(gp_Vec(t.x, t.y, t.z));
+    trf.SetRotation(gp_Quaternion(q1, q2, q3, q4));
+    return {trf};
 }

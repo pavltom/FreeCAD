@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
@@ -34,13 +33,14 @@
 #include "SyntaxHighlighter.h"
 #include "Tools.h"
 
+
 using namespace Gui;
 
 /**
  *  Constructs a TextEdit which is a child of 'parent'.
  */
 TextEdit::TextEdit(QWidget* parent)
-    : QPlainTextEdit(parent), cursorPosition(0), listBox(0)
+    : QPlainTextEdit(parent), cursorPosition(0), listBox(nullptr)
 {
     //Note: Set the correct context to this shortcut as we may use several instances of this
     //class at a time
@@ -219,7 +219,7 @@ struct TextEditorP
  *  syntax highlighting for the Python language.
  */
 TextEditor::TextEditor(QWidget* parent)
-  : TextEdit(parent), WindowParameter("Editor"), highlighter(0)
+  : TextEdit(parent), WindowParameter("Editor"), highlighter(nullptr)
 {
     d = new TextEditorP();
     lineNumberArea = new LineMarker(this);
@@ -228,8 +228,6 @@ TextEditor::TextEditor(QWidget* parent)
     setFont(serifFont);
 
     ParameterGrp::handle hPrefGrp = getWindowParameter();
-    // set default to 4 characters
-    hPrefGrp->SetInt( "TabSize", 4 );
     hPrefGrp->Attach( this );
 
     // set colors and font
@@ -452,7 +450,7 @@ void TextEditor::OnChange(Base::Subject<const char*> &rCaller,const char* sReaso
         lineNumberArea->setFont(font);
     }
     else {
-        QMap<QString, QColor>::ConstIterator it = d->colormap.find(QString::fromLatin1(sReason));
+        QMap<QString, QColor>::Iterator it = d->colormap.find(QString::fromLatin1(sReason));
         if (it != d->colormap.end()) {
             QColor color = it.value();
             unsigned int col = (color.red() << 24) | (color.green() << 16) | (color.blue() << 8);
@@ -581,7 +579,7 @@ bool CompletionList::eventFilter(QObject * watched, QEvent * event)
                 hide();
                 return false;
             } else if (ke->key() == Qt::Key_Return || ke->key() == Qt::Key_Enter) {
-                itemActivated(currentItem());
+                Q_EMIT itemActivated(currentItem());
                 return true;
             }
         } else if (event->type() == QEvent::FocusOut) {

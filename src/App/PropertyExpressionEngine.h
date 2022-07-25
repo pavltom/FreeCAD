@@ -23,13 +23,12 @@
 #ifndef EXPRESSIONENGINE_H
 #define EXPRESSIONENGINE_H
 
+#include <functional>
 #include <boost/unordered/unordered_map.hpp>
-#include <boost/function.hpp>
 #include <boost_signals2.hpp>
 #include <boost_graph_adjacency_list.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <App/PropertyLinks.h>
-#include <App/Expression.h>
 #include <set>
 
 namespace Base {
@@ -43,6 +42,7 @@ class DocumentObject;
 class DocumentObjectExecReturn;
 class ObjectIdentifier;
 class Expression;
+using ExpressionPtr = std::unique_ptr<Expression>;
 
 class AppExport PropertyExpressionContainer : public App::PropertyXLinkContainer
 {
@@ -77,10 +77,10 @@ public:
     virtual Property *CopyOnLinkReplace(const App::DocumentObject *parent,
                         App::DocumentObject *oldObj, App::DocumentObject *newObj) const override;
 
-    typedef boost::function<std::string (const App::ObjectIdentifier & path, std::shared_ptr<const App::Expression> expr)> ValidatorFunc;
+    typedef std::function<std::string (const App::ObjectIdentifier & path, std::shared_ptr<const App::Expression> expr)> ValidatorFunc;
 
     /**
-     * @brief The ExpressionInfo struct encapsulates an expression and a comment.
+     * @brief The ExpressionInfo struct encapsulates an expression.
      */
 
     struct ExpressionInfo {
@@ -94,10 +94,12 @@ public:
 
         ExpressionInfo(const ExpressionInfo & other) {
             expression = other.expression;
+            busy = other.busy;
         }
 
         ExpressionInfo & operator=(const ExpressionInfo & other) {
             expression = other.expression;
+            busy = other.busy;
             return *this;
         }
     };
@@ -140,7 +142,7 @@ public:
      * 
      * @param option: execution option, see ExecuteOption.
      */
-    DocumentObjectExecReturn * execute(ExecuteOption option=ExecuteAll, bool *touched=0);
+    DocumentObjectExecReturn * execute(ExecuteOption option=ExecuteAll, bool *touched=nullptr);
 
     void getPathsToDocumentObject(DocumentObject*, std::vector<App::ObjectIdentifier> & paths) const;
 
@@ -177,7 +179,7 @@ private:
     typedef boost::adjacency_list< boost::listS, boost::vecS, boost::directedS > DiGraph;
     typedef std::pair<int, int> Edge;
     // Note: use std::map instead of unordered_map to keep the binding order stable
-    #ifdef FC_OS_MACOSX
+    #if defined(FC_OS_MACOSX) || defined(FC_OS_BSD)
     typedef std::map<App::ObjectIdentifier, ExpressionInfo> ExpressionMap;
     #else
     typedef std::map<const App::ObjectIdentifier, ExpressionInfo> ExpressionMap;

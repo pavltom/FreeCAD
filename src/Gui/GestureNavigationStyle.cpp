@@ -62,29 +62,28 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <Inventor/actions/SoRayPickAction.h>
-# include <Inventor/SoPickedPoint.h>
 # include <Inventor/SoFullPath.h>
+# include <Inventor/SoPickedPoint.h>
+# include <Inventor/actions/SoRayPickAction.h>
 # include <Inventor/draggers/SoDragger.h>
 # include <QApplication>
 #endif
 
-#include "GestureNavigationStyle.h"
+#include <QTapAndHoldGesture>
 
 #include <App/Application.h>
 #include <Base/Interpreter.h>
 #include <Base/Console.h>
-#include "View3DInventorViewer.h"
+
+#include "GestureNavigationStyle.h"
 #include "Application.h"
 #include "SoTouchEvents.h"
+#include "View3DInventorViewer.h"
 
-#include <QTapAndHoldGesture>
-
-#include <boost/statechart/state_machine.hpp>
-#include <boost/statechart/simple_state.hpp>
-#include <boost/statechart/state.hpp>
 #include <boost/statechart/custom_reaction.hpp>
-#include <boost/mpl/list.hpp>
+#include <boost/statechart/state_machine.hpp>
+#include <boost/statechart/state.hpp>
+
 
 namespace sc = boost::statechart;
 #define NS Gui::GestureNavigationStyle
@@ -94,7 +93,7 @@ namespace Gui {
 class NS::Event : public sc::event<NS::Event>
 {
 public:
-    Event():inventor_event(nullptr), flags(new Flags){}
+    Event():inventor_event(nullptr), modifiers{}, flags(new Flags){}
     virtual ~Event(){}
 
     void log() const {
@@ -870,7 +869,9 @@ SbBool GestureNavigationStyle::processSoEvent(const SoEvent* const ev)
     // Events when in "ready-to-seek" mode are ignored, except those
     // which influence the seek mode itself -- these are handled further
     // up the inheritance hierarchy.
-    if (this->isSeekMode()) { return superclass::processSoEvent(ev); }
+    if (this->isSeekMode()) {
+        return superclass::processSoEvent(ev);
+    }
     // Switch off viewing mode (Bug #0000911)
     if (!this->isSeekMode()&& !this->isAnimating() && this->isViewing() )
         this->setViewing(false); // by default disable viewing mode to render the scene
@@ -888,12 +889,13 @@ SbBool GestureNavigationStyle::processSoEvent(const SoEvent* const ev)
     // give the nodes in the foreground root the chance to handle events (e.g color bar)
     if (!viewer->isEditing()) {
         bool processed = handleEventInForeground(ev);
-        if (processed) return true;
+        if (processed)
+            return true;
     }
 
-    if (   (smev.isRelease(1) && this->button1down == false)
-        || (smev.isRelease(2) && this->button2down == false)
-        || (smev.isRelease(3) && this->button3down == false)) {
+    if (   (smev.isRelease(1) && !this->button1down)
+        || (smev.isRelease(2) && !this->button2down)
+        || (smev.isRelease(3) && !this->button3down)) {
         //a button release event cane, but we didn't see the corresponding down
         //event. Discard it. This discarding is relied upon in some hacks to
         //overcome buggy synthetic mouse input coming from Qt when doing

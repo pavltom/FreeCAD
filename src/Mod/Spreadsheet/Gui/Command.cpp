@@ -29,7 +29,7 @@
 # include <QTextStream>
 #endif
 
-#include <time.h>
+#include <ctime>
 #if defined(FC_OS_WIN32)
 #include <sys/timeb.h>
 #endif
@@ -105,9 +105,11 @@ bool CmdSpreadsheetMergeCells::isActive()
 {
     if (getActiveGuiDocument()) {
         Gui::MDIView* activeWindow = Gui::getMainWindow()->activeWindow();
-        if (activeWindow && freecad_dynamic_cast<SpreadsheetGui::SheetView>(activeWindow))
-            return true;
+        SpreadsheetGui::SheetView * sheetView = freecad_dynamic_cast<SpreadsheetGui::SheetView>(activeWindow);
 
+        if (sheetView) {
+            return (sheetView->selectedIndexesRaw().size() > 1);
+        }
     }
     return false;
 }
@@ -162,7 +164,10 @@ bool CmdSpreadsheetSplitCell::isActive()
             Sheet * sheet = sheetView->getSheet();
 
             if (current.isValid())
-                return sheet->isMergedCell(CellAddress(current.row(), current.column()));
+            {
+                return (sheetView->selectedIndexesRaw().size() == 1 &&
+                    sheet->isMergedCell(CellAddress(current.row(), current.column())));
+            }
         }
     }
     return false;
@@ -621,7 +626,7 @@ void CmdSpreadsheetStyleBold::activated(int iMsg)
             if (selection.size() > 0) {
                 bool allBold = true;
 
-                for (QModelIndexList::const_iterator it = selection.begin(); it != selection.end(); ++it) {
+                for (QModelIndexList::const_iterator it = selection.cbegin(); it != selection.cend(); ++it) {
                     const Cell * cell = sheet->getCell(CellAddress((*it).row(), (*it).column()));
 
                     if (cell) {
@@ -695,7 +700,7 @@ void CmdSpreadsheetStyleItalic::activated(int iMsg)
             if (selection.size() > 0) {
                 bool allItalic = true;
 
-                for (QModelIndexList::const_iterator it = selection.begin(); it != selection.end(); ++it) {
+                for (QModelIndexList::const_iterator it = selection.cbegin(); it != selection.cend(); ++it) {
                     const Cell * cell = sheet->getCell(CellAddress((*it).row(), (*it).column()));
 
                     if (cell) {
@@ -769,7 +774,7 @@ void CmdSpreadsheetStyleUnderline::activated(int iMsg)
             if (selection.size() > 0) {
                 bool allUnderline = true;
 
-                for (QModelIndexList::const_iterator it = selection.begin(); it != selection.end(); ++it) {
+                for (QModelIndexList::const_iterator it = selection.cbegin(); it != selection.cend(); ++it) {
                     const Cell * cell = sheet->getCell(CellAddress((*it).row(), (*it).column()));
 
                     if (cell) {

@@ -20,25 +20,24 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <qfileinfo.h>
-# include <qsplitter.h>
+# include <QSplitter>
+# include <Inventor/nodes/SoDirectionalLight.h>
 # include <Inventor/nodes/SoOrthographicCamera.h>
 # include <Inventor/nodes/SoPerspectiveCamera.h>
-# include <Inventor/nodes/SoDirectionalLight.h>
 #endif
 
-#include "SplitView3DInventor.h"
-#include "View3DInventorViewer.h"
-#include "SoFCSelectionAction.h"
-#include "Document.h"
-#include "Application.h"
-#include "NavigationStyle.h"
-#include "View3DPy.h"
 #include <Base/Interpreter.h>
+
+#include "SplitView3DInventor.h"
+#include "Application.h"
+#include "Document.h"
+#include "NavigationStyle.h"
+#include "SoFCSelectionAction.h"
+#include "View3DInventorViewer.h"
+#include "View3DPy.h"
 
 
 using namespace Gui;
@@ -68,7 +67,7 @@ AbstractSplitView::~AbstractSplitView()
 void AbstractSplitView::deleteSelf()
 {
     for (std::vector<View3DInventorViewer*>::iterator it = _viewer.begin(); it != _viewer.end(); ++it) {
-        (*it)->setSceneGraph(0);
+        (*it)->setSceneGraph(nullptr);
     }
     MDIView::deleteSelf();
 }
@@ -125,7 +124,7 @@ void AbstractSplitView::setupSettings()
 
 View3DInventorViewer* AbstractSplitView::getViewer(unsigned int n) const
 {
-    return (_viewer.size() > n ? _viewer[n] : 0);
+    return (_viewer.size() > n ? _viewer[n] : nullptr);
 }
 
 /// Observer message from the ParameterGrp
@@ -298,7 +297,7 @@ void AbstractSplitView::OnChange(ParameterGrp::SubjectType &rCaller,ParameterGrp
         r4 = ((col4 >> 24) & 0xff) / 255.0; g4 = ((col4 >> 16) & 0xff) / 255.0; b4 = ((col4 >> 8) & 0xff) / 255.0;
         for (std::vector<View3DInventorViewer*>::iterator it = _viewer.begin(); it != _viewer.end(); ++it) {
             (*it)->setBackgroundColor(QColor::fromRgbF(r1, g1, b1));
-            if (rGrp.GetBool("UseBackgroundColorMid",false) == false)
+            if (!rGrp.GetBool("UseBackgroundColorMid",false))
                 (*it)->setGradientBackgroundColor(SbColor(r2, g2, b2), SbColor(r3, g3, b3));
             else
                 (*it)->setGradientBackgroundColor(SbColor(r2, g2, b2), SbColor(r3, g3, b3), SbColor(r4, g4, b4));
@@ -503,7 +502,7 @@ Py::Object AbstractSplitViewPy::getattr(const char * attr)
     if (name == "__dict__" || name == "__class__") {
         Py::Dict dict_self(BaseType::getattr("__dict__"));
         Py::Dict dict_base(base.getattr("__dict__"));
-        for (auto it : dict_base) {
+        for (const auto& it : dict_base) {
             dict_self.setItem(it.first, it.second);
         }
         return dict_self;
@@ -532,7 +531,7 @@ Py::Object AbstractSplitViewPy::fitAll(const Py::Tuple& args)
         throw Py::Exception();
 
     try {
-        getSplitViewPtr()->onMsg("ViewFit", 0);
+        getSplitViewPtr()->onMsg("ViewFit", nullptr);
     }
     catch (const Base::Exception& e) {
         throw Py::RuntimeError(e.what());
@@ -552,7 +551,7 @@ Py::Object AbstractSplitViewPy::viewBottom(const Py::Tuple& args)
         throw Py::Exception();
 
     try {
-        getSplitViewPtr()->onMsg("ViewBottom", 0);
+        getSplitViewPtr()->onMsg("ViewBottom", nullptr);
     }
     catch (const Base::Exception& e) {
         throw Py::RuntimeError(e.what());
@@ -573,7 +572,7 @@ Py::Object AbstractSplitViewPy::viewFront(const Py::Tuple& args)
         throw Py::Exception();
 
     try {
-        getSplitViewPtr()->onMsg("ViewFront", 0);
+        getSplitViewPtr()->onMsg("ViewFront", nullptr);
     }
     catch (const Base::Exception& e) {
         throw Py::RuntimeError(e.what());
@@ -594,7 +593,7 @@ Py::Object AbstractSplitViewPy::viewLeft(const Py::Tuple& args)
         throw Py::Exception();
 
     try {
-        getSplitViewPtr()->onMsg("ViewLeft", 0);
+        getSplitViewPtr()->onMsg("ViewLeft", nullptr);
     }
     catch (const Base::Exception& e) {
         throw Py::RuntimeError(e.what());
@@ -615,7 +614,7 @@ Py::Object AbstractSplitViewPy::viewRear(const Py::Tuple& args)
         throw Py::Exception();
 
     try {
-        getSplitViewPtr()->onMsg("ViewRear", 0);
+        getSplitViewPtr()->onMsg("ViewRear", nullptr);
     }
     catch (const Base::Exception& e) {
         throw Py::RuntimeError(e.what());
@@ -636,7 +635,7 @@ Py::Object AbstractSplitViewPy::viewRight(const Py::Tuple& args)
         throw Py::Exception();
 
     try {
-        getSplitViewPtr()->onMsg("ViewRight", 0);
+        getSplitViewPtr()->onMsg("ViewRight", nullptr);
     }
     catch (const Base::Exception& e) {
         throw Py::RuntimeError(e.what());
@@ -657,7 +656,7 @@ Py::Object AbstractSplitViewPy::viewTop(const Py::Tuple& args)
         throw Py::Exception();
 
     try {
-        getSplitViewPtr()->onMsg("ViewTop", 0);
+        getSplitViewPtr()->onMsg("ViewTop", nullptr);
     }
     catch (const Base::Exception& e) {
         throw Py::RuntimeError(e.what());
@@ -678,7 +677,7 @@ Py::Object AbstractSplitViewPy::viewIsometric(const Py::Tuple& args)
         throw Py::Exception();
 
     try {
-        getSplitViewPtr()->onMsg("ViewAxo", 0);
+        getSplitViewPtr()->onMsg("ViewAxo", nullptr);
     }
     catch (const Base::Exception& e) {
         throw Py::RuntimeError(e.what());
@@ -720,7 +719,7 @@ Py::Object AbstractSplitViewPy::getViewer(const Py::Tuple& args)
     }
 }
 
-Py::Object AbstractSplitViewPy::sequence_item(ssize_t viewIndex)
+Py::Object AbstractSplitViewPy::sequence_item(Py_ssize_t viewIndex)
 {
     AbstractSplitView* view = getSplitViewPtr();
     if (viewIndex >= view->getSize() || viewIndex < 0)
@@ -777,7 +776,7 @@ SplitView3DInventor::SplitView3DInventor(int views, Gui::Document* pcDocument, Q
     while (views < 2)
         views ++;
 
-    QSplitter* mainSplitter = 0;
+    QSplitter* mainSplitter = nullptr;
 
     // if views < 3 show them as a row
     if (views <= 3) {

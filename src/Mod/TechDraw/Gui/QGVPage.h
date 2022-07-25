@@ -23,11 +23,18 @@
 #ifndef TECHDRAWGUI_QGVIEW_H
 #define TECHDRAWGUI_QGVIEW_H
 
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QLabel>
+#include <memory>
+#include <Mod/TechDraw/TechDrawGlobal.h>
 
-class QTemporaryFile;
+#include <QGraphicsView>
+#include <QLabel>
+#include <QPainterPath>
+
+#include <Base/Type.h>
+
+namespace App {
+class DocumentObject;
+}
 
 namespace TechDraw {
 class DrawView;
@@ -50,6 +57,8 @@ class DrawWeldSymbol;
 
 namespace TechDrawGui
 {
+class MDIViewPage;
+class QGSPage;
 class QGIView;
 class QGIViewDimension;
 class QGITemplate;
@@ -58,6 +67,7 @@ class QGIViewBalloon;
 class QGILeaderLine;
 class QGIRichAnno;
 class QGITile;
+class QGVNavStyle;
 
 class TechDrawGuiExport QGVPage : public QGraphicsView
 {
@@ -66,62 +76,41 @@ class TechDrawGuiExport QGVPage : public QGraphicsView
 public:
     enum RendererType { Native, OpenGL, Image };
 
-    QGVPage(ViewProviderPage *vp, QGraphicsScene* s, QWidget *parent = 0);
+    QGVPage(ViewProviderPage *vp, QGSPage* s, QWidget *parent = nullptr);
     virtual ~QGVPage();
 
     void setRenderer(RendererType type = Native);
     void drawBackground(QPainter *p, const QRectF &rect) override;
 
-    QGIView * addViewDimension(TechDraw::DrawViewDimension *dim);
-    QGIView * addViewBalloon(TechDraw::DrawViewBalloon *balloon);
-    QGIView * addProjectionGroup(TechDraw::DrawProjGroup *view);
-    QGIView * addViewPart(TechDraw::DrawViewPart *part);
-    QGIView * addViewSection(TechDraw::DrawViewPart *part);
-    QGIView * addDrawView(TechDraw::DrawView *view);
-    QGIView * addDrawViewCollection(TechDraw::DrawViewCollection *view);
-    QGIView * addDrawViewAnnotation(TechDraw::DrawViewAnnotation *view);
-    QGIView * addDrawViewSymbol(TechDraw::DrawViewSymbol *view);
-    QGIView * addDrawViewClip(TechDraw::DrawViewClip *view);
-    QGIView * addDrawViewSpreadsheet(TechDraw::DrawViewSpreadsheet *view);
-    QGIView * addDrawViewImage(TechDraw::DrawViewImage *view);
-    QGIView * addViewLeader(TechDraw::DrawLeaderLine* view);
-    QGIView * addRichAnno(TechDraw::DrawRichAnno* anno);
-    QGIView * addWeldSymbol(TechDraw::DrawWeldSymbol* weld);
+    QGSPage* getScene() {return m_scene; }
 
-    QGIView* findQViewForDocObj(App::DocumentObject *obj) const;
-    QGIView* getQGIVByName(std::string name);
-    QGIView* findParent(QGIView *) const;
-
-    void addBalloonToParent(QGIViewBalloon* balloon, QGIView* parent);
-    void createBalloon(QPointF origin, TechDraw::DrawViewPart *parent);
     void startBalloonPlacing(void);
     void cancelBalloonPlacing(void);
-
-    void addDimToParent(QGIViewDimension* dim, QGIView* parent);
-    void addLeaderToParent(QGILeaderLine* lead, QGIView* parent);
-
-    std::vector<QGIView *> getViews() const;
-
-    int addQView(QGIView * view);
-    int removeQView(QGIView *view);
-    int removeQViewByName(const char* name);
-    void removeQViewFromScene(QGIView *view);
-
-    void setPageTemplate(TechDraw::DrawTemplate *pageTemplate);
-
-    QGITemplate * getTemplate() const;
-    void removeTemplate();
 
     TechDraw::DrawPage * getDrawPage();
 
     void setExporting(bool enable);
-    virtual void refreshViews(void);
 
+    void makeGrid(int width, int height, double step);
+    void showGrid(bool state) {m_showGrid = state;}
+    void updateViewport(void) {viewport()->repaint();}
 
-    /// Renders the page to SVG with filename.
-    void saveSvg(QString filename);
-    void postProcessXml(QTemporaryFile& tempFile, QString filename, QString pagename);
+    bool isBalloonPlacing() {return balloonPlacing; }
+    void setBalloonPlacing(bool s) {balloonPlacing = s;}
 
+    QLabel* getBalloonCursor() {return balloonCursor;}
+    void setBalloonCursor(QLabel* l) {balloonCursor = l;}
+
+    void kbPanScroll(int xMove = 1, int yMove = 1);
+    QPointF getBalloonCursorPos() {return balloonCursorPos;}
+    void setBalloonCursorPos(QPoint p) { balloonCursorPos = p;}
+
+    void activateCursor(QCursor cursor);
+    void resetCursor();
+    void setPanCursor();
+    void setZoomCursor();
+
+    void pseudoContextEvent();
 
 public Q_SLOTS:
     void setHighQualityAntialiasing(bool highQualityAntialiasing);
@@ -136,20 +125,25 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void focusOutEvent(QFocusEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
-    void kbPanScroll(int xMove = 1, int yMove = 1); 
+    void keyReleaseEvent(QKeyEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
     static QColor SelectColor;
     static QColor PreselectColor;
     QColor getBackgroundColor();
-    
-
-    QGITemplate *pageTemplate;
 
     double getDevicePixelRatio() const;
     QPixmap prepareCursorPixmap(const char *iconName, QPoint &hotspot);
 
-    void activateCursor(QCursor cursor);
-    void resetCursor();
+    void drawForeground(QPainter *painter, const QRectF &rect) override;
+    
+    std::string getNavStyleParameter();
+    Base::Type getStyleType(std::string model);
+
+    void initNavigationStyle();
+    void setNavigationStyle(std::string navParm);
+
+    void createStandardCursors(double dpr);
 
 private:
     RendererType m_renderer;
@@ -165,6 +159,7 @@ private:
     int m_reversePan;
     int m_reverseScroll;
 
+    QGSPage* m_scene;
     bool balloonPlacing;
     QLabel *balloonCursor;
     QPoint balloonCursorPos;
@@ -172,6 +167,20 @@ private:
 
     QPoint panOrigin;
     bool panningActive;
+
+    bool m_showGrid;
+    QPainterPath m_gridPath;
+
+    QGVNavStyle* m_navStyle;
+
+    class Private;
+    std::unique_ptr<Private> d;
+
+    QCursor panCursor;
+    QCursor zoomCursor;
+
+    MDIViewPage* m_parentMDI;
+    QContextMenuEvent* m_saveContextEvent;
 };
 
 } // namespace 

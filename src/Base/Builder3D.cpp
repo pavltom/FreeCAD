@@ -26,17 +26,15 @@
 #ifndef _PreComp_
 # include <cassert>
 # include <string>
+# include <fstream>
 #endif
 
-#include <cstdlib>
-
-/// FreeCAD #includes sorted by Base,App,Gui......
 #include "Builder3D.h"
-#include "Exception.h"
-#include "Vector3D.h"
-#include "Matrix.h"
 #include "Console.h"
+#include "Exception.h"
+#include "Matrix.h"
 #include "Tools.h"
+
 
 using namespace Base;
 
@@ -118,7 +116,7 @@ void Builder3D::endPoints()
 void Builder3D::addSinglePoint(float x, float y, float z,short pointSize, float color_r,float color_g,float color_b)
 {
   // addSinglePoint() not between startXXX() and endXXX() allowed
-  assert( bStartEndOpen == false );
+  assert(!bStartEndOpen);
 
   result << "Separator { ";
   result <<   "Material { ";
@@ -157,7 +155,7 @@ void Builder3D::addSinglePoint(const Base::Vector3f &vec, short pointSize, float
 void Builder3D::addText(float pos_x, float pos_y , float pos_z,const char * text, float color_r,float color_g,float color_b)
 {
   // addSinglePoint() not between startXXX() and endXXX() allowed
-  assert( bStartEndOpen == false );
+  assert(!bStartEndOpen);
 
   result << "Separator { "
          <<   "Material { diffuseColor " << color_r << " "<< color_g << " "<< color_b << "} "
@@ -174,8 +172,8 @@ void Builder3D::addText(const Base::Vector3f &vec,const char * text, float color
 
 void Builder3D::clear ()
 {
-  // Under VC6 string::clear() doesn't exist, under gcc stringstream::str() returns a copy not a reference
-#if defined(_MSC_VER) && _MSC_VER >= 1400
+  // under gcc stringstream::str() returns a copy not a reference
+#if defined(_MSC_VER)
   result.str().clear();
 #endif
   result.clear();
@@ -306,7 +304,7 @@ void Builder3D::saveToLog()
     // So, we send the string directly to the observer that handles the Inventor stuff.
     //Console().Log("Vdbg: %s \n",result.str().c_str());
     ILogger* obs = Base::Console().Get("StatusBar");
-    if (obs != nullptr){
+    if (obs){
         obs->SendLog(result.str().c_str(), Base::LogStyle::Log);
     }
 }

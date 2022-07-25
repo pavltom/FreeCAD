@@ -20,24 +20,18 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp_Hypr.hxx>
-# include <Geom_Hyperbola.hxx>
 # include <GC_MakeArcOfHyperbola.hxx>
-# include <GC_MakeHyperbola.hxx>
+# include <Geom_Hyperbola.hxx>
 # include <Geom_TrimmedCurve.hxx>
 #endif
 
-#include "Geometry.h"
-#include <Mod/Part/App/ArcOfHyperbolaPy.h>
-#include <Mod/Part/App/ArcOfHyperbolaPy.cpp>
-#include <Mod/Part/App/HyperbolaPy.h>
+#include "ArcOfHyperbolaPy.h"
+#include "ArcOfHyperbolaPy.cpp"
+#include "HyperbolaPy.h"
 #include "OCCError.h"
 
-#include <Base/GeometryPyCXX.h>
-#include <Base/VectorPy.h>
 
 using namespace Part;
 
@@ -95,7 +89,7 @@ int ArcOfHyperbolaPy::PyInit(PyObject* args, PyObject* /*kwds*/)
         try {
             Handle(Geom_Hyperbola) hyperbola = Handle(Geom_Hyperbola)::DownCast
                 (static_cast<HyperbolaPy*>(o)->getGeomHyperbolaPtr()->handle());
-            GC_MakeArcOfHyperbola arc(hyperbola->Hypr(), u1, u2, PyObject_IsTrue(sense) ? Standard_True : Standard_False);
+            GC_MakeArcOfHyperbola arc(hyperbola->Hypr(), u1, u2, Base::asBoolean(sense));
             if (!arc.IsDone()) {
                 PyErr_SetString(PartExceptionOCCError, gce_ErrorStatusText(arc.Status()));
                 return -1;
@@ -150,7 +144,7 @@ Py::Object ArcOfHyperbolaPy::getHyperbola(void) const
 
 PyObject *ArcOfHyperbolaPy::getCustomAttributes(const char* ) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ArcOfHyperbolaPy::setCustomAttributes(const char* , PyObject *)

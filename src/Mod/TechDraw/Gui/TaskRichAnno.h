@@ -23,20 +23,14 @@
 #ifndef TECHDRAWGUI_TASKRICHANNO_H
 #define TECHDRAWGUI_TASKRICHANNO_H
 
-#include <App/DocumentObject.h>
 #include <Base/Vector3D.h>
-#include <Gui/TaskView/TaskView.h>
 #include <Gui/TaskView/TaskDialog.h>
+#include <Gui/TaskView/TaskView.h>
 
-#include <Mod/TechDraw/Gui/ui_TaskRichAnno.h>
 
 class MRichTextEdit;
 
 class Ui_TaskRichAnno;
-
-namespace App {
-class DocumentObject;
-}
 
 namespace TechDraw
 {
@@ -47,6 +41,7 @@ class DrawRichAnno;
 
 namespace TechDrawGui
 {
+class QGSPage;
 class QGVPage;
 class QGIView;
 class QGIPrimPath;
@@ -107,6 +102,7 @@ private:
     bool blockUpdate;
 
     MDIViewPage* m_mdi;
+    QGSPage* m_scene;
     QGVPage* m_view;
     ViewProviderRichAnno* m_annoVP;
     TechDraw::DrawView* m_baseFeat;

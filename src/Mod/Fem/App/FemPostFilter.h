@@ -20,25 +20,22 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef Fem_FemPostFilter_H
 #define Fem_FemPostFilter_H
 
-#include "FemPostObject.h"
-#include <App/PropertyUnits.h>
-
-#include <vtkSmartPointer.h>
-#include <vtkTableBasedClipDataSet.h>
-#include <vtkExtractGeometry.h>
-#include <vtkGeometryFilter.h>
-#include <vtkPassThrough.h>
-#include <vtkPlane.h>
-#include <vtkWarpVector.h>
 #include <vtkCutter.h>
+#include <vtkExtractGeometry.h>
 #include <vtkLineSource.h>
 #include <vtkPointSource.h>
 #include <vtkProbeFilter.h>
-#include <vtkThreshold.h>
+#include <vtkSmartPointer.h>
+#include <vtkTableBasedClipDataSet.h>
+#include <vtkWarpVector.h>
+
+#include <App/PropertyUnits.h>
+
+#include "FemPostObject.h"
+
 
 namespace Fem
 {
@@ -109,22 +106,23 @@ public:
     FemPostDataAlongLineFilter(void);
     virtual ~FemPostDataAlongLineFilter();
 
-    App::PropertyVector   Point2;
-    App::PropertyVector   Point1;
-    App::PropertyInteger  Resolution;
-    App::PropertyFloatList XAxisData;
-    App::PropertyFloatList YAxisData;
-    App::PropertyString    PlotData;
+    App::PropertyVectorDistance Point1;
+    App::PropertyVectorDistance Point2;
+    App::PropertyInteger        Resolution;
+    App::PropertyFloatList      XAxisData;
+    App::PropertyFloatList      YAxisData;
+    App::PropertyString         PlotData;
 
     virtual const char* getViewProviderName(void) const {
         return "FemGui::ViewProviderFemPostDataAlongLine";
     }
     virtual short int mustExecute(void) const;
+    void GetAxisData();
 
 protected:
     virtual App::DocumentObjectExecReturn* execute(void);
     virtual void onChanged(const App::Property* prop);
-    void GetAxisData();
+    virtual void handleChangedPropertyType(Base::XMLReader& reader, const char* TypeName, App::Property* prop);
 
 private:
 

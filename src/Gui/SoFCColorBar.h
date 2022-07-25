@@ -20,16 +20,17 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_SOFCCOLORBAR_H
 #define GUI_SOFCCOLORBAR_H
 
+#include <QElapsedTimer>
+#include <vector>
 #include <Inventor/SbVec2s.h>
 #include <Inventor/nodes/SoSeparator.h>
-#include <QElapsedTimer>
-#include <Base/Observer.h>
+
 #include <App/ColorModel.h>
-#include <vector>
+#include <Base/Observer.h>
+
 
 class SoSwitch;
 class SoEventCallback;
@@ -94,11 +95,16 @@ public:
   virtual float getMaxValue () const = 0;
   /**
    * Opens a dialog to customize the current settings of the color bar.
-   * Returns true if the settings have been changed, false otherwise.
    *
    * This method must be implemented in subclasses.
    */
-  virtual bool customize() = 0;
+  virtual void customize(SoFCColorBarBase*) = 0;
+  /**
+   * Forward a triggered change
+   */
+  virtual void triggerChange(SoFCColorBarBase* base) {
+    base->triggerChange(this);
+  }
   /** Returns the name of the color bar.
    *
    * This method must be implemented in subclasses.
@@ -106,17 +112,33 @@ public:
   virtual const char* getColorBarName() const = 0;
 
 protected:
+  /** Computes the dimensions of the color bar and labels in coordinates with
+   * respect to the defined height of the camera.
+   * Returns the width of the bounding box
+   */
+  float getBounds(const SbVec2s& size, float& fMinX, float&fMinY, float& fMaxX, float& fMaxY);
+  /** Returns the width of the color bar and labels
+   *
+   * Computes the occupied width of the color bar and its labels.
+   * It therefore determines the bounding box.
+   */
+  float getBoundingWidth(const SbVec2s& size);
   /**
    * Sets the current viewer size to recalculate the new position.
    *
    * This method must be implemented in subclasses.
    */
   virtual void setViewportSize( const SbVec2s& size ) = 0;
+  /**
+   * Mark the object as modified.
+   */
+  void setModified();
 
   SoFCColorBarBase ();
   virtual ~SoFCColorBarBase ();
 
 private:
+  float _boxWidth;
   SbVec2s _windowSize;
 };
 
@@ -172,7 +194,11 @@ public:
   /**
    * Customizes the currently active color bar.
    */
-  bool customize();
+  void customize(SoFCColorBarBase*);
+  /**
+   * Notify observers
+   */
+  void triggerChange(SoFCColorBarBase*);
   /** Returns the name of the color bar.
    */
   const char* getColorBarName() const { return "Color Bar"; }
@@ -189,7 +215,6 @@ private:
   static void eventCallback(void * userdata, SoEventCallback * node);
 
 private:
-  float _fMaxX, _fMinX, _fMaxY, _fMinY;
   QElapsedTimer _timer;
 
   SoSwitch* pColorMode;

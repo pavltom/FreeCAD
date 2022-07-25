@@ -24,23 +24,23 @@
 #ifndef GUI_WIDGETS_H
 #define GUI_WIDGETS_H
 
-#include <QButtonGroup>
-#include <QDialog>
-#include <QListWidget>
-#include <QLabel>
-#include <QLineEdit>
-#include <QPointer>
-#include <QPushButton>
-#include <QPlainTextEdit>
-#include <QBasicTimer>
-#include <QElapsedTimer>
-#include <QToolButton>
-#include <QModelIndex>
-#include "ExpressionBinding.h"
-#include <Base/Parameter.h>
 #include <memory>
 #include <FCGlobal.h>
 
+#include <QBasicTimer>
+#include <QButtonGroup>
+#include <QDialog>
+#include <QElapsedTimer>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QPlainTextEdit>
+#include <QPointer>
+#include <QPushButton>
+#include <QToolButton>
+
+#include <Base/Parameter.h>
+#include "ExpressionBinding.h"
 
 class QGridLayout;
 class QVBoxLayout;
@@ -63,7 +63,7 @@ class CommandIconView : public QListWidget
   Q_OBJECT
 
 public:
-  CommandIconView (QWidget * parent = 0);
+  CommandIconView (QWidget * parent = nullptr);
   virtual ~CommandIconView ();
 
 protected:
@@ -84,7 +84,7 @@ class GuiExport ActionSelector : public QWidget
     Q_OBJECT
 
 public:
-    ActionSelector(QWidget* parent=0);
+    ActionSelector(QWidget* parent=nullptr);
     ~ActionSelector();
 
     QTreeWidget* availableTreeWidget() const
@@ -137,7 +137,7 @@ class GuiExport AccelLineEdit : public QLineEdit
   Q_OBJECT
 
 public:
-    AccelLineEdit(QWidget * parent=0);
+    AccelLineEdit(QWidget * parent=nullptr);
     bool isNone() const;
 
 protected:
@@ -157,7 +157,7 @@ class GuiExport ModifierLineEdit : public QLineEdit
   Q_OBJECT
 
 public:
-    ModifierLineEdit(QWidget * parent=0);
+    ModifierLineEdit(QWidget * parent=nullptr);
 
 protected:
     void keyPressEvent(QKeyEvent * e);
@@ -174,7 +174,7 @@ class GuiExport ClearLineEdit : public QLineEdit
   Q_OBJECT
 
 public:
-    ClearLineEdit (QWidget * parent=0);
+    ClearLineEdit (QWidget * parent=nullptr);
 
 protected:
     void resizeEvent(QResizeEvent *);
@@ -202,7 +202,7 @@ class GuiExport CheckListDialog : public QDialog
   Q_OBJECT
 
 public:
-  CheckListDialog( QWidget* parent = 0, Qt::WindowFlags fl = Qt::WindowFlags() );
+  CheckListDialog( QWidget* parent = nullptr, Qt::WindowFlags fl = Qt::WindowFlags() );
   ~CheckListDialog();
 
   void setCheckableItems( const QStringList& items );
@@ -226,13 +226,13 @@ class GuiExport ColorButton : public QPushButton
 {
     Q_OBJECT
 
-    Q_PROPERTY( QColor color READ color WRITE setColor )
-    Q_PROPERTY( bool allowChangeColor READ allowChangeColor WRITE setAllowChangeColor )
-    Q_PROPERTY( bool drawFrame READ drawFrame WRITE setDrawFrame )
-    Q_PROPERTY( bool allowTransparency READ allowTransparency WRITE setAllowTransparency)
+    Q_PROPERTY( QColor color READ color WRITE setColor NOTIFY changed)
+    Q_PROPERTY( bool allowChangeColor READ allowChangeColor WRITE setAllowChangeColor ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY( bool drawFrame READ drawFrame WRITE setDrawFrame ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY( bool allowTransparency READ allowTransparency WRITE setAllowTransparency) // clazy:exclude=qproperty-without-notify
 
 public:
-    ColorButton(QWidget* parent = 0);
+    ColorButton(QWidget* parent = nullptr);
     ~ColorButton();
 
     void setColor(const QColor&);
@@ -284,11 +284,11 @@ private:
 class GuiExport UrlLabel : public QLabel
 {
   Q_OBJECT
-  Q_PROPERTY( QString  url    READ url   WRITE setUrl)
-  Q_PROPERTY( bool  launchExternal    READ launchExternal   WRITE setLaunchExternal)
+  Q_PROPERTY( QString  url    READ url   WRITE setUrl) // clazy:exclude=qproperty-without-notify
+  Q_PROPERTY( bool  launchExternal    READ launchExternal   WRITE setLaunchExternal) // clazy:exclude=qproperty-without-notify
 
 public:
-  UrlLabel ( QWidget * parent = 0, Qt::WindowFlags f = Qt::WindowFlags() );
+  UrlLabel ( QWidget * parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags() );
   virtual ~UrlLabel();
 
   QString url() const;
@@ -398,10 +398,10 @@ class GuiExport LabelButton : public QWidget
 {
     Q_OBJECT
 
-    Q_PROPERTY(QVariant value  READ value  WRITE setValue)
+    Q_PROPERTY(QVariant value  READ value  WRITE setValue NOTIFY valueChanged)
 
 public:
-    LabelButton (QWidget * parent = 0);
+    LabelButton (QWidget * parent = nullptr);
     virtual ~LabelButton();
 
     QVariant value() const;
@@ -441,7 +441,7 @@ private:
 class GuiExport ToolTip : public QObject
 {
 public:
-    static void showText(const QPoint & pos, const QString & text, QWidget * w = 0);
+    static void showText(const QPoint & pos, const QString & text, QWidget * w = nullptr);
 
 protected:
     static ToolTip* instance();
@@ -493,7 +493,7 @@ class GuiExport PropertyListEditor : public QPlainTextEdit
     Q_OBJECT
 
 public:
-    PropertyListEditor(QWidget *parent = 0);
+    PropertyListEditor(QWidget *parent = nullptr);
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
@@ -516,13 +516,13 @@ class GuiExport LabelEditor : public QWidget
 {
     Q_OBJECT
 
-    Q_PROPERTY(QString  text        READ text        WRITE setText      )
-    Q_PROPERTY(QString  buttonText  READ buttonText  WRITE setButtonText)
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+    Q_PROPERTY(QString buttonText READ buttonText WRITE setButtonText) // clazy:exclude=qproperty-without-notify
 
 public:
     enum InputType {String, Float, Integer};
 
-    LabelEditor (QWidget * parent = 0);
+    LabelEditor (QWidget * parent = nullptr);
     virtual ~LabelEditor();
 
     /**
@@ -570,7 +570,7 @@ class GuiExport ExpLineEdit : public QLineEdit, public ExpressionBinding
     Q_OBJECT
 
 public:
-    ExpLineEdit ( QWidget * parent=0, bool expressionOnly=false );
+    ExpLineEdit ( QWidget * parent=nullptr, bool expressionOnly=false );
 
     void setExpression(std::shared_ptr<App::Expression> expr);
     void bind(const App::ObjectIdentifier &_path);

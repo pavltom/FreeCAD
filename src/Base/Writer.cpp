@@ -23,26 +23,21 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-#endif
+#include <limits>
+#include <locale>
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
 #include "Writer.h"
-#include "Persistence.h"
-#include "Exception.h"
 #include "Base64.h"
+#include "Exception.h"
 #include "FileInfo.h"
+#include "Persistence.h"
 #include "Stream.h"
 #include "Tools.h"
 
-#include <algorithm>
-#include <locale>
-#include <limits>
 
 using namespace Base;
 using namespace std;
 using namespace zipios;
-
 
 
 // ---------------------------------------------------------------------------
@@ -50,7 +45,10 @@ using namespace zipios;
 // ---------------------------------------------------------------------------
 
 Writer::Writer()
-  : indent(0),forceXML(false),fileVersion(1)
+  : indent(0)
+  , indBuf{}
+  , forceXML(false)
+  , fileVersion(1)
 {
     indBuf[0] = '\0';
 }
@@ -83,9 +81,9 @@ void Writer::insertBinFile(const char* FileName)
     Stream() << "<![CDATA[";
     std::ifstream::pos_type fileSize = from.tellg();
     from.seekg(0, std::ios::beg);
-    std::vector<unsigned char> bytes(fileSize);
-    from.read((char*)&bytes[0], fileSize);
-    Stream() << Base::base64_encode(&bytes[0], fileSize);
+    std::vector<unsigned char> bytes(static_cast<size_t>(fileSize));
+    from.read(reinterpret_cast<char*>(&bytes[0]), fileSize);
+    Stream() << Base::base64_encode(&bytes[0], static_cast<unsigned int>(fileSize));
     Stream() << "]]>" << endl;
 }
 
@@ -165,7 +163,7 @@ std::vector<std::string> Writer::getErrors() const
 std::string Writer::addFile(const char* Name,const Base::Persistence *Object)
 {
     // always check isForceXML() before requesting a file!
-    assert(isForceXML()==false);
+    assert(!isForceXML());
 
     FileEntry temp;
     temp.FileName = getUniqueFileName(Name);
@@ -270,7 +268,7 @@ void ZipWriter::writeFiles()
     // processing the files new ones can be added
     size_t index = 0;
     while (index < FileList.size()) {
-        FileEntry entry = FileList.begin()[index];
+        FileEntry entry = FileList[index];
         ZipStream.putNextEntry(entry.FileName);
         entry.Object->SaveDocFile(*this);
         index++;
@@ -310,7 +308,7 @@ void FileWriter::writeFiles()
     size_t index = 0;
     this->FileStream.close();
     while (index < FileList.size()) {
-        FileEntry entry = FileList.begin()[index];
+        FileEntry entry = FileList[index];
 
         if (shouldWrite(entry.FileName, entry.Object)) {
             std::string filePath = entry.FileName;

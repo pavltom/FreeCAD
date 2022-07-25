@@ -22,24 +22,23 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <assert.h>
+#include <cassert>
 #include <limits>
 #include <QApplication>
+#include <QGridLayout>
 #endif
 
-#include <QGridLayout>
-#include <QFontMetrics>
-
-#include <Gui/TaskView/TaskView.h>
-#include "QuantitySpinBox.h"
-#include <Gui/Application.h>
-#include <Gui/Command.h>
-#include <Gui/Document.h>
-#include <Gui/BitmapFactory.h>
-#include <Gui/ViewProviderDragger.h>
-#include <Gui/SoFCCSysDragger.h>
-
+#include <App/Document.h>
+#include "Document.h" // must be before TaskCSysDragger.h
 #include "TaskCSysDragger.h"
+#include "Application.h"
+#include "BitmapFactory.h"
+#include "Command.h"
+#include "QuantitySpinBox.h"
+#include "SoFCCSysDragger.h"
+#include "ViewProviderDragger.h"
+#include "TaskView/TaskView.h"
+
 
 using namespace Gui;
 
@@ -72,7 +71,7 @@ void TaskCSysDragger::setupGui()
 {
   Gui::TaskView::TaskBox *incrementsBox = new Gui::TaskView::TaskBox(
       Gui::BitmapFactory().pixmap("button_valid"),
-      tr("Increments"), true, 0);
+      tr("Increments"), true, nullptr);
 
   QGridLayout *gridLayout = new QGridLayout();
   gridLayout->setColumnStretch(1, 1);

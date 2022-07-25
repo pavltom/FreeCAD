@@ -31,6 +31,7 @@
 #include "ui_Tessellation.h"
 #include <Base/Console.h>
 #include <Base/Exception.h>
+#include <Base/Stream.h>
 #include <Base/Tools.h>
 #include <App/Application.h>
 #include <App/Document.h>
@@ -192,7 +193,7 @@ void Tessellation::on_estimateMaximumEdgeLength_clicked()
     }
 
     double edgeLen = 0;
-    for (auto &sel : Gui::Selection().getSelection("*",0)) {
+    for (auto &sel : Gui::Selection().getSelection("*", Gui::ResolveMode::NoResolve)) {
         auto shape = Part::Feature::getTopoShape(sel.pObject,sel.SubName);
         if (shape.hasSubShape(TopAbs_FACE)) {
             Base::BoundBox3d bbox = shape.getBoundBox();
@@ -224,7 +225,7 @@ bool Tessellation::accept()
 
     bool bodyWithNoTip = false;
     bool partWithNoFace = false;
-    for (auto &sel : Gui::Selection().getSelection("*",0)) {
+    for (auto &sel : Gui::Selection().getSelection("*", Gui::ResolveMode::NoResolve)) {
         auto shape = Part::Feature::getTopoShape(sel.pObject,sel.SubName);
         if (shape.hasSubShape(TopAbs_FACE)) {
             shapeObjects.emplace_back(sel.pObject, sel.SubName);
@@ -306,11 +307,11 @@ void Tessellation::process(int method, App::Document* doc, const std::list<App::
                 "__mesh__.Mesh=MeshPart.meshFromShape(%4)\n"
                 "__mesh__.Label=\"%5 (Meshed)\"\n"
                 "del __doc__, __mesh__, __part__, __shape__\n")
-                .arg(this->document)
-                .arg(objname)
-                .arg(subname)
-                .arg(param)
-                .arg(label);
+                .arg(this->document,
+                     objname,
+                     subname,
+                     param,
+                     label);
 
             Gui::Command::runCommand(Gui::Command::Doc, cmd.toUtf8());
 
@@ -607,7 +608,7 @@ TaskTessellation::TaskTessellation()
     widget = new Tessellation();
     Gui::TaskView::TaskBox* taskbox = new Gui::TaskView::TaskBox(
         QPixmap()/*Gui::BitmapFactory().pixmap("MeshPart_Mesher")*/,
-        widget->windowTitle(), true, 0);
+        widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

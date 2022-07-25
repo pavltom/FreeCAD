@@ -20,36 +20,29 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <cmath>
-# include <BRepAdaptor_Surface.hxx>
 # include <BRepAdaptor_Curve.hxx>
-# include <BRepAlgoAPI_Cut.hxx>
+# include <BRepAdaptor_Surface.hxx>
 # include <BRepBuilderAPI_Copy.hxx>
 # include <BRepBuilderAPI_MakeWire.hxx>
-# include <BRepClass3d_SolidClassifier.hxx>
 # include <BRepLib_FindSurface.hxx>
 # include <BRepPrimAPI_MakePrism.hxx>
 # include <gp_Pln.hxx>
 # include <gp_Trsf.hxx>
 # include <Precision.hxx>
-# include <ShapeAnalysis.hxx>
-# include <ShapeFix_Wire.hxx>
-# include <TopoDS.hxx>
-# include <TopoDS_Iterator.hxx>
 # include <TopExp.hxx>
 # include <TopExp_Explorer.hxx>
+# include <TopoDS.hxx>
 # include <TopTools_IndexedMapOfShape.hxx>
 #endif
 
-#include "FeatureExtrusion.h"
-#include <App/Application.h>
 #include <Base/Exception.h>
-#include <Base/Tools.h>
+
+#include "FeatureExtrusion.h"
 #include "ExtrusionHelper.h"
 #include "Part2DObject.h"
+
 
 using namespace Part;
 
@@ -59,11 +52,11 @@ const char* Extrusion::eDirModeStrings[] = {
     "Custom",
     "Edge",
     "Normal",
-    NULL };
+    nullptr };
 
 Extrusion::Extrusion()
 {
-    ADD_PROPERTY_TYPE(Base, (0), "Extrude", App::Prop_None, "Shape to extrude");
+    ADD_PROPERTY_TYPE(Base, (nullptr), "Extrude", App::Prop_None, "Shape to extrude");
     ADD_PROPERTY_TYPE(Dir, (Base::Vector3d(0.0, 0.0, 1.0)), "Extrude", App::Prop_None, "Direction of extrusion (also magnitude, if both lengths are zero).");
     ADD_PROPERTY_TYPE(DirMode, (dmCustom), "Extrude", App::Prop_None, "Sets, how Dir is updated.");
     DirMode.setEnums(eDirModeStrings);
@@ -105,7 +98,7 @@ bool Extrusion::fetchAxisLink(const App::PropertyLinkSub& axisLink, Base::Vector
 
     TopoDS_Shape axEdge;
     if (axisLink.getSubValues().size() > 0 && axisLink.getSubValues()[0].length() > 0) {
-        axEdge = Feature::getTopoShape(linked).getSubShape(axisLink.getSubValues()[0].c_str());
+        axEdge = Feature::getTopoShape(linked, axisLink.getSubValues()[0].c_str(), true /*need element*/).getShape();
     }
     else {
         axEdge = Feature::getShape(linked);
@@ -194,9 +187,9 @@ Extrusion::ExtrusionParameters Extrusion::computeFinalParameters()
 
 Base::Vector3d Extrusion::calculateShapeNormal(const App::PropertyLink& shapeLink)
 {
-    App::DocumentObject* docobj = 0;
+    App::DocumentObject* docobj = nullptr;
     Base::Matrix4D mat;
-    TopoDS_Shape sh = Feature::getShape(shapeLink.getValue(), 0, false, &mat, &docobj);
+    TopoDS_Shape sh = Feature::getShape(shapeLink.getValue(), nullptr, false, &mat, &docobj);
 
     if (!docobj)
         throw Base::ValueError("calculateShapeNormal: link is empty");

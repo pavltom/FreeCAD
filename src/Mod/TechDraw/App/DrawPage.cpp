@@ -71,7 +71,7 @@ PROPERTY_SOURCE(TechDraw::DrawPage, App::DocumentObject)
 
 const char* DrawPage::ProjectionTypeEnums[] = { "First Angle",
                                                 "Third Angle",
-                                                NULL };
+                                                nullptr };
 
 DrawPage::DrawPage(void)
 {
@@ -81,9 +81,9 @@ DrawPage::DrawPage(void)
 
     ADD_PROPERTY_TYPE(KeepUpdated, (Preferences::keepPagesUpToDate()),
                                              group, (App::PropertyType)(App::Prop_Output), "Keep page in sync with model");
-    ADD_PROPERTY_TYPE(Template, (0), group, (App::PropertyType)(App::Prop_None), "Attached Template");
+    ADD_PROPERTY_TYPE(Template, (nullptr), group, (App::PropertyType)(App::Prop_None), "Attached Template");
     Template.setScope(App::LinkScope::Global);
-    ADD_PROPERTY_TYPE(Views, (0), group, (App::PropertyType)(App::Prop_None), "Attached Views");
+    ADD_PROPERTY_TYPE(Views, (nullptr), group, (App::PropertyType)(App::Prop_None), "Attached Views");
     Views.setScope(App::LinkScope::Global);
 
     // Projection Properties
@@ -136,7 +136,7 @@ void DrawPage::onChanged(const App::Property* prop)
             const std::vector<App::DocumentObject*> &vals = Views.getValues();
             for(std::vector<App::DocumentObject *>::const_iterator it = vals.begin(); it < vals.end(); ++it) {
                 TechDraw::DrawView *view = dynamic_cast<TechDraw::DrawView *>(*it);
-                if (view != NULL && view->ScaleType.isValue("Page")) {
+                if (view && view->ScaleType.isValue("Page")) {
                     if(std::abs(view->Scale.getValue() - Scale.getValue()) > FLT_EPSILON) {
                        view->Scale.setValue(Scale.getValue());
                     }
@@ -148,7 +148,7 @@ void DrawPage::onChanged(const App::Property* prop)
       const std::vector<App::DocumentObject*> &vals = Views.getValues();
       for(std::vector<App::DocumentObject *>::const_iterator it = vals.begin(); it < vals.end(); ++it) {
           TechDraw::DrawProjGroup *view = dynamic_cast<TechDraw::DrawProjGroup *>(*it);
-          if (view != NULL && view->ProjectionType.isValue("Default")) {
+          if (view && view->ProjectionType.isValue("Default")) {
               view->ProjectionType.touch();
           }
       }
@@ -193,7 +193,7 @@ PyObject *DrawPage::getPyObject(void)
 
 bool DrawPage::hasValidTemplate() const
 {
-    App::DocumentObject *obj = 0;
+    App::DocumentObject *obj = nullptr;
     obj = Template.getValue();
 
     if(obj && obj->isDerivedFrom(TechDraw::DrawTemplate::getClassTypeId())) {
@@ -209,7 +209,7 @@ bool DrawPage::hasValidTemplate() const
 
 double DrawPage::getPageWidth() const
 {
-    App::DocumentObject *obj = 0;
+    App::DocumentObject *obj = nullptr;
     obj = Template.getValue();
 
     if( obj && obj->isDerivedFrom(TechDraw::DrawTemplate::getClassTypeId()) ) {
@@ -222,7 +222,7 @@ double DrawPage::getPageWidth() const
 
 double DrawPage::getPageHeight() const
 {
-    App::DocumentObject *obj = 0;
+    App::DocumentObject *obj = nullptr;
     obj = Template.getValue();
 
     if(obj) {
@@ -287,7 +287,7 @@ int DrawPage::removeView(App::DocumentObject *docObj)
         return -1;
 
     App::Document* doc = docObj->getDocument();
-    if (doc == nullptr) {
+    if (!doc) {
         return -1;
     }
 
@@ -300,7 +300,7 @@ int DrawPage::removeView(App::DocumentObject *docObj)
     std::vector<App::DocumentObject*>::const_iterator it = currViews.begin();
     for (; it != currViews.end(); it++) {
         App::Document* viewDoc = (*it)->getDocument();
-        if (viewDoc == nullptr) {
+        if (!viewDoc) {
             continue;
         }
 
@@ -321,12 +321,7 @@ void DrawPage::requestPaint(void)
 //this doesn't work right because there is no guaranteed of the restoration order
 void DrawPage::onDocumentRestored()
 {
-    if (GlobalUpdateDrawings() &&
-        KeepUpdated.getValue())  {
-        updateAllViews();
-    } else if (!GlobalUpdateDrawings() &&
-                AllowPageOverride()    &&
-                KeepUpdated.getValue()) {
+    if (canUpdate()) {
         updateAllViews();
     }
 
@@ -350,16 +345,16 @@ void DrawPage::updateAllViews()
     for(; it != featViews.end(); ++it) {
         TechDraw::DrawViewPart *part = dynamic_cast<TechDraw::DrawViewPart *>(*it);
         TechDraw::DrawViewCollection *collect = dynamic_cast<TechDraw::DrawViewCollection*>(*it);
-        if (part != nullptr) {
+        if (part) {
             part->recomputeFeature();
-        } else if (collect != nullptr) {
+        } else if (collect) {
             collect->recomputeFeature();
         }
     }
     //second, make sure all the Dimensions have been executed so Measurements have References
     for(it = featViews.begin(); it != featViews.end(); ++it) {
         TechDraw::DrawViewDimension *dim = dynamic_cast<TechDraw::DrawViewDimension *>(*it);
-        if (dim != nullptr) {
+        if (dim) {
             dim->recomputeFeature();
         }
     }
@@ -367,7 +362,7 @@ void DrawPage::updateAllViews()
     //third, try to execute all leader lines. may not work if parent DVP isn't ready.
     for(it = featViews.begin(); it != featViews.end(); ++it) {
         TechDraw::DrawLeaderLine *line = dynamic_cast<TechDraw::DrawLeaderLine *>(*it);
-        if (line != nullptr) {
+        if (line) {
             line->recomputeFeature();
         }
     }
@@ -375,7 +370,7 @@ void DrawPage::updateAllViews()
     //fourth, try to execute all spreadsheets.
     for (it = featViews.begin(); it != featViews.end(); ++it) {
         TechDraw::DrawViewSpreadsheet *sheet = dynamic_cast<TechDraw::DrawViewSpreadsheet *>(*it);
-        if (sheet != nullptr) {
+        if (sheet) {
             sheet->recomputeFeature();
         }
     }
@@ -390,7 +385,7 @@ std::vector<App::DocumentObject*> DrawPage::getAllViews(void)
         allViews.push_back(v);
         if (v->isDerivedFrom(TechDraw::DrawProjGroup::getClassTypeId())) {
             TechDraw::DrawProjGroup* dpg = static_cast<TechDraw::DrawProjGroup*>(v);
-            if (dpg != nullptr) {                                              //can't really happen!
+            if (dpg) {                                              //can't really happen!
               std::vector<App::DocumentObject*> pgViews = dpg->Views.getValues();
               allViews.insert(allViews.end(),pgViews.begin(),pgViews.end());
             }
@@ -431,7 +426,7 @@ void DrawPage::unsetupObject()
    }
 
     App::DocumentObject* tmp = Template.getValue();
-    if (tmp != nullptr) {
+    if (tmp) {
         std::string templateName = Template.getValue()->getNameInDocument();
         Base::Interpreter().runStringArg("App.getDocument(\"%s\").removeObject(\"%s\")",
                                               docName.c_str(), templateName.c_str());
@@ -467,6 +462,20 @@ void DrawPage::handleChangedPropertyType(
             // no idea
         }
     }
+}
+
+bool DrawPage::canUpdate() const
+{
+    bool result = false;
+    if (GlobalUpdateDrawings() &&
+        KeepUpdated.getValue())  {
+        result = true;
+    } else if (!GlobalUpdateDrawings() &&
+                AllowPageOverride()    &&
+                KeepUpdated.getValue()) {
+        result = true;
+    }
+    return result;
 }
 
 //allow/prevent drawing updates for all Pages

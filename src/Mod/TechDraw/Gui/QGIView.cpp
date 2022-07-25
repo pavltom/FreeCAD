@@ -40,6 +40,7 @@
 
 #include <App/Application.h>
 #include <App/Document.h>
+#include <App/DocumentObject.h>
 #include <App/Material.h>
 #include <Base/Console.h>
 #include <Gui/Selection.h>
@@ -52,6 +53,7 @@
 #include "Rez.h"
 #include "ZVALUE.h"
 #include "DrawGuiUtil.h"
+#include "QGSPage.h"
 #include "QGVPage.h"
 #include "QGCustomLabel.h"
 #include "QGCustomBorder.h"
@@ -68,6 +70,7 @@
 #include "QGTracker.h"
 
 #include <Mod/TechDraw/App/DrawPage.h>
+#include <Mod/TechDraw/App/DrawView.h>
 #include <Mod/TechDraw/App/DrawViewClip.h>
 #include <Mod/TechDraw/App/DrawProjGroup.h>
 #include <Mod/TechDraw/App/DrawProjGroupItem.h>
@@ -79,13 +82,18 @@
 using namespace TechDrawGui;
 using namespace TechDraw;
 
+#define NODRAG 0
+#define DRAGSTARTED 1
+#define DRAGGING 2
+
 const float labelCaptionFudge = 0.2f;   // temp fiddle for devel
 
 QGIView::QGIView()
     :QGraphicsItemGroup(),
      viewObj(nullptr),
      m_locked(false),
-     m_innerView(false)
+     m_innerView(false),
+     m_dragState(NODRAG)
 {
     setCacheMode(QGraphicsItem::NoCache);
     setHandlesChildEvents(false);
@@ -133,11 +141,11 @@ void QGIView::onSourceChange(TechDraw::DrawView* newParent)
 void QGIView::isVisible(bool state)
 {
     auto feat = getViewObject();
-    if (feat != nullptr) {
+    if (feat) {
         auto vp = QGIView::getViewProvider(feat);
-        if (vp != nullptr) {
+        if (vp) {
             Gui::ViewProviderDocumentObject* vpdo = dynamic_cast<Gui::ViewProviderDocumentObject*>(vp);
-            if (vpdo != nullptr) {
+            if (vpdo) {
                 vpdo->Visibility.setValue(state);
             }
         }
@@ -148,11 +156,11 @@ bool QGIView::isVisible(void)
 {
     bool result = false;
     auto feat = getViewObject();
-    if (feat != nullptr) {
+    if (feat) {
         auto vp = QGIView::getViewProvider(feat);
-        if (vp != nullptr) {
+        if (vp) {
             Gui::ViewProviderDocumentObject* vpdo = dynamic_cast<Gui::ViewProviderDocumentObject*>(vp);
-            if (vpdo != nullptr) {
+            if (vpdo) {
                 result = vpdo->Visibility.getValue();
             }
         }
@@ -190,7 +198,7 @@ QVariant QGIView::itemChange(GraphicsItemChange change, const QVariant &value)
         if (getViewObject()->isDerivedFrom(TechDraw::DrawProjGroupItem::getClassTypeId())) {
             TechDraw::DrawProjGroupItem* dpgi = static_cast<TechDraw::DrawProjGroupItem*>(getViewObject());
             TechDraw::DrawProjGroup* dpg = dpgi->getPGroup();
-            if (dpg != nullptr) {
+            if (dpg) {
                 if(alignHash.size() == 1) {   //if aligned.
                     QGraphicsItem* item = alignHash.begin().value();
                     QString alignMode   = alignHash.begin().key();
@@ -198,22 +206,6 @@ QVariant QGIView::itemChange(GraphicsItemChange change, const QVariant &value)
                         newPos.setX(item->pos().x());
                     } else if(alignMode == QString::fromLatin1("Horizontal")) {
                         newPos.setY(item->pos().y());
-                    } else if(alignMode == QString::fromLatin1("45slash")) {
-                         //this logic is wrong since the constrained movement direction is not necessarily 45*
-//                         Base::Console().Message("QGIV::itemChange - oblique BL-TR\n");
-//                        double dist = ( (newPos.x() - item->pos().x()) +
-//                                        (item->pos().y() - newPos.y()) ) / 2.0;
-
-//                        newPos.setX( item->pos().x() + dist);
-//                        newPos.setY( item->pos().y() - dist );
-                    } else if(alignMode == QString::fromLatin1("45backslash")) {
-                         //this logic is wrong since the constrained movement direction is not necessarily 45*
-//                         Base::Console().Message("QGIV::itemChange - oblique TL-BR\n");
-//                        double dist = ( (newPos.x() - item->pos().x()) +
-//                                        (newPos.y() - item->pos().y()) ) / 2.0;
-
-//                        newPos.setX( item->pos().x() + dist);
-//                        newPos.setY( item->pos().y() + dist );
                     }
                 }
             }
@@ -242,30 +234,39 @@ void QGIView::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
 //    Base::Console().Message("QGIV::mousePressEvent() - %s\n",getViewName());
     signalSelectPoint(this, event->pos());
+    if (m_dragState == NODRAG) {
+        m_dragState = DRAGSTARTED;
+    }
 
     QGraphicsItem::mousePressEvent(event);
 }
 
-//void QGIView::mouseMoveEvent(QGraphicsSceneMouseEvent * event)
-//{
-//    QGraphicsItem::mouseMoveEvent(event);
-//}
+void QGIView::mouseMoveEvent(QGraphicsSceneMouseEvent * event)
+{
+    if (m_dragState == DRAGSTARTED) {
+        m_dragState = DRAGGING;
+    }
+    QGraphicsItem::mouseMoveEvent(event);
+}
 
 void QGIView::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
 {
     //TODO: this should be done in itemChange - item position has changed
-    //TODO: and should check for dragging
 //    Base::Console().Message("QGIV::mouseReleaseEvent() - %s\n",getViewName());
 //    if(scene() && this == scene()->mouseGrabberItem()) {
-    if(!m_locked) {
-        if (!isInnerView()) {
-            double tempX = x(),
-                   tempY = getY();
-            getViewObject()->setPosition(Rez::appX(tempX),Rez::appX(tempY));
-        } else {
-            getViewObject()->setPosition(Rez::appX(x()),Rez::appX(getYInClip(y())));
+    if (m_dragState == DRAGGING) {
+        if(!m_locked) {
+            if (!isInnerView()) {
+                double tempX = x(),
+                       tempY = getY();
+                getViewObject()->setPosition(Rez::appX(tempX),Rez::appX(tempY));
+            } else {
+                getViewObject()->setPosition(Rez::appX(x()),Rez::appX(getYInClip(y())));
+            }
         }
     }
+    m_dragState = NODRAG;
+
     QGraphicsItem::mouseReleaseEvent(event);
 }
 
@@ -343,6 +344,8 @@ void QGIView::updateView(bool update)
 {
 //    Base::Console().Message("QGIV::updateView() - %s\n",getViewObject()->getNameInDocument());
     (void) update;
+
+    //allow/prevent dragging
     if (getViewObject()->isLocked()) {
         setFlag(QGraphicsItem::ItemIsMovable, false);
     } else {
@@ -374,7 +377,7 @@ double QGIView::getScale()
 {
     double result = 1.0;
     TechDraw::DrawView* feat = getViewObject();
-    if (feat != nullptr) {
+    if (feat) {
         result = feat->getScale();
     }
     return result;
@@ -396,7 +399,7 @@ TechDraw::DrawView * QGIView::getViewObject() const
 
 void QGIView::setViewFeature(TechDraw::DrawView *obj)
 {
-    if(obj == 0)
+    if (!obj)
         return;
 
     viewObj = obj;
@@ -418,23 +421,13 @@ void QGIView::toggleCache(bool state)
 void QGIView::draw()
 {
 //    Base::Console().Message("QGIV::draw()\n");
-    double x, y;
-    if (getViewObject() != nullptr) {
-        x = Rez::guiX(getViewObject()->X.getValue());
-        y = Rez::guiX(getViewObject()->Y.getValue());
-        if (getFrameState()) {
-            //+/- space for label if DPGI
-            TechDraw::DrawProjGroupItem* dpgi = dynamic_cast<TechDraw::DrawProjGroupItem*>(getViewObject());
-            if (dpgi != nullptr) {
-                double vertLabelSpace = Rez::guiX(Preferences::labelFontSizeMM());
-                if (y > 0) {
-                    y += vertLabelSpace;
-                } else if (y < 0) {
-                    y -= vertLabelSpace;
-                }
-            }
+    double xFeat, yFeat;
+    if (getViewObject()) {
+        xFeat = Rez::guiX(getViewObject()->X.getValue());
+        yFeat = Rez::guiX(getViewObject()->Y.getValue());
+        if (!getViewObject()->LockPosition.getValue()) {
+            setPosition(xFeat, yFeat);
         }
-        setPosition(x, y);
     }
     if (isVisible()) {
         drawBorder();
@@ -451,7 +444,6 @@ void QGIView::drawCaption()
     QRectF displayArea = customChildrenBoundingRect();
     m_caption->setDefaultTextColor(m_colCurrent);
     m_font.setFamily(getPrefFont());
-//    m_font.setPixelSize(calculateFontPixelSize(getPrefFontSize()));
     m_font.setPixelSize(PreferencesGui::labelFontSizePX());
     m_caption->setFont(m_font);
     QString captionStr = QString::fromUtf8(getViewObject()->Caption.getValue());
@@ -464,7 +456,6 @@ void QGIView::drawCaption()
     if (getFrameState() || vp->KeepLabel.getValue()) {            //place below label if label visible
         m_caption->setY(displayArea.bottom() + labelHeight);
     } else {
-//        m_caption->setY(displayArea.bottom() + labelCaptionFudge * getPrefFontSize());
         m_caption->setY(displayArea.bottom() + labelCaptionFudge * Preferences::labelFontSizeMM());
     }
     m_caption->show();
@@ -474,9 +465,8 @@ void QGIView::drawBorder()
 {
 //    Base::Console().Message("QGIV::drawBorder() - %s\n",getViewName());
     auto feat = getViewObject();
-    if (feat == nullptr) {
+    if (!feat)
         return;
-    }
 
     drawCaption();   //always draw caption
 
@@ -494,7 +484,6 @@ void QGIView::drawBorder()
 
     m_label->setDefaultTextColor(m_colCurrent);
     m_font.setFamily(getPrefFont());
-//    m_font.setPixelSize(calculateFontPixelSize(getPrefFontSize()));
     m_font.setPixelSize(PreferencesGui::labelFontSizePX());
 
     m_label->setFont(m_font);
@@ -611,14 +600,14 @@ QGIView* QGIView::getQGIVByName(std::string name)
             }
         }
     }
-    return 0;
+    return nullptr;
 }
 
 /* static */
 Gui::ViewProvider* QGIView::getViewProvider(App::DocumentObject* obj)
 {
     Gui::ViewProvider* result = nullptr;
-    if (obj != nullptr) {
+    if (obj) {
         Gui::Document* guiDoc = Gui::Application::Instance->getDocument(obj->getDocument());
         result = guiDoc->getViewProvider(obj);
     }
@@ -630,25 +619,39 @@ QGVPage* QGIView::getGraphicsView(TechDraw::DrawView* dv)
     QGVPage* graphicsView = nullptr;
     Gui::ViewProvider* vp = getViewProvider(dv);
     ViewProviderDrawingView* vpdv = dynamic_cast<ViewProviderDrawingView*>(vp);
-    if (vpdv != nullptr) {
+    if (vpdv) {
         MDIViewPage* mdi = vpdv->getMDIViewPage();
-        if (mdi != nullptr) {
+        if (mdi) {
             graphicsView = mdi->getQGVPage();
         }
     }
     return graphicsView;
 }
 
+QGSPage* QGIView::getGraphicsScene(TechDraw::DrawView* dv)
+{
+    QGSPage* graphicsScene = nullptr;
+    Gui::ViewProvider* vp = getViewProvider(dv);
+    ViewProviderDrawingView* vpdv = dynamic_cast<ViewProviderDrawingView*>(vp);
+    if (vpdv) {
+        MDIViewPage* mdi = vpdv->getMDIViewPage();
+        if (mdi) {
+            graphicsScene = mdi->getQGSPage();
+        }
+    }
+    return graphicsScene;
+}
+
 MDIViewPage* QGIView::getMDIViewPage(void) const
 {
-    return MDIViewPage::getFromScene(scene());
+    QGSPage* qgsp = static_cast<QGSPage*>(scene());
+    return MDIViewPage::getFromScene(qgsp);
 }
 
 //remove a child of this from scene while keeping scene indexes valid
 void QGIView::removeChild(QGIView* child)
 {
-    if ( (child != nullptr) &&
-         (child->parentItem() == this) ) {
+    if (child && (child->parentItem() == this) ) {
         prepareGeometryChange();
         scene()->removeItem(child);
     }
@@ -659,13 +662,13 @@ bool QGIView::getFrameState(void)
 //    Base::Console().Message("QGIV::getFrameState() - %s\n",getViewName());
     bool result = true;
     TechDraw::DrawView* dv = getViewObject();
-    if (dv != nullptr) {
+    if (dv) {
         TechDraw::DrawPage* page = dv->findParentPage();
-        if (page != nullptr) {
+        if (page) {
             Gui::Document* activeGui = Gui::Application::Instance->getDocument(page->getDocument());
             Gui::ViewProvider* vp = activeGui->getViewProvider(page);
             ViewProviderPage* vpp = dynamic_cast<ViewProviderPage*>(vp);
-            if (vpp != nullptr) {
+            if (vpp) {
                 result = vpp->getFrameState();
             }
         }
@@ -675,7 +678,7 @@ bool QGIView::getFrameState(void)
 
 void QGIView::addArbitraryItem(QGraphicsItem* qgi)
 {
-    if (qgi != nullptr) {
+    if (qgi) {
 //        m_randomItems.push_back(qgi); 
         addToGroup(qgi);
         qgi->show();

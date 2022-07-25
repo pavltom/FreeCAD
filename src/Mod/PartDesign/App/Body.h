@@ -24,10 +24,8 @@
 #ifndef PARTDESIGN_Body_H
 #define PARTDESIGN_Body_H
 
-#include <App/PropertyStandard.h>
 #include <Mod/Part/App/BodyBase.h>
-
-#include <boost_signals2.hpp>
+#include <Mod/PartDesign/PartDesignGlobal.h>
 
 namespace App {
     class Origin;
@@ -93,21 +91,23 @@ public:
     bool isAfterInsertPoint(App::DocumentObject* feature);
 
     /// Return true if the given feature is member of a MultiTransform feature
-    static bool isMemberOfMultiTransform(const App::DocumentObject* f);
+    static bool isMemberOfMultiTransform(const App::DocumentObject *obj);
 
     /**
       * Return true if the given feature is a solid feature allowed in a Body. Currently this is only valid
       * for features derived from PartDesign::Feature
       * Return false if the given feature is a Sketch or a Part::Datum feature
       */
-    static bool isSolidFeature(const App::DocumentObject* f);
+    static bool isSolidFeature(const App::DocumentObject *obj);
 
     /**
       * Return true if the given feature is allowed in a Body. Currently allowed are
       * all features derived from PartDesign::Feature and Part::Datum and sketches
       */
-    static bool isAllowed(const App::DocumentObject* f);
-    virtual bool allowObject(DocumentObject* f) override {return isAllowed(f);}
+    static bool isAllowed(const App::DocumentObject *obj);
+    virtual bool allowObject(DocumentObject *obj) override {
+      return isAllowed(obj);
+    }
 
     /**
      * Return the body which this feature belongs too, or NULL
@@ -129,13 +129,13 @@ public:
       * Return the solid feature before the given feature, or before the Tip feature
       * That is, sketches and datum features are skipped
       */
-    App::DocumentObject *getPrevSolidFeature(App::DocumentObject *start = NULL);
+    App::DocumentObject *getPrevSolidFeature(App::DocumentObject *start = nullptr);
 
     /**
       * Return the next solid feature after the given feature, or after the Tip feature
       * That is, sketches and datum features are skipped
       */
-    App::DocumentObject *getNextSolidFeature(App::DocumentObject* start = NULL);
+    App::DocumentObject *getNextSolidFeature(App::DocumentObject* start = nullptr);
 
     // a body is solid if it has features that are solid according to member isSolidFeature.
     bool isSolid(void);

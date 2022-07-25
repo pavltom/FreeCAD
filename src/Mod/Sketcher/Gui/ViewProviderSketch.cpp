@@ -25,81 +25,64 @@
 
 #ifndef _PreComp_
 # include <Standard_math.hxx>
-# include <Poly_Polygon3D.hxx>
 
 # include <Inventor/actions/SoGetBoundingBoxAction.h>
 # include <Inventor/SbBox3f.h>
 # include <Inventor/SoPickedPoint.h>
 # include <Inventor/details/SoPointDetail.h>
-# include <Inventor/nodes/SoDrawStyle.h>
-# include <Inventor/nodes/SoLineSet.h>
-# include <Inventor/nodes/SoPointSet.h>
-# include <Inventor/nodes/SoMarkerSet.h>
+# include <Inventor/events/SoKeyboardEvent.h>
 # include <Inventor/nodes/SoCamera.h>
+# include <Inventor/SbLine.h>
 # include <Inventor/SbTime.h>
 
 /// Qt Include Files
 # include <QAction>
 # include <QApplication>
 # include <QColor>
+# include <QDesktopWidget>
 # include <QDialog>
 # include <QFont>
+# include <QKeyEvent>
 # include <QMenu>
 # include <QMessageBox>
 # include <QPainter>
 # include <QTextStream>
-# include <QKeyEvent>
-# include <QDesktopWidget>
-
-# include <boost_bind_bind.hpp>
 #endif
 
 /// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <Base/Converter.h>
-#include <Base/Tools.h>
-#include <Base/Parameter.h>
 #include <Base/Console.h>
+#include <Base/Tools.h>
 #include <Base/Vector3D.h>
-#include <Base/Interpreter.h>
-#include <Base/UnitsSchema.h>
-#include <Base/UnitsApi.h>
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
-#include <Gui/Document.h>
 #include <Gui/CommandT.h>
 #include <Gui/Control.h>
-#include <Gui/Selection.h>
-#include <Gui/Tools.h>
-#include <Gui/Utilities.h>
+#include <Gui/Document.h>
 #include <Gui/MainWindow.h>
 #include <Gui/MenuManager.h>
+#include <Gui/Selection.h>
+#include <Gui/SelectionObject.h>
+#include <Gui/SoFCUnifiedSelection.h>
+#include <Gui/Utilities.h>
 #include <Gui/View3DInventor.h>
 #include <Gui/View3DInventorViewer.h>
-#include <Gui/DlgEditFileIncludePropertyExternal.h>
-#include <Gui/SoFCBoundingBox.h>
-#include <Gui/SoFCUnifiedSelection.h>
-#include <Gui/Inventor/MarkerBitmaps.h>
-#include <Gui/Inventor/SmSwitchboard.h>
 
 #include <Mod/Part/App/Geometry.h>
-#include <Mod/Part/App/BodyBase.h>
-#include <Mod/Sketcher/App/SketchObject.h>
-#include <Mod/Sketcher/App/Sketch.h>
-#include <Mod/Sketcher/App/GeometryFacade.h>
 #include <Mod/Sketcher/App/GeoList.h>
+#include <Mod/Sketcher/App/GeometryFacade.h>
+#include <Mod/Sketcher/App/Sketch.h>
+#include <Mod/Sketcher/App/SketchObject.h>
 #include <Mod/Sketcher/App/SolverGeometryExtension.h>
 
-#include "SoZoomTranslation.h"
-#include "SoDatumLabel.h"
-#include "EditDatumDialog.h"
 #include "ViewProviderSketch.h"
 #include "DrawSketchHandler.h"
+#include "EditModeCoinManager.h"
+#include "EditDatumDialog.h"
 #include "TaskDlgEditSketch.h"
 #include "TaskSketcherValidation.h"
 #include "Utils.h"
 #include "ViewProviderSketchGeometryExtension.h"
 
-#include "EditModeCoinManager.h"
 
 FC_LOG_LEVEL_INIT("Sketch",true,true)
 
@@ -149,7 +132,7 @@ void ViewProviderSketch::ParameterObserver::updateGridSize(const std::string & s
 
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher/General");
 
-    Client.GridSize.setValue(Base::Quantity::parse(QString::fromLatin1(hGrp->GetGroup("GridSize")->GetASCII("Hist0", "10.0").c_str())).getValue());
+    Client.GridSize.setValue(Base::Quantity::parse(QString::fromLatin1(hGrp->GetGroup("GridSize")->GetASCII("GridSize", "10.0").c_str())).getValue());
 }
 
 void ViewProviderSketch::ParameterObserver::updateEscapeKeyBehaviour(const std::string & string, App::Property * property)
@@ -182,26 +165,36 @@ void ViewProviderSketch::ParameterObserver::updateRecalculateInitialSolutionWhil
 
 void ViewProviderSketch::ParameterObserver::subscribeToParameters()
 {
-    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher/General");
-    hGrp->Attach(this);
+    try {
+        ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher/General");
+        hGrp->Attach(this);
 
-    ParameterGrp::handle hGrp2 = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher");
-    hGrp2->Attach(this);
+        ParameterGrp::handle hGrp2 = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher");
+        hGrp2->Attach(this);
 
-    ParameterGrp::handle hGrpv = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
-    hGrpv->Attach(this);
+        ParameterGrp::handle hGrpv = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
+        hGrpv->Attach(this);
+    }
+    catch(const Base::ValueError & e) { // ensure that if parameter strings are not well-formed, the exception is not propagated
+        Base::Console().Error("ViewProviderSketch: Malformed parameter string: %s\n", e.what());
+    }
 }
 
 void ViewProviderSketch::ParameterObserver::unsubscribeToParameters()
 {
-    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher/General");
-    hGrp->Detach(this);
+    try {
+        ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher/General");
+        hGrp->Detach(this);
 
-    ParameterGrp::handle hGrp2 = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher");
-    hGrp2->Detach(this);
+        ParameterGrp::handle hGrp2 = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher");
+        hGrp2->Detach(this);
 
-    ParameterGrp::handle hGrpv = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
-    hGrpv->Detach(this);
+        ParameterGrp::handle hGrpv = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
+        hGrpv->Detach(this);
+    }
+    catch(const Base::ValueError & e) { // ensure that if parameter strings are not well-formed, the exception is not propagated
+        Base::Console().Error("ViewProviderSketch: Malformed parameter string: %s\n", e.what());
+    }
 }
 
 void ViewProviderSketch::ParameterObserver::initParameters()
@@ -287,7 +280,7 @@ PROPERTY_SOURCE_WITH_EXTENSIONS(SketcherGui::ViewProviderSketch, PartGui::ViewPr
 ViewProviderSketch::ViewProviderSketch()
   : SelectionObserver(false),
     Mode(STATUS_NONE),
-    listener(0),
+    listener(nullptr),
     editCoinManager(nullptr),
     pObserver(std::make_unique<ViewProviderSketch::ParameterObserver>(*this)),
     sketchHandler(nullptr)
@@ -359,12 +352,11 @@ void ViewProviderSketch::forceUpdateData()
 void ViewProviderSketch::activateHandler(DrawSketchHandler *newHandler)
 {
     assert(editCoinManager);
-    assert(sketchHandler == nullptr);
+    assert(!sketchHandler);
 
     sketchHandler = std::unique_ptr<DrawSketchHandler>(newHandler);
     Mode = STATUS_SKETCH_UseHandler;
-    sketchHandler->sketchgui = this;
-    sketchHandler->activated(this);
+    sketchHandler->activate(this);
 
     // make sure receiver has focus so immediately pressing Escape will be handled by
     // ViewProviderSketch::keyPressed() and dismiss the active handler, and not the entire
@@ -377,15 +369,9 @@ void ViewProviderSketch::deactivateHandler()
 {
     assert(isInEditMode());
     if(sketchHandler){
-        std::vector<Base::Vector2d> editCurve;
-        editCurve.clear();
-        drawEdit(editCurve); // erase any line
-        resetPositionText();
-        sketchHandler->deactivated(this);
-        sketchHandler->unsetCursor();
+        sketchHandler->deactivate();
         sketchHandler = nullptr;
     }
-
     Mode = STATUS_NONE;
 }
 
@@ -410,6 +396,62 @@ void ViewProviderSketch::setAxisPickStyle(bool on)
     editCoinManager->setAxisPickStyle(on);
 }
 
+void ViewProviderSketch::moveCursorToSketchPoint(Base::Vector2d point) {
+
+    SbVec3f sbpoint(point.x,point.y,0.f);
+
+    Gui::MDIView *mdi = this->getActiveView();
+    Gui::View3DInventor *view = qobject_cast<Gui::View3DInventor*>(mdi);
+
+    if (!view)
+        return;
+
+    Gui::View3DInventorViewer* viewer = view->getViewer();
+
+    SbVec2s screencoords = viewer->getPointOnScreen(sbpoint);
+
+    short x,y; screencoords.getValue(x,y);
+
+    short height = viewer->getGLWidget()->height(); // Coin3D origin bottom left, QT origin top left
+
+    QPoint newPos = viewer->getGLWidget()->mapToGlobal(QPoint(x,height-y));
+
+
+    // QScreen *screen = view->windowHandle()->screen();
+    //QScreen *screen = QGuiApplication::primaryScreen();
+
+    //QCursor::setPos(screen, newPos);
+    QCursor::setPos(newPos);
+}
+
+void ViewProviderSketch::preselectAtPoint(Base::Vector2d point)
+{
+    if (Mode != STATUS_SELECT_Point &&
+        Mode != STATUS_SELECT_Edge &&
+        Mode != STATUS_SELECT_Constraint &&
+        Mode != STATUS_SKETCH_DragPoint &&
+        Mode != STATUS_SKETCH_DragCurve &&
+        Mode != STATUS_SKETCH_DragConstraint &&
+        Mode != STATUS_SKETCH_UseRubberBand) {
+
+        SbVec3f sbpoint(point.x,point.y,0.f);
+
+        Gui::MDIView *mdi = this->getActiveView();
+        Gui::View3DInventor *view = qobject_cast<Gui::View3DInventor*>(mdi);
+
+        if (!view)
+            return;
+
+        Gui::View3DInventorViewer* viewer = view->getViewer();
+
+        SbVec2s screencoords = viewer->getPointOnScreen(sbpoint);
+
+        std::unique_ptr<SoPickedPoint> Point(this->getPointOnRay(screencoords, viewer));
+
+        detectAndShowPreselection(Point.get(), screencoords);
+    }
+}
+
 // **********************************************************************************
 
 bool ViewProviderSketch::keyPressed(bool pressed, int key)
@@ -424,7 +466,7 @@ bool ViewProviderSketch::keyPressed(bool pressed, int key)
                     sketchHandler->quit();
                 return true;
             }
-            if (isInEditMode() && (drag.DragConstraintSet.empty() == false)) {
+            if (isInEditMode() && !drag.DragConstraintSet.empty()) {
                 if (!pressed) {
                     drag.DragConstraintSet.clear();
                 }
@@ -465,6 +507,13 @@ bool ViewProviderSketch::keyPressed(bool pressed, int key)
             }
             return false;
         }
+        break;
+    case SoKeyboardEvent::LEFT_SHIFT:
+        if (Mode < STATUS_SKETCH_UseHandler) {
+            editCoinManager->setConstraintSelectability(!pressed);
+            return true;
+        }
+        [[fallthrough]];
     default:
         {
             if (isInEditMode() && sketchHandler)
@@ -524,7 +573,8 @@ void ViewProviderSketch::getProjectingLine(const SbVec2s& pnt, const Gui::View3D
     }
 
     SoCamera* pCam = viewer->getSoRenderManager()->getCamera();
-    if (!pCam) return;
+    if (!pCam)
+        return;
     SbViewVolume  vol = pCam->getViewVolume();
 
     vol.projectPointToLine(SbVec2f(pX,pY), line);
@@ -827,7 +877,7 @@ bool ViewProviderSketch::mouseButtonPressed(int Button, bool pressed, const SbVe
                     Mode = STATUS_NONE;
                     return true;
                 case STATUS_SKETCH_DragConstraint:
-                    if (drag.DragConstraintSet.empty() == false) {
+                    if (!drag.DragConstraintSet.empty()) {
                         getDocument()->openCommand(QT_TRANSLATE_NOOP("Command", "Drag Constraint"));
                         auto idset = drag.DragConstraintSet;
                         for(int id : idset) {
@@ -978,6 +1028,19 @@ bool ViewProviderSketch::mouseButtonPressed(int Button, bool pressed, const SbVe
     }
 
     return false;
+}
+
+bool ViewProviderSketch::mouseWheelEvent(int delta, const SbVec2s &cursorPos, const Gui::View3DInventorViewer* viewer)
+{
+    assert(isInEditMode());
+
+    Q_UNUSED(delta);
+    Q_UNUSED(cursorPos);
+    Q_UNUSED(viewer);
+
+    editCoinManager->drawConstraintIcons();
+
+    return true;
 }
 
 void ViewProviderSketch::editDoubleClicked(void)
@@ -1171,8 +1234,13 @@ bool ViewProviderSketch::mouseMove(const SbVec2s &cursorPos, Gui::View3DInventor
                     drag.resetVector();
                 }
 
-                getSketchObject()->initTemporaryMove(drag.DragCurve, Sketcher::PointPos::none, false);
-
+                if (geo->getTypeId() == Part::GeomBSplineCurve::getClassTypeId()) {
+                    getSketchObject()->initTemporaryBSplinePieceMove(
+                        drag.DragCurve, Sketcher::PointPos::none,
+                        Base::Vector3d(drag.xInit, drag.yInit, 0.0), false);
+                } else {
+                    getSketchObject()->initTemporaryMove(drag.DragCurve, Sketcher::PointPos::none, false);
+                }
             } else {
                 Mode = STATUS_NONE;
             }
@@ -1236,7 +1304,7 @@ bool ViewProviderSketch::mouseMove(const SbVec2s &cursorPos, Gui::View3DInventor
             }
             return true;
         case STATUS_SKETCH_DragConstraint:
-            if (drag.DragConstraintSet.empty() == false) {
+            if (!drag.DragConstraintSet.empty()) {
                 auto idset = drag.DragConstraintSet;
                 for(int id : idset)
                     moveConstraint(id, Base::Vector2d(x,y));
@@ -1715,7 +1783,7 @@ bool ViewProviderSketch::detectAndShowPreselection(SoPickedPoint * Point, const 
                     sketchHandler->applyCursor();
                 return true;
             }
-        } else if (result.ConstrIndices.empty() == false && result.ConstrIndices != preselection.PreselectConstraintSet) { // if a constraint is hit
+        } else if (!result.ConstrIndices.empty() && result.ConstrIndices != preselection.PreselectConstraintSet) { // if a constraint is hit
             bool accepted = true;
             for(std::set<int>::iterator it = result.ConstrIndices.begin(); it != result.ConstrIndices.end(); ++it) {
                 std::stringstream ss;
@@ -2574,6 +2642,11 @@ void ViewProviderSketch::drawEdit(const std::vector<Base::Vector2d> &EditCurve)
     editCoinManager->drawEdit(EditCurve);
 }
 
+void ViewProviderSketch::drawEdit(const std::list<std::vector<Base::Vector2d>> &list)
+{
+    editCoinManager->drawEdit(list);
+}
+
 void ViewProviderSketch::drawEditMarkers(const std::vector<Base::Vector2d> &EditMarkers, unsigned int augmentationlevel)
 {
     editCoinManager->drawEditMarkers(EditMarkers, augmentationlevel);
@@ -2627,6 +2700,8 @@ void ViewProviderSketch::attach(App::DocumentObject *pcFeat)
 void ViewProviderSketch::setupContextMenu(QMenu *menu, QObject *receiver, const char *member)
 {
     menu->addAction(tr("Edit sketch"), receiver, member);
+    // Call the extensions
+    Gui::ViewProvider::setupContextMenu(menu, receiver, member);
 }
 
 bool ViewProviderSketch::setEdit(int ModNum)
@@ -2637,7 +2712,7 @@ bool ViewProviderSketch::setEdit(int ModNum)
     Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
     TaskDlgEditSketch *sketchDlg = qobject_cast<TaskDlgEditSketch *>(dlg);
     if (sketchDlg && sketchDlg->getSketchView() != this)
-        sketchDlg = 0; // another sketch left open its task panel
+        sketchDlg = nullptr; // another sketch left open its task panel
     if (dlg && !sketchDlg) {
         QMessageBox msgBox;
         msgBox.setText(tr("A dialog is already open in the task panel"));
@@ -2686,7 +2761,7 @@ bool ViewProviderSketch::setEdit(int ModNum)
     auto editDoc = Gui::Application::Instance->editDocument();
     App::DocumentObject *editObj = getSketchObject();
     std::string editSubName;
-    ViewProviderDocumentObject *editVp = 0;
+    ViewProviderDocumentObject *editVp = nullptr;
     if(editDoc) {
         editDoc->getInEdit(&editVp,&editSubName);
         if(editVp)
@@ -2891,7 +2966,7 @@ void ViewProviderSketch::UpdateSolverInformation()
         signalSetUp(QString::fromUtf8("under_constrained"),
             tr("Under constrained:"),
             QString::fromUtf8("#dofs"),
-            QString::fromUtf8("%1 %2").arg(dofs).arg(tr("DoF")));
+            tr("%n DoF(s)","",dofs));
     }
     else {
         signalSetUp(QString::fromUtf8("fully_constrained"), tr("Fully constrained"), QString(), QString());
@@ -2947,7 +3022,7 @@ void ViewProviderSketch::unsetEdit(int ModNum)
                     "ActiveSketch.ViewObject.TempoVis = None\n"
                     "del(tv)\n"
                     "del(ActiveSketch)\n"
-                    ).arg(QString::fromLatin1(getDocument()->getDocument()->getName())).arg(
+                    ).arg(QString::fromLatin1(getDocument()->getDocument()->getName()),
                           QString::fromLatin1(getSketchObject()->getNameInDocument()));
         QByteArray cmdstr_bytearray = cmdstr.toLatin1();
         Gui::Command::runCommand(Gui::Command::Gui, cmdstr_bytearray);
@@ -2971,7 +3046,7 @@ void ViewProviderSketch::setEditViewer(Gui::View3DInventorViewer* viewer, int Mo
                         "  ActiveSketch.ViewObject.TempoVis.saveCamera()\n"
                         "  if ActiveSketch.ViewObject.ForceOrtho:\n"
                         "    ActiveSketch.ViewObject.Document.ActiveView.setCameraType('Orthographic')\n"
-                        ).arg(QString::fromLatin1(getDocument()->getDocument()->getName())).arg(
+                        ).arg(QString::fromLatin1(getDocument()->getDocument()->getName()),
                               QString::fromLatin1(getSketchObject()->getNameInDocument()));
             QByteArray cmdstr_bytearray = cmdstr.toLatin1();
             Gui::Command::runCommand(Gui::Command::Gui, cmdstr_bytearray);
@@ -2984,7 +3059,7 @@ void ViewProviderSketch::setEditViewer(Gui::View3DInventorViewer* viewer, int Mo
     auto editDoc = Gui::Application::Instance->editDocument();
     editDocName.clear();
     if(editDoc) {
-        ViewProviderDocumentObject *parent=0;
+        ViewProviderDocumentObject *parent=nullptr;
         editDoc->getInEdit(&parent,&editSubName);
         if(parent) {
             editDocName = editDoc->getDocument()->getName();
@@ -3082,11 +3157,11 @@ const Sketcher::Sketch &ViewProviderSketch::getSolvedSketch(void) const
 void ViewProviderSketch::deleteSelected()
 {
     std::vector<Gui::SelectionObject> selection;
-    selection = Gui::Selection().getSelectionEx(0, Sketcher::SketchObject::getClassTypeId());
+    selection = Gui::Selection().getSelectionEx(nullptr, Sketcher::SketchObject::getClassTypeId());
 
     // only one sketch with its subelements are allowed to be selected
     if (selection.size() != 1) {
-        Base::Console().Warning("Delete: Selection not restricted to one sketch and its subelements");
+        Base::Console().Warning("Delete: Selection not restricted to one sketch and its subelements\n");
         return;
     }
 
@@ -3288,6 +3363,11 @@ QIcon ViewProviderSketch::mergeColorfulOverlayIcons (const QIcon & orig) const
 
 
 /*************************** functions ViewProviderSketch offers to friends such as DrawHandlerSketch ************************/
+
+void ViewProviderSketch::setConstraintSelectability(bool enabled /*= true*/)
+{
+    editCoinManager->setConstraintSelectability(enabled);
+}
 
 void ViewProviderSketch::setPositionText(const Base::Vector2d &Pos, const SbString &text)
 {

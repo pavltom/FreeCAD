@@ -34,7 +34,6 @@
 # include <TopoDS_Edge.hxx>
 # include <ShapeExtend_Explorer.hxx>
 # include <TopTools_HSequenceOfShape.hxx>
-# include <Python.h>
 # include <Inventor/system/inttypes.h>
 # include <Precision.hxx>
 #endif
@@ -45,6 +44,8 @@
 #include <App/Application.h>
 #include <App/Document.h>
 #include <App/DocumentObject.h>
+#include <App/Link.h>
+#include <App/Part.h>
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
@@ -67,23 +68,25 @@ public:
     bool canSelect;
 
     EdgeSelection()
-        : Gui::SelectionFilterGate((Gui::SelectionFilter*)0)
+        : Gui::SelectionFilterGate(nullPointer())
     {
         canSelect = false;
     }
     bool allow(App::Document* /*pDoc*/, App::DocumentObject*pObj, const char*sSubName)
     {
         this->canSelect = false;
-        if (!pObj->isDerivedFrom(Part::Feature::getClassTypeId()))
-            return false;
+
         if (!sSubName || sSubName[0] == '\0')
             return false;
         std::string element(sSubName);
         if (element.substr(0,4) != "Edge")
             return false;
-        Part::Feature* fea = static_cast<Part::Feature*>(pObj);
+        Part::TopoShape part = Part::Feature::getTopoShape(pObj);
+        if (part.isNull()) {
+            return false;
+        }
         try {
-            TopoDS_Shape sub = fea->Shape.getShape().getSubShape(sSubName);
+            TopoDS_Shape sub = part.getSubShape(sSubName);
             if (!sub.IsNull() && sub.ShapeType() == TopAbs_EDGE) {
                 const TopoDS_Edge& edge = TopoDS::Edge(sub);
                 BRepAdaptor_Curve adapt(edge);
@@ -103,7 +106,7 @@ public:
 DlgRevolution::DlgRevolution(QWidget* parent, Qt::WindowFlags fl)
   : QDialog(parent, fl)
   , ui(new Ui_DlgRevolution)
-  , filter(0)
+  , filter(nullptr)
 {
     ui->setupUi(this);
 
@@ -128,6 +131,8 @@ DlgRevolution::DlgRevolution(QWidget* parent, Qt::WindowFlags fl)
 
     Gui::ItemViewSelection sel(ui->treeWidget);
     sel.applyFrom(Gui::Selection().getObjectsOfType(Part::Feature::getClassTypeId()));
+    sel.applyFrom(Gui::Selection().getObjectsOfType(App::Link::getClassTypeId()));
+    sel.applyFrom(Gui::Selection().getObjectsOfType(App::Part::getClassTypeId()));
 
     connect(ui->txtAxisLink, SIGNAL(textChanged(QString)), this, SLOT(on_txtAxisLink_textChanged(QString)));
 
@@ -324,13 +329,18 @@ void DlgRevolution::keyPressEvent(QKeyEvent* ke)
 void DlgRevolution::findShapes()
 {
     App::Document* activeDoc = App::GetApplication().getActiveDocument();
-    if (!activeDoc) return;
+    if (!activeDoc)
+        return;
     Gui::Document* activeGui = Gui::Application::Instance->getDocument(activeDoc);
 
-    std::vector<App::DocumentObject*> objs = activeDoc->getObjectsOfType
-        (Part::Feature::getClassTypeId());
+    std::vector<App::DocumentObject*> objs = activeDoc->getObjectsOfType<App::DocumentObject>();
+
     for (std::vector<App::DocumentObject*>::iterator it = objs.begin(); it!=objs.end(); ++it) {
-        const TopoDS_Shape& shape = static_cast<Part::Feature*>(*it)->Shape.getValue();
+        Part::TopoShape topoShape = Part::Feature::getTopoShape(*it);
+        if (topoShape.isNull()) {
+            continue;
+        }
+        TopoDS_Shape shape = topoShape.getShape();
         if (shape.IsNull()) continue;
 
         TopExp_Explorer xp;
@@ -368,8 +378,8 @@ void DlgRevolution::accept()
         QString strAxisLink;
         if (axisLink.getValue()){
             strAxisLink = QString::fromLatin1("(App.ActiveDocument.%1, %2)")
-                    .arg(QString::fromLatin1(axisLink.getValue()->getNameInDocument()))
-                    .arg(axisLink.getSubValues().size() ==  1 ?
+                    .arg(QString::fromLatin1(axisLink.getValue()->getNameInDocument()),
+                         axisLink.getSubValues().size() ==  1 ?
                              QString::fromLatin1("\"%1\"").arg(QString::fromLatin1(axisLink.getSubValues()[0].c_str()))
                              : QString() );
         } else {
@@ -400,7 +410,7 @@ void DlgRevolution::accept()
                 "FreeCAD.ActiveDocument.%2.AxisLink = %12\n"
                 "FreeCAD.ActiveDocument.%2.Symmetric = %13\n"
                 "FreeCADGui.ActiveDocument.%3.Visibility = False\n")
-                .arg(type).arg(name).arg(shape) //%1, 2, 3
+                .arg(type, name, shape) //%1, 2, 3
                 .arg(axis.x,0,'f',15) //%4
                 .arg(axis.y,0,'f',15) //%5
                 .arg(axis.z,0,'f',15) //%6
@@ -408,9 +418,9 @@ void DlgRevolution::accept()
                 .arg(pos.y, 0,'f',15) //%8
                 .arg(pos.z, 0,'f',15) //%9
                 .arg(getAngle(),0,'f',15) //%10
-                .arg(solid) //%11
-                .arg(strAxisLink) //%12
-                .arg(symmetric) //13
+                .arg(solid, //%11
+                     strAxisLink, //%12
+                     symmetric) //%13
                 ;
             Gui::Command::runCommand(Gui::Command::App, code.toLatin1());
             QByteArray to = name.toLatin1();
@@ -521,9 +531,11 @@ void DlgRevolution::autoSolid()
 {
     try{
         App::DocumentObject &dobj = this->getShapeToRevolve();
-        if (dobj.isDerivedFrom(Part::Feature::getClassTypeId())){
-            Part::Feature &feature = static_cast<Part::Feature&>(dobj);
-            TopoDS_Shape sh = feature.Shape.getValue();
+        Part::TopoShape topoShape = Part::Feature::getTopoShape(&dobj);
+        if (topoShape.isNull()) {
+            return;
+        } else {
+            TopoDS_Shape sh = topoShape.getShape();
             if (sh.IsNull())
                 return;
             ShapeExtend_Explorer xp;
@@ -554,7 +566,7 @@ TaskRevolution::TaskRevolution()
     widget = new DlgRevolution();
     taskbox = new Gui::TaskView::TaskBox(
         Gui::BitmapFactory().pixmap("Part_Revolve"),
-        widget->windowTitle(), true, 0);
+        widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

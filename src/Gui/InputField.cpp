@@ -28,20 +28,19 @@
 # include <QPixmapCache>
 #endif
 
-#include <Base/Console.h>
-#include <Base/Quantity.h>
-#include <Base/Exception.h>
-#include <Base/Tools.h>
 #include <App/Application.h>
-#include <App/PropertyUnits.h>
-#include <App/ExpressionParser.h>
 #include <App/DocumentObject.h>
-#include "ExpressionCompleter.h"
-#include "Command.h"
+#include <App/ExpressionParser.h>
+#include <App/PropertyUnits.h>
+#include <Base/Exception.h>
+#include <Base/Quantity.h>
+#include <Base/Tools.h>
+
 #include "InputField.h"
 #include "BitmapFactory.h"
+#include "Command.h"
 #include "QuantitySpinBox_p.h"
-#include "propertyeditor/PropertyItem.h"
+
 
 using namespace Gui;
 using namespace App;
@@ -260,7 +259,7 @@ void InputField::newInput(const QString & text)
         QString errorText = QString::fromLatin1(e.what());
         QPixmap pixmap = getValidationIcon(":/icons/button_invalid.svg", QSize(sizeHint().height(),sizeHint().height()));
         iconLabel->setPixmap(pixmap);
-        parseError(errorText);
+        Q_EMIT parseError(errorText);
         validInput = false;
         return;
     }
@@ -272,7 +271,7 @@ void InputField::newInput(const QString & text)
     if(!actUnit.isEmpty() && !res.getUnit().isEmpty() && actUnit != res.getUnit()){
         QPixmap pixmap = getValidationIcon(":/icons/button_invalid.svg", QSize(sizeHint().height(),sizeHint().height()));
         iconLabel->setPixmap(pixmap);
-        parseError(QString::fromLatin1("Wrong unit"));
+        Q_EMIT parseError(QString::fromLatin1("Wrong unit"));
         validInput = false;
         return;
     }
@@ -298,8 +297,8 @@ void InputField::newInput(const QString & text)
     actQuantity = res;
 
     // signaling
-    valueChanged(res);
-    valueChanged(res.getValue());
+    Q_EMIT valueChanged(res);
+    Q_EMIT valueChanged(res.getValue());
 }
 
 void InputField::pushToHistory(const QString &valueq)
@@ -601,7 +600,7 @@ void InputField::selectNumber(void)
     QChar n = locale().negativeSign();
     QChar e = locale().exponential();
 
-    for (QString::iterator it = str.begin(); it != str.end(); ++it) {
+    for (QString::const_iterator it = str.cbegin(); it != str.cend(); ++it) {
         if (it->isDigit())
             i++;
         else if (*it == d)
@@ -643,6 +642,19 @@ void InputField::focusInEvent(QFocusEvent *event)
 
 void InputField::focusOutEvent(QFocusEvent *event)
 {
+    try {
+        if (Quantity::parse(this->text()).getUnit().isEmpty()) {
+            // if user didn't enter a unit, we virtually compensate
+            // the multiplication factor induced by user unit system
+            double factor;
+            QString unitStr;
+            actQuantity.getUserString(factor, unitStr);
+            actQuantity = actQuantity * factor;
+        }
+    }
+    catch (const Base::ParserError& e) {
+        // do nothing, let apply the last known good value
+    }
     this->setText(actQuantity.getUserString());
     QLineEdit::focusOutEvent(event);
 }

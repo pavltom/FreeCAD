@@ -32,6 +32,8 @@
 #include <Base/Quantity.h>
 #include <Base/UnitsApi.h>
 
+#include <App/Document.h>
+
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
@@ -52,7 +54,7 @@
 
 #include <Mod/TechDraw/Gui/ui_TaskDetail.h>
 
-#include "DrawGuiStd.h"
+#include "QGSPage.h"
 #include "QGVPage.h"
 #include "QGIView.h"
 #include "QGIPrimPath.h"
@@ -100,7 +102,7 @@ TaskDetail::TaskDetail(TechDraw::DrawViewPart* baseFeat):
 
     m_basePage = m_baseFeat->findParentPage();
     //it is possible that the basePage could be unparented and have no corresponding Page
-    if (m_basePage == nullptr) {
+    if (!m_basePage) {
         Base::Console().Error("TaskDetail - bad parameters - base page.  Can not proceed.\n");
         return;
     }
@@ -115,7 +117,7 @@ TaskDetail::TaskDetail(TechDraw::DrawViewPart* baseFeat):
     Gui::ViewProvider* vp = activeGui->getViewProvider(m_basePage);
     ViewProviderPage* vpp = static_cast<ViewProviderPage*>(vp);
     m_mdi = vpp->getMDIViewPage();
-    m_scene = m_mdi->m_scene;
+    m_scene = m_mdi->getQGSPage();
     m_view = m_mdi->getQGVPage();
 
     createDetail();
@@ -172,7 +174,7 @@ TaskDetail::TaskDetail(TechDraw::DrawViewDetail* detailFeat):
     m_mode(EDITMODE),
     m_created(false)
 {
-    if (m_detailFeat == nullptr)  {
+    if (!m_detailFeat)  {
         //should be caught in CMD caller
         Base::Console().Error("TaskDetail - bad parameters.  Can not proceed.\n");
         return;
@@ -182,13 +184,13 @@ TaskDetail::TaskDetail(TechDraw::DrawViewDetail* detailFeat):
     m_detailName = m_detailFeat->getNameInDocument();
 
     m_basePage = m_detailFeat->findParentPage();
-    if (m_basePage != nullptr) {
+    if (m_basePage) {
         m_pageName = m_basePage->getNameInDocument();
     }
 
     App::DocumentObject* baseObj = m_detailFeat->BaseView.getValue();
     m_baseFeat = dynamic_cast<TechDraw::DrawViewPart*>(baseObj);
-    if (m_baseFeat != nullptr) {
+    if (m_baseFeat) {
         m_baseName = m_baseFeat->getNameInDocument();
     } else {
         Base::Console().Error("TaskDetail - no BaseView.  Can not proceed.\n");
@@ -201,7 +203,7 @@ TaskDetail::TaskDetail(TechDraw::DrawViewDetail* detailFeat):
     Gui::ViewProvider* vp = activeGui->getViewProvider(m_basePage);
     ViewProviderPage* vpp = static_cast<ViewProviderPage*>(vp);
     m_mdi = vpp->getMDIViewPage();
-    m_scene = m_mdi->m_scene;
+    m_scene = m_mdi->getQGSPage();
     m_view = m_mdi->getQGVPage();
 
     saveDetailState();
@@ -274,7 +276,7 @@ void TaskDetail::restoreDetailState()
 void TaskDetail::setUiFromFeat()
 {
 //    Base::Console().Message("TD::setUIFromFeat()\n");
-    if (m_baseFeat != nullptr) {
+    if (m_baseFeat) {
         std::string baseName = getBaseFeat()->getNameInDocument();
         ui->leBaseView->setText(Base::Tools::fromStdString(baseName));
     }
@@ -292,7 +294,7 @@ void TaskDetail::setUiFromFeat()
     double scale = detailFeat->Scale.getValue();
     QString ref = QString::fromUtf8(detailFeat->Reference.getValue());
 
-    ui->pbDragger->setText(QString::fromUtf8("Drag Highlight"));
+    ui->pbDragger->setText(tr("Drag Highlight"));
     ui->pbDragger->setEnabled(true);
     int decimals = Base::UnitsApi::getDecimals();
     ui->qsbX->setUnit(Base::Unit::Length);
@@ -355,7 +357,7 @@ void TaskDetail::onScaleTypeEdit()
          ui->qsbScale->setEnabled(false);
          detailFeat->ScaleType.setValue(0.0);
          // set the page scale if there is a valid page
-         if (m_basePage != nullptr) {
+         if (m_basePage) {
              // set the page scale
              detailFeat->Scale.setValue(m_basePage->Scale.getValue());
              ui->qsbScale->setValue(m_basePage->Scale.getValue());
@@ -400,7 +402,7 @@ void TaskDetail::onDraggerClicked(bool b)
 void TaskDetail::editByHighlight()
 {
 //    Base::Console().Message("TD::editByHighlight()\n");
-    if (m_ghost == nullptr) {
+    if (!m_ghost) {
         Base::Console().Error("TaskDetail::editByHighlight - no ghost object\n");
         return;
     }
@@ -427,9 +429,9 @@ void TaskDetail::onHighlightMoved(QPointF dragEnd)
 
     DrawViewPart* dvp = getBaseFeat();
     DrawProjGroupItem* dpgi = dynamic_cast<DrawProjGroupItem*>(dvp);
-    if (dpgi != nullptr) {
+    if (dpgi) {
         DrawProjGroup* dpg = dpgi->getPGroup();
-        if (dpg == nullptr) {
+        if (!dpg) {
             Base::Console().Message("TD::getAnchorScene - projection group is confused\n");
             //TODO::throw something.
             return;
@@ -541,7 +543,7 @@ QPointF TaskDetail::getAnchorScene()
     Base::Vector3d basePos;
     double scale = 1;
 
-    if (dpgi == nullptr) {          //base is normal view
+    if (!dpgi) {          //base is normal view
         double x = dvp->X.getValue();
         double y = dvp->Y.getValue();
         basePos = Base::Vector3d (x, -y, 0.0);
@@ -549,7 +551,7 @@ QPointF TaskDetail::getAnchorScene()
     } else {                       //part of projection group
 
         DrawProjGroup* dpg = dpgi->getPGroup();
-        if (dpg == nullptr) {
+        if (!dpg) {
             Base::Console().Message("TD::getAnchorScene - projection group is confused\n");
             //TODO::throw something.
             return QPointF(0.0, 0.0);
@@ -573,43 +575,39 @@ QPointF TaskDetail::getAnchorScene()
 DrawViewPart* TaskDetail::getBaseFeat()
 {
 //    Base::Console().Message("TD::getBaseFeat()\n");
-    DrawViewPart* result = nullptr;
 
-    if (m_doc != nullptr) {
+    if (m_doc) {
         App::DocumentObject* baseObj = m_doc->getObject(m_baseName.c_str());
-        if (baseObj != nullptr) {
-            result = static_cast<DrawViewPart*>(baseObj);
+        if (baseObj) {
+            return static_cast<DrawViewPart*>(baseObj);
         }
     }
-    if (result == nullptr) {
-        std::string msg = "TaskDetail - base feature " +
-                          m_baseName +
-                          " not found \n";
-        throw Base::TypeError(msg);
-    }
-    return result;
+
+    std::string msg = "TaskDetail - base feature " +
+                        m_baseName +
+                        " not found \n";
+    throw Base::TypeError(msg);
+    return nullptr;
 }
 
 // protects against stale pointers
 DrawViewDetail* TaskDetail::getDetailFeat()
 {
 //    Base::Console().Message("TD::getDetailFeat()\n");
-    DrawViewDetail* result = nullptr;
 
-    if (m_doc != nullptr) {
+    if (m_doc) {
         App::DocumentObject* detailObj = m_doc->getObject(m_detailName.c_str());
-        if (detailObj != nullptr) {
-            result = static_cast<DrawViewDetail*>(detailObj);
+        if (detailObj) {
+            return static_cast<DrawViewDetail*>(detailObj);
         }
     }
-    if (result == nullptr) {
-        std::string msg = "TaskDetail - detail feature " +
-                          m_detailName +
-                          " not found \n";
+    
+    std::string msg = "TaskDetail - detail feature " +
+                        m_detailName +
+                        " not found \n";
 //        throw Base::TypeError("TaskDetail - detail feature not found\n");
-        throw Base::TypeError(msg);
-    }
-    return result;
+    throw Base::TypeError(msg);
+    return nullptr;
 }
 
 //******************************************************************************
@@ -619,7 +617,8 @@ bool TaskDetail::accept()
 //    Base::Console().Message("TD::accept()\n");
 
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_basePage->getDocument());
-    if (!doc) return false;
+    if (!doc)
+        return false;
 
     m_ghost->hide();
     getDetailFeat()->requestPaint();
@@ -633,7 +632,8 @@ bool TaskDetail::reject()
 {
 //    Base::Console().Message("TD::reject()\n");
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_basePage->getDocument());
-    if (!doc) return false;
+    if (!doc)
+        return false;
 
     m_ghost->hide();
     if (m_mode == CREATEMODE) {
@@ -659,7 +659,7 @@ TaskDlgDetail::TaskDlgDetail(TechDraw::DrawViewPart* baseFeat)
 {
     widget  = new TaskDetail(baseFeat);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_DetailView"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }
@@ -669,7 +669,7 @@ TaskDlgDetail::TaskDlgDetail(TechDraw::DrawViewDetail* detailFeat)
 {
     widget  = new TaskDetail(detailFeat);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_DetailView"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

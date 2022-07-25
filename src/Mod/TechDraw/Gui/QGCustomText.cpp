@@ -22,7 +22,7 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <assert.h>
+#include <cassert>
 #include <QGraphicsScene>
 #include <QGraphicsSceneHoverEvent>
 #include <QMouseEvent>
@@ -65,7 +65,7 @@ QGCustomText::QGCustomText(QGraphicsItem* parent) :
 
 void QGCustomText::centerAt(QPointF centerPos)
 {
-      centerAt(centerPos.x(),centerPos.y());
+      centerAt(centerPos.x(), centerPos.y());
 }
 
 void QGCustomText::centerAt(double cX, double cY)

@@ -39,17 +39,17 @@ class GuiExport QuantitySpinBox : public QAbstractSpinBox, public ExpressionSpin
 {
     Q_OBJECT
 
-    Q_PROPERTY(QString unit READ unitText WRITE setUnitText)
-    Q_PROPERTY(double minimum READ minimum WRITE setMinimum)
-    Q_PROPERTY(double maximum READ maximum WRITE setMaximum)
-    Q_PROPERTY(double singleStep READ singleStep WRITE setSingleStep)
+    Q_PROPERTY(QString unit READ unitText WRITE setUnitText) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double minimum READ minimum WRITE setMinimum) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double maximum READ maximum WRITE setMaximum) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double singleStep READ singleStep WRITE setSingleStep) // clazy:exclude=qproperty-without-notify
     Q_PROPERTY(double rawValue READ rawValue WRITE setValue NOTIFY valueChanged)
     Q_PROPERTY(Base::Quantity value READ value WRITE setValue NOTIFY valueChanged USER true)
-    Q_PROPERTY(QString binding READ boundToName WRITE setBoundToByName)
-    Q_PROPERTY(QString expression READ expressionText)
+    Q_PROPERTY(QString binding READ boundToName WRITE setBoundToByName) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QString expression READ expressionText) // clazy:exclude=qproperty-without-notify
 
 public:
-    explicit QuantitySpinBox(QWidget *parent = 0);
+    explicit QuantitySpinBox(QWidget *parent = nullptr);
     virtual ~QuantitySpinBox();
 
     /// Get the current quantity
@@ -121,6 +121,8 @@ public:
     virtual QValidator::State validate(QString &input, int &pos) const;
     virtual void fixup(QString &str) const;
 
+    /// This is a helper function to determine the size this widget requires to fully display the text
+    QSize sizeForText(const QString&) const;
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
     bool event(QEvent *event);
@@ -165,12 +167,12 @@ Q_SIGNALS:
      *  Valid means the user inputted string obeys all restrictions
      *  like: minimum, maximum and/or the right Unit (if specified).
      */
-    void valueChanged(const Base::Quantity&);
+    void valueChanged(const Base::Quantity&); // clazy:exclude=overloaded-signal
     /** Gets emitted if the user has entered a VALID input
      *  Valid means the user inputted string obeys all restrictions
      *  like: minimum, maximum and/or the right Unit (if specified).
      */
-    void valueChanged(double);
+    void valueChanged(double); // clazy:exclude=overloaded-signal
     /**
      * The new value is passed in \a text with unit.
      */

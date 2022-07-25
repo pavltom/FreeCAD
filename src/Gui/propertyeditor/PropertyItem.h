@@ -24,22 +24,24 @@
 #ifndef PROPERTYEDITORITEM_H
 #define PROPERTYEDITORITEM_H
 
+#include <QItemEditorFactory>
 #include <QObject>
 #include <QPointer>
+#include <QPushButton>
 #include <QItemEditorFactory>
 #include <vector>
 
+#include <App/PropertyStandard.h>
 #include <Base/Factory.h>
-#include <Base/Vector3D.h>
 #include <Base/Matrix.h>
 #include <Base/Placement.h>
 #include <Base/Quantity.h>
+#include <Base/Vector3D.h>
 #include <Base/UnitsApi.h>
-#include <App/DocumentObserver.h>
-#include <App/PropertyStandard.h>
-#include <Gui/Widgets.h>
 #include <Gui/ExpressionBinding.h>
 #include <Gui/MetaTypes.h>
+#include <Gui/Widgets.h>
+
 #include <FCGlobal.h>
 
 #ifdef Q_MOC_RUN
@@ -52,6 +54,7 @@ Q_DECLARE_METATYPE(Base::Rotation)
 Q_DECLARE_METATYPE(Base::Quantity)
 Q_DECLARE_METATYPE(QList<Base::Quantity>)
 #endif
+
 
 #define PROPERTYITEM_HEADER \
 public: \
@@ -76,6 +79,8 @@ class DlgPropertyLink;
 namespace PropertyEditor {
 
 class PropertyItem;
+class PropertyModel;
+class PropertyEditorWidget;
 
 /**
  * The PropertyItemFactory provides methods for the dynamic creation of property items.
@@ -110,6 +115,11 @@ public:
     }
 };
 
+class PropertyItemAttorney {
+public:
+    static QVariant toString(PropertyItem* item, const QVariant& v);
+};
+
 class GuiExport PropertyItem : public QObject, public ExpressionBinding
 {
     Q_OBJECT
@@ -138,6 +148,8 @@ public:
     void setExpressionEditorData(QWidget *editor, const QVariant& data) const;
     QVariant expressionEditorData(QWidget *editor) const;
 
+    PropertyEditorWidget* createPropertyEditorWidget(QWidget* parent) const;
+
     /**override the bind functions to ensure we issue the propertyBound() call, which is then overloaded by 
        childs which like to be informed of a binding*/
     virtual void bind(const App::Property& prop);
@@ -149,6 +161,7 @@ public:
     PropertyItem *parent() const;
     void appendChild(PropertyItem *child);
     void insertChild(int, PropertyItem *child);
+    void moveChild(int from, int to);
     void removeChildren(int from, int to);
     PropertyItem *takeChild(int);
 
@@ -161,16 +174,19 @@ public:
     void setLinked(bool);
     bool isLinked() const;
 
+    bool isExpanded() const;
+    void setExpanded(bool e);
+
     PropertyItem *child(int row);
     int childCount() const;
     int columnCount() const;
     QString propertyName() const;
-    void setPropertyName(const QString&);
+    void setPropertyName(QString name, QString realName=QString());
     void setPropertyValue(const QString&);
     virtual QVariant data(int column, int role) const;
     bool setData (const QVariant& value);
     Qt::ItemFlags flags(int column) const;
-    int row() const;
+    virtual int row() const;
     void reset();
 
     bool hasAnyExpression() const;
@@ -197,8 +213,10 @@ protected:
     QList<PropertyItem*> childItems;
     bool readonly;
     int precision;
-    bool cleared;
     bool linked;
+    bool expanded;
+
+    friend class PropertyItemAttorney;
 };
 
 /**
@@ -254,6 +272,14 @@ class GuiExport PropertySeparatorItem : public PropertyItem
 
     bool isSeparator() const { return true; }
     QWidget* createEditor(QWidget* parent, const QObject* receiver, const char* method) const;
+
+    virtual int row() const {
+        return _row<0?PropertyItem::row():_row;
+    }
+
+private:
+    friend PropertyModel;
+    int _row = -1;
 };
 
 /**
@@ -437,9 +463,9 @@ class PropertyFloatItem;
 class GuiExport PropertyVectorItem: public PropertyItem
 {
     Q_OBJECT
-    Q_PROPERTY(double x READ x WRITE setX DESIGNABLE true USER true)
-    Q_PROPERTY(double y READ y WRITE setY DESIGNABLE true USER true)
-    Q_PROPERTY(double z READ z WRITE setZ DESIGNABLE true USER true)
+    Q_PROPERTY(double x READ x WRITE setX DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double y READ y WRITE setY DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double z READ z WRITE setZ DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
     PROPERTYITEM_HEADER
 
     virtual QWidget* createEditor(QWidget* parent, const QObject* receiver, const char* method) const;
@@ -468,13 +494,13 @@ private:
     PropertyFloatItem* m_z;
 };
 
-class VectorListWidget : public QWidget
+class PropertyEditorWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    VectorListWidget (int decimals, QWidget * parent = nullptr);
-    virtual ~VectorListWidget();
+    PropertyEditorWidget (QWidget * parent = nullptr);
+    virtual ~PropertyEditorWidget();
 
     QVariant value() const;
 
@@ -482,20 +508,34 @@ public Q_SLOTS:
     void setValue(const QVariant&);
 
 protected:
-    void showValue(const QVariant& data);
+    virtual void showValue(const QVariant& data);
     void resizeEvent(QResizeEvent*);
+
+Q_SIGNALS:
+    void buttonClick();
+    void valueChanged(const QVariant &);
+
+protected:
+    QVariant variant;
+    QLineEdit *lineEdit;
+    QPushButton *button;
+};
+
+class VectorListWidget : public PropertyEditorWidget
+{
+    Q_OBJECT
+
+public:
+    VectorListWidget (int decimals, QWidget * parent = nullptr);
+
+protected:
+    virtual void showValue(const QVariant& data) override;
 
 private Q_SLOTS:
     void buttonClicked();
 
-Q_SIGNALS:
-    void valueChanged(const QVariant &);
-
 private:
     int decimals;
-    QVariant variant;
-    QLineEdit *lineEdit;
-    QPushButton *button;
 };
 
 /**
@@ -528,9 +568,9 @@ class PropertyUnitItem;
 class GuiExport PropertyVectorDistanceItem: public PropertyItem
 {
     Q_OBJECT
-    Q_PROPERTY(Base::Quantity x READ x WRITE setX DESIGNABLE true USER true)
-    Q_PROPERTY(Base::Quantity y READ y WRITE setY DESIGNABLE true USER true)
-    Q_PROPERTY(Base::Quantity z READ z WRITE setZ DESIGNABLE true USER true)
+    Q_PROPERTY(Base::Quantity x READ x WRITE setX DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(Base::Quantity y READ y WRITE setY DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(Base::Quantity z READ z WRITE setZ DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
     PROPERTYITEM_HEADER
 
     virtual QWidget* createEditor(QWidget* parent, const QObject* receiver, const char* method) const;
@@ -575,22 +615,22 @@ class GuiExport PropertyDirectionItem: public PropertyVectorDistanceItem
 class GuiExport PropertyMatrixItem: public PropertyItem
 {
     Q_OBJECT
-    Q_PROPERTY(double A11 READ getA11 WRITE setA11 DESIGNABLE true USER true)
-    Q_PROPERTY(double A12 READ getA12 WRITE setA12 DESIGNABLE true USER true)
-    Q_PROPERTY(double A13 READ getA13 WRITE setA13 DESIGNABLE true USER true)
-    Q_PROPERTY(double A14 READ getA14 WRITE setA14 DESIGNABLE true USER true)
-    Q_PROPERTY(double A21 READ getA21 WRITE setA21 DESIGNABLE true USER true)
-    Q_PROPERTY(double A22 READ getA22 WRITE setA22 DESIGNABLE true USER true)
-    Q_PROPERTY(double A23 READ getA23 WRITE setA23 DESIGNABLE true USER true)
-    Q_PROPERTY(double A24 READ getA24 WRITE setA24 DESIGNABLE true USER true)
-    Q_PROPERTY(double A31 READ getA31 WRITE setA31 DESIGNABLE true USER true)
-    Q_PROPERTY(double A32 READ getA32 WRITE setA32 DESIGNABLE true USER true)
-    Q_PROPERTY(double A33 READ getA33 WRITE setA33 DESIGNABLE true USER true)
-    Q_PROPERTY(double A34 READ getA34 WRITE setA34 DESIGNABLE true USER true)
-    Q_PROPERTY(double A41 READ getA41 WRITE setA41 DESIGNABLE true USER true)
-    Q_PROPERTY(double A42 READ getA42 WRITE setA42 DESIGNABLE true USER true)
-    Q_PROPERTY(double A43 READ getA43 WRITE setA43 DESIGNABLE true USER true)
-    Q_PROPERTY(double A44 READ getA44 WRITE setA44 DESIGNABLE true USER true)
+    Q_PROPERTY(double A11 READ getA11 WRITE setA11 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A12 READ getA12 WRITE setA12 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A13 READ getA13 WRITE setA13 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A14 READ getA14 WRITE setA14 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A21 READ getA21 WRITE setA21 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A22 READ getA22 WRITE setA22 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A23 READ getA23 WRITE setA23 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A24 READ getA24 WRITE setA24 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A31 READ getA31 WRITE setA31 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A32 READ getA32 WRITE setA32 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A33 READ getA33 WRITE setA33 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A34 READ getA34 WRITE setA34 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A41 READ getA41 WRITE setA41 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A42 READ getA42 WRITE setA42 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A43 READ getA43 WRITE setA43 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double A44 READ getA44 WRITE setA44 DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
     PROPERTYITEM_HEADER
 
     virtual QWidget* createEditor(QWidget* parent, const QObject* receiver, const char* method) const;
@@ -687,8 +727,8 @@ private:
 class GuiExport PropertyRotationItem: public PropertyItem
 {
     Q_OBJECT
-    Q_PROPERTY(Base::Quantity Angle READ getAngle WRITE setAngle DESIGNABLE true USER true)
-    Q_PROPERTY(Base::Vector3d Axis READ getAxis WRITE setAxis DESIGNABLE true USER true)
+    Q_PROPERTY(Base::Quantity Angle READ getAngle WRITE setAngle DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(Base::Vector3d Axis READ getAxis WRITE setAxis DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
     PROPERTYITEM_HEADER
 
     virtual QWidget* createEditor(QWidget* parent, const QObject* receiver, const char* method) const;
@@ -722,7 +762,7 @@ class PlacementEditor : public Gui::LabelButton
     Q_OBJECT
 
 public:
-    PlacementEditor(const QString& name, QWidget * parent = 0);
+    PlacementEditor(const QString& name, QWidget * parent = nullptr);
     ~PlacementEditor();
 
 private Q_SLOTS:
@@ -744,9 +784,9 @@ private:
 class GuiExport PropertyPlacementItem: public PropertyItem
 {
     Q_OBJECT
-    Q_PROPERTY(Base::Quantity Angle READ getAngle WRITE setAngle DESIGNABLE true USER true)
-    Q_PROPERTY(Base::Vector3d Axis READ getAxis WRITE setAxis DESIGNABLE true USER true)
-    Q_PROPERTY(Base::Vector3d Position READ getPosition WRITE setPosition DESIGNABLE true USER true)
+    Q_PROPERTY(Base::Quantity Angle READ getAngle WRITE setAngle DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(Base::Vector3d Axis READ getAxis WRITE setAxis DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(Base::Vector3d Position READ getPosition WRITE setPosition DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
     PROPERTYITEM_HEADER
 
     virtual QWidget* createEditor(QWidget* parent, const QObject* receiver, const char* method) const;
@@ -787,7 +827,7 @@ class PropertyStringListItem;
 class GuiExport PropertyEnumItem: public PropertyItem
 {
     Q_OBJECT
-    Q_PROPERTY(QStringList Enum READ getEnum WRITE setEnum DESIGNABLE true USER true)
+    Q_PROPERTY(QStringList Enum READ getEnum WRITE setEnum DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
     PROPERTYITEM_HEADER
 
     virtual QWidget* createEditor(QWidget* parent, const QObject* receiver, const char* method) const;
@@ -807,6 +847,18 @@ protected:
 
 private:
     PropertyStringListItem* m_enum;
+};
+
+class PropertyEnumButton : public QPushButton
+{
+    Q_OBJECT
+public:
+    PropertyEnumButton(QWidget *parent = nullptr)
+        :QPushButton(parent)
+    {}
+
+Q_SIGNALS:
+    void picked();
 };
 
 /**
@@ -905,12 +957,12 @@ protected:
 class GuiExport PropertyMaterialItem : public PropertyItem
 {
     Q_OBJECT
-    Q_PROPERTY(QColor AmbientColor READ getAmbientColor WRITE setAmbientColor DESIGNABLE true USER true)
-    Q_PROPERTY(QColor DiffuseColor READ getDiffuseColor WRITE setDiffuseColor DESIGNABLE true USER true)
-    Q_PROPERTY(QColor SpecularColor READ getSpecularColor WRITE setSpecularColor DESIGNABLE true USER true)
-    Q_PROPERTY(QColor EmissiveColor READ getEmissiveColor WRITE setEmissiveColor DESIGNABLE true USER true)
-    Q_PROPERTY(float Shininess READ getShininess WRITE setShininess DESIGNABLE true USER true)
-    Q_PROPERTY(float Transparency READ getTransparency WRITE setTransparency DESIGNABLE true USER true)
+    Q_PROPERTY(QColor AmbientColor READ getAmbientColor WRITE setAmbientColor DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QColor DiffuseColor READ getDiffuseColor WRITE setDiffuseColor DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QColor SpecularColor READ getSpecularColor WRITE setSpecularColor DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QColor EmissiveColor READ getEmissiveColor WRITE setEmissiveColor DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(float Shininess READ getShininess WRITE setShininess DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(float Transparency READ getTransparency WRITE setTransparency DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
     PROPERTYITEM_HEADER
 
     virtual QWidget* createEditor(QWidget* parent, const QObject* receiver, const char* method) const;
@@ -954,12 +1006,12 @@ private:
 class GuiExport PropertyMaterialListItem : public PropertyItem
 {
     Q_OBJECT
-    Q_PROPERTY(QColor AmbientColor READ getAmbientColor WRITE setAmbientColor DESIGNABLE true USER true)
-    Q_PROPERTY(QColor DiffuseColor READ getDiffuseColor WRITE setDiffuseColor DESIGNABLE true USER true)
-    Q_PROPERTY(QColor SpecularColor READ getSpecularColor WRITE setSpecularColor DESIGNABLE true USER true)
-    Q_PROPERTY(QColor EmissiveColor READ getEmissiveColor WRITE setEmissiveColor DESIGNABLE true USER true)
-    Q_PROPERTY(float Shininess READ getShininess WRITE setShininess DESIGNABLE true USER true)
-    Q_PROPERTY(float Transparency READ getTransparency WRITE setTransparency DESIGNABLE true USER true)
+    Q_PROPERTY(QColor AmbientColor READ getAmbientColor WRITE setAmbientColor DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QColor DiffuseColor READ getDiffuseColor WRITE setDiffuseColor DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QColor SpecularColor READ getSpecularColor WRITE setSpecularColor DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QColor EmissiveColor READ getEmissiveColor WRITE setEmissiveColor DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(float Shininess READ getShininess WRITE setShininess DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(float Transparency READ getTransparency WRITE setTransparency DESIGNABLE true USER true) // clazy:exclude=qproperty-without-notify
     PROPERTYITEM_HEADER
 
     virtual QWidget* createEditor(QWidget* parent, const QObject* receiver, const char* method) const;

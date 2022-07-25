@@ -44,13 +44,12 @@ class ElementView : public QListWidget
     Q_OBJECT
 
 public:
-    explicit ElementView(QWidget *parent = 0);
+    explicit ElementView(QWidget *parent = nullptr);
     ~ElementView();
 
 
 Q_SIGNALS:
     void onFilterShortcutPressed();
-    void signalCloseShape();
 
 protected:
     void contextMenuEvent (QContextMenuEvent* event);
@@ -82,8 +81,6 @@ protected Q_SLOTS:
     void doToggleConstruction();
 
     // Acelerators
-    void doCloseShape();
-    void doConnect();
     void doSelectConstraints();
     void doSelectOrigin();
     void doSelectHAxis();
@@ -96,17 +93,17 @@ class TaskSketcherElements : public Gui::TaskView::TaskBox, public Gui::Selectio
     Q_OBJECT
 
     class MultIcon {
-        
+
     public:
         MultIcon(const char*);
-        
+
         QIcon Normal;
         QIcon Construction;
         QIcon External;
-        
+
         QIcon getIcon(bool construction, bool external) const;
     };
-    
+
 public:
     TaskSketcherElements(ViewProviderSketch *sketchView);
     ~TaskSketcherElements();

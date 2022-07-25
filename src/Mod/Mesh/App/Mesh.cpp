@@ -36,6 +36,7 @@
 #include <Base/Reader.h>
 #include <Base/Interpreter.h>
 #include <Base/Sequencer.h>
+#include <Base/Stream.h>
 #include <Base/Tools.h>
 #include <Base/ViewProj.h>
 
@@ -167,7 +168,7 @@ Base::Matrix4D MeshObject::getTransform() const
 
 Base::BoundBox3d MeshObject::getBoundBox()const
 {
-    const_cast<MeshCore::MeshKernel&>(_kernel).RecalcBoundBox();
+    _kernel.RecalcBoundBox();
     Base::BoundBox3f Bnd = _kernel.GetBoundBox();
 
     Base::BoundBox3d Bnd2;
@@ -292,12 +293,17 @@ double MeshObject::getVolume() const
     return _kernel.GetVolume();
 }
 
-MeshPoint MeshObject::getPoint(PointIndex index) const
+Base::Vector3d MeshObject::getPoint(PointIndex index) const
 {
     Base::Vector3f vertf = _kernel.GetPoint(index);
     Base::Vector3d vertd(vertf.x, vertf.y, vertf.z);
     vertd = _Mtrx * vertd;
-    MeshPoint point(vertd, const_cast<MeshObject*>(this), index);
+    return vertd;
+}
+
+MeshPoint MeshObject::getMeshPoint(PointIndex index) const
+{
+    MeshPoint point(getPoint(index), this, index);
     return point;
 }
 
@@ -310,10 +316,7 @@ void MeshObject::getPoints(std::vector<Base::Vector3d> &Points,
     unsigned long ctpoints = _kernel.CountPoints();
     Points.reserve(ctpoints);
     for (unsigned long i=0; i<ctpoints; i++) {
-        Base::Vector3f vertf = _kernel.GetPoint(i);
-        Base::Vector3d vertd(vertf.x, vertf.y, vertf.z);
-        vertd = mat * vertd;
-        Points.push_back(vertd);
+        Points.push_back(getPoint(i));
     }
 
     // nullify translation part
@@ -330,9 +333,9 @@ void MeshObject::getPoints(std::vector<Base::Vector3d> &Points,
     }
 }
 
-Mesh::Facet MeshObject::getFacet(FacetIndex index) const
+Mesh::Facet MeshObject::getMeshFacet(FacetIndex index) const
 {
-    Mesh::Facet face(_kernel.GetFacets()[index], const_cast<MeshObject*>(this), index);
+    Mesh::Facet face(_kernel.GetFacets()[index], this, index);
     return face;
 }
 
@@ -342,7 +345,7 @@ void MeshObject::getFaces(std::vector<Base::Vector3d> &Points,std::vector<Facet>
     unsigned long ctpoints = _kernel.CountPoints();
     Points.reserve(ctpoints);
     for (unsigned long i=0; i<ctpoints; i++) {
-        Points.push_back(this->getPoint(i));
+        Points.push_back(getPoint(i));
     }
 
     unsigned long ctfacets = _kernel.CountFacets();
@@ -404,7 +407,7 @@ void MeshObject::save(const char* file, MeshCore::MeshIO::Format f,
     aWriter.SetGroups(groups);
     if (mat && mat->library.empty()) {
         Base::FileInfo fi(file);
-        const_cast<MeshCore::Material*>(mat)->library = fi.fileNamePure() + ".mtl";
+        mat->library = fi.fileNamePure() + ".mtl";
     }
 
     aWriter.Transform(this->_Mtrx);
@@ -799,7 +802,7 @@ std::vector<PointIndex> MeshObject::getPointsFromFacets(const std::vector<FacetI
     return _kernel.GetFacetPoints(facets);
 }
 
-void MeshObject::updateMesh(const std::vector<FacetIndex>& facets)
+void MeshObject::updateMesh(const std::vector<FacetIndex>& facets) const
 {
     std::vector<PointIndex> points;
     points = _kernel.GetFacetPoints(facets);
@@ -809,12 +812,12 @@ void MeshObject::updateMesh(const std::vector<FacetIndex>& facets)
     alg.SetPointsFlag(points, MeshCore::MeshPoint::SEGMENT);
 }
 
-void MeshObject::updateMesh()
+void MeshObject::updateMesh() const
 {
     MeshCore::MeshAlgorithm alg(_kernel);
     alg.ResetFacetFlag(MeshCore::MeshFacet::SEGMENT);
     alg.ResetPointFlag(MeshCore::MeshPoint::SEGMENT);
-    for (std::vector<Segment>::iterator it = this->_segments.begin();
+    for (std::vector<Segment>::const_iterator it = this->_segments.begin();
         it != this->_segments.end(); ++it) {
             std::vector<PointIndex> points;
             points = _kernel.GetFacetPoints(it->getIndices());
@@ -1453,7 +1456,9 @@ void MeshObject::removeSelfIntersections(const std::vector<FacetIndex>& indices)
     if (indices.size() % 2 != 0)
         return;
     unsigned long cntfacets = _kernel.CountFacets();
-    if (std::find_if(indices.begin(), indices.end(), [cntfacets](FacetIndex v) { return v >= cntfacets; }) < indices.end())
+    if (std::find_if(indices.begin(), indices.end(), [cntfacets](FacetIndex v) {
+        return v >= cntfacets;
+    }) < indices.end())
         return;
     std::vector<std::pair<FacetIndex, FacetIndex> > selfIntersections;
     std::vector<FacetIndex>::const_iterator it;
@@ -1945,7 +1950,7 @@ std::vector<Segment> MeshObject::getSegmentsOfType(MeshObject::GeometryType type
 
         const std::vector<MeshCore::MeshSegment>& data = surf->GetSegments();
         for (std::vector<MeshCore::MeshSegment>::const_iterator it = data.begin(); it != data.end(); ++it) {
-            segm.emplace_back(const_cast<MeshObject*>(this), *it, false);
+            segm.emplace_back(this, *it, false);
         }
     }
 
@@ -1959,7 +1964,7 @@ MeshObject::const_point_iterator::const_point_iterator(const MeshObject* mesh, P
 {
     this->_p_it.Set(index);
     this->_p_it.Transform(_mesh->_Mtrx);
-    this->_point.Mesh = const_cast<MeshObject*>(_mesh);
+    this->_point.Mesh = _mesh;
 }
 
 MeshObject::const_point_iterator::const_point_iterator(const MeshObject::const_point_iterator& fi)
@@ -2028,7 +2033,7 @@ MeshObject::const_facet_iterator::const_facet_iterator(const MeshObject* mesh, F
 {
     this->_f_it.Set(index);
     this->_f_it.Transform(_mesh->_Mtrx);
-    this->_facet.Mesh = const_cast<MeshObject*>(_mesh);
+    this->_facet.Mesh = _mesh;
 }
 
 MeshObject::const_facet_iterator::const_facet_iterator(const MeshObject::const_facet_iterator& fi)

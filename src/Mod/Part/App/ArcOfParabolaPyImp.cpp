@@ -20,24 +20,18 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp_Parab.hxx>
-# include <Geom_Parabola.hxx>
 # include <GC_MakeArcOfParabola.hxx>
-# include <gce_MakeParab.hxx>
+# include <Geom_Parabola.hxx>
 # include <Geom_TrimmedCurve.hxx>
 #endif
 
-#include "Geometry.h"
-#include <Mod/Part/App/ArcOfParabolaPy.h>
-#include <Mod/Part/App/ArcOfParabolaPy.cpp>
-#include <Mod/Part/App/ParabolaPy.h>
+#include "ArcOfParabolaPy.h"
+#include "ArcOfParabolaPy.cpp"
+#include "ParabolaPy.h"
 #include "OCCError.h"
 
-#include <Base/GeometryPyCXX.h>
-#include <Base/VectorPy.h>
 
 using namespace Part;
 
@@ -93,7 +87,7 @@ int ArcOfParabolaPy::PyInit(PyObject* args, PyObject* /*kwds*/)
         try {
             Handle(Geom_Parabola) parabola = Handle(Geom_Parabola)::DownCast
                 (static_cast<ParabolaPy*>(o)->getGeomParabolaPtr()->handle());
-            GC_MakeArcOfParabola arc(parabola->Parab(), u1, u2, PyObject_IsTrue(sense) ? Standard_True : Standard_False);
+            GC_MakeArcOfParabola arc(parabola->Parab(), u1, u2, Base::asBoolean(sense));
             if (!arc.IsDone()) {
                 PyErr_SetString(PartExceptionOCCError, gce_ErrorStatusText(arc.Status()));
                 return -1;
@@ -138,7 +132,7 @@ Py::Object ArcOfParabolaPy::getParabola(void) const
 
 PyObject *ArcOfParabolaPy::getCustomAttributes(const char* ) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ArcOfParabolaPy::setCustomAttributes(const char* , PyObject *)

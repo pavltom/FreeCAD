@@ -24,22 +24,16 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <QMessageBox>
 # include <QMenu>
 #endif
 
-#include "Utils.h"
-#include "ViewProviderLoft.h"
-#include "TaskLoftParameters.h"
-#include <Mod/PartDesign/App/Body.h>
-#include <Mod/PartDesign/App/FeatureLoft.h>
-#include <Mod/Sketcher/App/SketchObject.h>
-#include <Mod/Part/Gui/ReferenceHighlighter.h>
-#include <Gui/Control.h>
-#include <Gui/Command.h>
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
+#include <Mod/Part/Gui/ReferenceHighlighter.h>
+#include <Mod/PartDesign/App/FeatureLoft.h>
 
+#include "ViewProviderLoft.h"
+#include "TaskLoftParameters.h"
 
 using namespace PartDesignGui;
 
@@ -60,11 +54,11 @@ std::vector<App::DocumentObject*> ViewProviderLoft::claimChildren(void)const
     PartDesign::Loft* pcLoft = static_cast<PartDesign::Loft*>(getObject());
 
     App::DocumentObject* sketch = pcLoft->getVerifiedSketch(true);
-    if (sketch != NULL)
+    if (sketch)
         temp.push_back(sketch);
 
     for(App::DocumentObject* obj : pcLoft->Sections.getValues()) {
-        if (obj != NULL && obj->isDerivedFrom(Part::Part2DObject::getClassTypeId()))
+        if (obj && obj->isDerivedFrom(Part::Part2DObject::getClassTypeId()))
             temp.push_back(obj);
     }
 
@@ -124,7 +118,7 @@ void ViewProviderLoft::highlightSection(bool on)
 {
     PartDesign::Loft* pcLoft = static_cast<PartDesign::Loft*>(getObject());
     auto sections = pcLoft->Sections.getSubListValues();
-    for (auto it : sections) {
+    for (auto& it : sections) {
         // only take the entire shape when we have a sketch selected, but
         // not a point of the sketch
         auto subName = it.second.empty() ? "" : it.second.front();
@@ -155,9 +149,12 @@ void ViewProviderLoft::highlightReferences(ViewProviderLoft::Reference mode, boo
 
 void ViewProviderLoft::highlightReferences(Part::Feature* base, const std::vector<std::string>& elements, bool on)
 {
+    if (!base)
+        return;
+
     PartGui::ViewProviderPart* svp = dynamic_cast<PartGui::ViewProviderPart*>(
                 Gui::Application::Instance->getViewProvider(base));
-    if (svp == nullptr)
+    if (!svp)
         return;
 
     std::vector<App::Color>& edgeColors = originalLineColors[base->getID()];

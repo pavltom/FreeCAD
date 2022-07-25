@@ -20,16 +20,12 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_TASKVIEW_TaskExtrudeParameters_H
 #define GUI_TASKVIEW_TaskExtrudeParameters_H
 
-#include <Gui/TaskView/TaskView.h>
-#include <Gui/Selection.h>
-#include <Gui/TaskView/TaskDialog.h>
-
 #include "TaskSketchBasedParameters.h"
 #include "ViewProviderSketchBased.h"
+
 
 class Ui_TaskPadPocketParameters;
 
@@ -94,7 +90,7 @@ protected Q_SLOTS:
     void onZDirectionEditChanged(double);
     void onMidplaneChanged(bool);
     void onReversedChanged(bool);
-    void onButtonFace(const bool pressed = true);
+    void onButtonFace(const bool checked = true);
     void onFaceName(const QString& text);
     virtual void onModeChanged(int);
 
@@ -122,6 +118,8 @@ protected:
     virtual void updateUI(int index);
     void updateDirectionEdits(void);
     void setDirectionMode(int index);
+    void handleLineFaceNameClick(void);
+    void handleLineFaceNameNo(void);
 
 private:
     void tryRecomputeFeature();

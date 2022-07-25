@@ -43,7 +43,6 @@ else:
 
 
 class StockType:
-    # pylint: disable=no-init
 
     NoStock = "None"
     FromBase = "FromBase"
@@ -425,7 +424,7 @@ def CreateCylinder(job, radius=None, height=None, placement=None):
         obj.Height = height
     elif base:
         bb = shapeBoundBox(base.Group)
-        obj.Radius = math.sqrt(bb.XLength ** 2 + bb.YLength ** 2) / 2.0
+        obj.Radius = math.sqrt(bb.XLength**2 + bb.YLength**2) / 2.0
         obj.Height = max(bb.ZLength, 1)
 
     if placement:

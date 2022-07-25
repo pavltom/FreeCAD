@@ -36,7 +36,8 @@
 
 namespace Sketcher
 {
-
+    // Forward declarations
+    class SolverGeometryExtension;
 
 class SketcherExport Sketch :public Base::Persistence
 {
@@ -117,6 +118,8 @@ public:
 public:
     std::set < std::pair< int, Sketcher::PointPos>> getDependencyGroup(int geoId, PointPos pos) const;
 
+    std::shared_ptr<SolverGeometryExtension> getSolverExtension(int geoId) const;
+
 
 public:
 
@@ -130,9 +133,18 @@ public:
       */
     int initMove(int geoId, PointPos pos, bool fine=true);
 
+    /** Initializes a B-spline piece drag by setting the current
+      * sketch status as a reference. Only moves piece around `firstPoint`.
+      */
+    int initBSplinePieceMove(int geoId, PointPos pos, const Base::Vector3d& firstPoint, bool fine=true);
+
     /** Resets the initialization of a point or curve drag
      */
     void resetInitMove();
+
+    /** Limits a b-spline drag to the segment around `firstPoint`.
+     */
+    int limitBSplineMove(int geoId, PointPos pos, const Base::Vector3d& firstPoint);
 
     /** move this point (or curve) to a new location and solve.
       * This will introduce some additional weak constraints expressing
@@ -408,7 +420,7 @@ protected:
 protected:
     /// container element to store and work with the geometric elements of this sketch
     struct GeoDef {
-        GeoDef() : geo(0),type(None),external(false),index(-1),
+        GeoDef() : geo(nullptr),type(None),external(false),index(-1),
                    startPointId(-1),midPointId(-1),endPointId(-1) {}
         Part::Geometry  * geo;             // pointer to the geometry
         GeoType           type;            // type of the geometry
@@ -420,10 +432,10 @@ protected:
     };
     /// container element to store and work with the constraints of this sketch
     struct ConstrDef {
-        ConstrDef() : constr(0)
+        ConstrDef() : constr(nullptr)
                     , driving(true)
-                    , value(0)
-                    , secondvalue(0) {}
+                    , value(nullptr)
+                    , secondvalue(nullptr) {}
         Constraint *    constr;             // pointer to the constraint
         bool            driving;
         double *        value;
@@ -441,10 +453,13 @@ protected:
 
     std::vector<double *> pDependentParametersList;
 
+    // map of geoIds to corresponding solverextensions. This is useful when solved geometry is NOT to be assigned to the SketchObject
+    std::vector<std::shared_ptr<SolverGeometryExtension>> solverExtensions;
+
     std::vector < std::set < std::pair< int, Sketcher::PointPos>>> pDependencyGroups;
 
-    // this map is intended to convert a parameter (double *) into a GeoId/PointPos pair
-    std::map<double *, std::pair<int,Sketcher::PointPos>> param2geoelement;
+    // this map is intended to convert a parameter (double *) into a GeoId/PointPos and parameter number
+    std::map<double *, std::tuple<int, Sketcher::PointPos, int>> param2geoelement;
 
     // solving parameters
     std::vector<double*> Parameters;    // with memory allocation

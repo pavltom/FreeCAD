@@ -44,7 +44,7 @@
 # include <Inventor/nodes/SoMaterialBinding.h>
 # include <Inventor/nodes/SoScale.h>
 
-# include <math.h>
+# include <cmath>
 #endif
 
 #include <Gui/Command.h>
@@ -81,9 +81,9 @@ bool ViewProviderFemConstraintTransform::setEdit(int ModNum)
         Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
         TaskDlgFemConstraintTransform *constrDlg = qobject_cast<TaskDlgFemConstraintTransform *>(dlg);
         if (constrDlg && constrDlg->getConstraintView() != this)
-            constrDlg = 0; // another constraint left open its task panel
+            constrDlg = nullptr; // another constraint left open its task panel
         if (dlg && !constrDlg) {
-            if (constraintDialog != NULL) {
+            if (constraintDialog) {
                 // Ignore the request to open another dialog
                 return false;
             } else {

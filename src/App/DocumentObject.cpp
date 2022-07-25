@@ -23,26 +23,27 @@
 
 
 #include "PreCompiled.h"
-
 #ifndef _PreComp_
+#include <stack>
 #endif
 
-#include <Base/Writer.h>
-#include <Base/Tools.h>
+#include <App/DocumentObjectPy.h>
 #include <Base/Console.h>
-#include <Base/Exception.h>
+#include <Base/Matrix.h>
+#include <Base/Tools.h>
+#include <Base/Writer.h>
 
 #include "Application.h"
+#include "ComplexGeoData.h"
 #include "Document.h"
 #include "DocumentObject.h"
-#include "DocumentObjectGroup.h"
-#include "PropertyLinks.h"
-#include "PropertyGeo.h"
-#include "PropertyExpressionEngine.h"
 #include "DocumentObjectExtension.h"
+#include "DocumentObjectGroup.h"
 #include "GeoFeatureGroupExtension.h"
-#include <App/DocumentObjectPy.h>
-#include <boost/bind/bind.hpp>
+#include "ObjectIdentifier.h"
+#include "PropertyExpressionEngine.h"
+#include "PropertyLinks.h"
+
 
 FC_LOG_LEVEL_INIT("App",true,true)
 
@@ -55,14 +56,14 @@ using namespace App;
 
 PROPERTY_SOURCE(App::DocumentObject, App::TransactionalObject)
 
-DocumentObjectExecReturn *DocumentObject::StdReturn = 0;
+DocumentObjectExecReturn *DocumentObject::StdReturn = nullptr;
 
 //===========================================================================
 // DocumentObject
 //===========================================================================
 
 DocumentObject::DocumentObject(void)
-    : ExpressionEngine(),_pDoc(0),pcNameInDocument(0),_Id(0)
+    : ExpressionEngine(),_pDoc(nullptr),pcNameInDocument(nullptr),_Id(0)
 {
     // define Label of type 'Output' to avoid being marked as touched after relabeling
     ADD_PROPERTY_TYPE(Label,("Unnamed"),"Base",Prop_Output,"User name of the object (UTF8)");
@@ -99,7 +100,6 @@ App::DocumentObjectExecReturn *DocumentObject::recompute(void)
 {
     //check if the links are valid before making the recompute
     if(!GeoFeatureGroupExtension::areLinksValid(this)) {
-#if 1
         // Get objects that have invalid link scope, and print their names.
         // Truncate the invalid object list name strings for readability, if they happen to be very long.
         std::vector<App::DocumentObject*> invalid_linkobjs;
@@ -132,9 +132,6 @@ App::DocumentObjectExecReturn *DocumentObject::recompute(void)
             scopenames.pop_back();
         }
         Base::Console().Warning("%s: Link(s) to object(s) '%s' go out of the allowed scope '%s'. Instead, the linked object(s) reside within '%s'.\n", getTypeId().getName(), objnames.c_str(), getNameInDocument(), scopenames.c_str());
-#else
-        return new App::DocumentObjectExecReturn("Links go out of the allowed scope", this);
-#endif
     }
 
     // set/unset the execution bit
@@ -274,7 +271,8 @@ const char *DocumentObject::getNameInDocument() const
     // to an object that has been removed from the document. In this case we should rather
     // return 0.
     //assert(pcNameInDocument);
-    if (!pcNameInDocument) return 0;
+    if (!pcNameInDocument)
+        return nullptr;
     return pcNameInDocument->c_str();
 }
 
@@ -300,14 +298,14 @@ std::string DocumentObject::getExportName(bool forced) const {
 
 bool DocumentObject::isAttachedToDocument() const
 {
-    return (pcNameInDocument != 0);
+    return (pcNameInDocument != nullptr);
 }
 
 const char* DocumentObject::detachFromDocument()
 {
     const std::string* name = pcNameInDocument;
-    pcNameInDocument = 0;
-    return name ? name->c_str() : 0;
+    pcNameInDocument = nullptr;
+    return name ? name->c_str() : nullptr;
 }
 
 const std::vector<DocumentObject*> &DocumentObject::getOutList() const {
@@ -385,42 +383,6 @@ const std::vector<App::DocumentObject*> &DocumentObject::getInList(void) const
 #endif // if USE_OLD_DAG
 
 
-#if 0
-
-void _getInListRecursive(std::set<DocumentObject*>& objSet,
-                         const DocumentObject* obj,
-                         const DocumentObject* checkObj, int depth)
-{
-    for (const auto objIt : obj->getInList()) {
-        // if the check object is in the recursive inList we have a cycle!
-        if (objIt == checkObj || depth <= 0) {
-            throw Base::BadGraphError("DocumentObject::getInListRecursive(): cyclic dependency detected!");
-        }
-
-        // if the element was already in the set then there is no need to process it again
-        auto pair = objSet.insert(objIt);
-        if (pair.second)
-            _getInListRecursive(objSet, objIt, checkObj, depth-1);
-    }
-}
-
-std::vector<App::DocumentObject*> DocumentObject::getInListRecursive(void) const
-{
-    // number of objects in document is a good estimate in result size
-    // int maxDepth = getDocument()->countObjects() +2;
-    int maxDepth = GetApplication().checkLinkDepth(0);
-    std::vector<App::DocumentObject*> result;
-    result.reserve(maxDepth);
-
-    // using a rcursie helper to collect all InLists
-    _getInListRecursive(result, this, this, maxDepth);
-
-    std::vector<App::DocumentObject*> array;
-    array.insert(array.begin(), result.begin(), result.end());
-    return array;
-}
-
-#else
 // The original algorithm is highly inefficient in some special case.
 // Considering an object is linked by every other objects. After excluding this
 // object, there is another object linked by every other of the remaining
@@ -436,7 +398,6 @@ std::vector<App::DocumentObject*> DocumentObject::getInListRecursive(void) const
     return res;
 }
 
-#endif
 
 // More efficient algorithm to find the recursive inList of an object,
 // including possible external parents.  One shortcoming of this algorithm is
@@ -567,12 +528,7 @@ bool _isInInListRecursive(const DocumentObject* act,
 
 bool DocumentObject::isInInListRecursive(DocumentObject *linkTo) const
 {
-#if 0
-    int maxDepth = getDocument()->countObjects() + 2;
-    return _isInInListRecursive(this, linkTo, maxDepth);
-#else
     return this==linkTo || getInListEx(true).count(linkTo);
-#endif
 }
 
 bool DocumentObject::isInInList(DocumentObject *linkTo) const
@@ -639,24 +595,12 @@ bool DocumentObject::testIfLinkDAGCompatible(DocumentObject *linkTo) const
 
 bool DocumentObject::testIfLinkDAGCompatible(const std::vector<DocumentObject *> &linksTo) const
 {
-#if 0
-    Document* doc = this->getDocument();
-    if (!doc)
-        throw Base::RuntimeError("DocumentObject::testIfLinkIsDAG: object is not in any document.");
-    std::vector<App::DocumentObject*> deplist = doc->getDependencyList(linksTo);
-    if( std::find(deplist.begin(),deplist.end(),this) != deplist.end() )
-        //found this in dependency list
-        return false;
-    else
-        return true;
-#else
     auto inLists = getInListEx(true);
     inLists.emplace(const_cast<DocumentObject*>(this));
     for(auto obj : linksTo)
         if(inLists.count(obj))
             return false;
     return true;
-#endif
 }
 
 bool DocumentObject::testIfLinkDAGCompatible(PropertyLinkSubList &linksTo) const
@@ -691,7 +635,7 @@ void DocumentObject::setDocument(App::Document* doc)
 
 bool DocumentObject::removeDynamicProperty(const char* name)
 {
-    if (!_pDoc) 
+    if (!_pDoc || testStatus(ObjectStatus::Destroy)) 
         return false;
 
     Property* prop = getDynamicPropertyByName(name);
@@ -706,13 +650,13 @@ bool DocumentObject::removeDynamicProperty(const char* name)
     auto expressions = ExpressionEngine.getExpressions();
     std::vector<App::ObjectIdentifier> removeExpr;
 
-    for (auto it : expressions) {
+    for (const auto& it : expressions) {
         if (it.first.getProperty() == prop) {
             removeExpr.push_back(it.first);
         }
     }
 
-    for (auto it : removeExpr) {
+    for (const auto& it : removeExpr) {
         ExpressionEngine.setValue(it, std::shared_ptr<Expression>());
     }
 
@@ -811,7 +755,7 @@ PyObject *DocumentObject::getPyObject(void)
 DocumentObject *DocumentObject::getSubObject(const char *subname,
         PyObject **pyObj, Base::Matrix4D *mat, bool transform, int depth) const
 {
-    DocumentObject *ret = 0;
+    DocumentObject *ret = nullptr;
     auto exts = getExtensionsDerivedFromType<App::DocumentObjectExtension>();
     for(auto ext : exts) {
         if(ext->extensionGetSubObject(ret,subname,pyObj,mat,transform, depth))
@@ -819,7 +763,7 @@ DocumentObject *DocumentObject::getSubObject(const char *subname,
     }
 
     std::string name;
-    const char *dot=0;
+    const char *dot=nullptr;
     if(!subname || !(dot=strchr(subname,'.'))) {
         ret = const_cast<DocumentObject*>(this);
     }else if(subname[0]=='$') {
@@ -916,7 +860,7 @@ std::vector<std::pair<App::DocumentObject *,std::string> > DocumentObject::getPa
 DocumentObject *DocumentObject::getLinkedObject(
         bool recursive, Base::Matrix4D *mat, bool transform, int depth) const 
 {
-    DocumentObject *ret = 0;
+    DocumentObject *ret = nullptr;
     auto exts = getExtensionsDerivedFromType<App::DocumentObjectExtension>();
     for(auto ext : exts) {
         if(ext->extensionGetLinkedObject(ret,recursive,mat,transform,depth))
@@ -946,6 +890,16 @@ void DocumentObject::Save (Base::Writer &writer) const
 void DocumentObject::setExpression(const ObjectIdentifier &path, std::shared_ptr<Expression> expr)
 {
     ExpressionEngine.setValue(path, expr);
+}
+
+/**
+ * @brief Clear the expression of the object identifier \a path in this document object.
+ * @param path Target object identifier
+ */
+
+void DocumentObject::clearExpression(const ObjectIdentifier & path)
+{
+    setExpression(path, std::shared_ptr<Expression>());
 }
 
 /**
@@ -1044,7 +998,8 @@ void App::DocumentObject::_addBackLink(DocumentObject* newObj)
 int DocumentObject::setElementVisible(const char *element, bool visible) {
     for(auto ext : getExtensionsDerivedFromType<DocumentObjectExtension>()) {
         int ret = ext->extensionSetElementVisible(element,visible);
-        if(ret>=0) return ret;
+        if(ret>=0)
+            return ret;
     }
 
     return -1;
@@ -1053,7 +1008,8 @@ int DocumentObject::setElementVisible(const char *element, bool visible) {
 int DocumentObject::isElementVisible(const char *element) const {
     for(auto ext : getExtensionsDerivedFromType<DocumentObjectExtension>()) {
         int ret = ext->extensionIsElementVisible(element);
-        if(ret>=0) return ret;
+        if(ret>=0)
+            return ret;
     }
 
     return -1;
@@ -1072,8 +1028,8 @@ DocumentObject *DocumentObject::resolve(const char *subname,
         PyObject **pyObj, Base::Matrix4D *pmat, bool transform, int depth) const
 {
     auto self = const_cast<DocumentObject*>(this);
-    if(parent) *parent = 0;
-    if(subElement) *subElement = 0;
+    if(parent) *parent = nullptr;
+    if(subElement) *subElement = nullptr;
 
     auto obj = getSubObject(subname,pyObj,pmat,transform,depth);
     if(!obj || !subname || *subname==0)
@@ -1086,7 +1042,7 @@ DocumentObject *DocumentObject::resolve(const char *subname,
     // '.' for each object name in SubName, even if there is no subelement
     // following it. So finding the last dot will give us the end of the last
     // object name.
-    const char *dot=0;
+    const char *dot=nullptr;
     if(Data::ComplexGeoData::isMappedElement(subname) ||
        !(dot=strrchr(subname,'.')) ||
        dot == subname) 
@@ -1158,7 +1114,7 @@ DocumentObject *DocumentObject::resolveRelativeLink(std::string &subname,
         DocumentObject *&link, std::string &linkSub) const
 {
     if(!link || !link->getNameInDocument() || !getNameInDocument())
-        return 0;
+        return nullptr;
     auto ret = const_cast<DocumentObject*>(this);
     if(link != ret) {
         auto sub = subname.c_str();
@@ -1170,7 +1126,7 @@ DocumentObject *DocumentObject::resolveRelativeLink(std::string &subname,
             if(getSubObject(subcheck.c_str())==link) {
                 ret = getSubObject(std::string(sub,dot+1-sub).c_str());
                 if(!ret) 
-                    return 0;
+                    return nullptr;
                 subname = std::string(dot+1);
                 break;
             }
@@ -1183,14 +1139,14 @@ DocumentObject *DocumentObject::resolveRelativeLink(std::string &subname,
     do {
         linkPos = linkSub.find('.',linkPos);
         if(linkPos == std::string::npos) {
-            link = 0;
-            return 0;
+            link = nullptr;
+            return nullptr;
         }
         ++linkPos;
         pos = subname.find('.',pos);
         if(pos == std::string::npos) {
             subname.clear();
-            ret = 0;
+            ret = nullptr;
             break;
         }
         ++pos;
@@ -1199,15 +1155,15 @@ DocumentObject *DocumentObject::resolveRelativeLink(std::string &subname,
     if(pos != std::string::npos) {
         ret = getSubObject(subname.substr(0,pos).c_str());
         if(!ret) {
-            link = 0;
-            return 0;
+            link = nullptr;
+            return nullptr;
         }
         subname = subname.substr(pos);
     }
     if(linkPos) {
         link = link->getSubObject(linkSub.substr(0,linkPos).c_str());
         if(!link)
-            return 0;
+            return nullptr;
         linkSub = linkSub.substr(linkPos);
     }
     return ret;
@@ -1245,13 +1201,14 @@ const std::string &DocumentObject::hiddenMarker() {
 }
 
 const char *DocumentObject::hasHiddenMarker(const char *subname) {
-    if(!subname) return 0;
+    if(!subname)
+        return nullptr;
     const char *marker = strrchr(subname,'.');
     if(!marker)
         marker = subname;
     else
         ++marker;
-    return hiddenMarker()==marker?marker:0;
+    return hiddenMarker()==marker?marker:nullptr;
 }
 
 bool DocumentObject::redirectSubName(std::ostringstream &, DocumentObject *, DocumentObject *) const {

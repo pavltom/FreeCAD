@@ -20,19 +20,18 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <Geom2d_Conic.hxx>
 # include <Geom2d_TrimmedCurve.hxx>
 #endif
 
-#include <Mod/Part/App/Geometry2d.h>
-#include <Mod/Part/App/Geom2d/ArcOfConic2dPy.h>
-#include <Mod/Part/App/Geom2d/ArcOfConic2dPy.cpp>
-#include <Mod/Part/App/OCCError.h>
-
 #include <Base/GeometryPyCXX.h>
+
+#include "Geom2d/ArcOfConic2dPy.h"
+#include "Geom2d/ArcOfConic2dPy.cpp"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -47,7 +46,7 @@ PyObject *ArcOfConic2dPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  
     // never create such objects with the constructor
     PyErr_SetString(PyExc_RuntimeError,
         "You cannot create an instance of the abstract class 'ArcOfConic2d'.");
-    return 0;
+    return nullptr;
 }
 
 // constructor method
@@ -113,7 +112,7 @@ void  ArcOfConic2dPy::setYAxis(Py::Object arg)
 
 PyObject *ArcOfConic2dPy::getCustomAttributes(const char* ) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ArcOfConic2dPy::setCustomAttributes(const char* , PyObject *)

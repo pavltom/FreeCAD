@@ -20,29 +20,24 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <gp_Ax1.hxx>
 # include <gp_Dir.hxx>
-# include <gp_Pnt.hxx>
-# include <gp_Lin.hxx>
 # include <gp_Pln.hxx>
-# include <Geom_Line.hxx>
-# include <Geom_Plane.hxx>
-# include <Geom_TrimmedCurve.hxx>
+# include <gp_Pnt.hxx>
 # include <GC_MakePlane.hxx>
+# include <Geom_Plane.hxx>
 # include <Standard_Failure.hxx>
 #endif
 
-#include <Base/VectorPy.h>
 #include <Base/GeometryPyCXX.h>
+#include <Base/VectorPy.h>
 
+#include "PlanePy.h"
+#include "PlanePy.cpp"
 #include "OCCError.h"
-#include "Geometry.h"
-#include <Mod/Part/App/LinePy.h>
-#include <Mod/Part/App/PlanePy.h>
-#include <Mod/Part/App/PlanePy.cpp>
+
 
 using namespace Part;
 
@@ -66,7 +61,7 @@ int PlanePy::PyInit(PyObject* args, PyObject* kwds)
     // plane and distance for offset
     PyObject *pPlane;
     double dist;
-    static char* keywords_pd[] = {"Plane","Distance",NULL};
+    static char* keywords_pd[] = {"Plane","Distance",nullptr};
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!d", keywords_pd, &(PlanePy::Type), &pPlane, &dist)) {
         PlanePy* pcPlane = static_cast<PlanePy*>(pPlane);
         Handle(Geom_Plane) plane = Handle(Geom_Plane)::DownCast
@@ -84,7 +79,7 @@ int PlanePy::PyInit(PyObject* args, PyObject* kwds)
 
     // plane from equation
     double a,b,c,d;
-    static char* keywords_abcd[] = {"A","B","C","D",NULL};
+    static char* keywords_abcd[] = {"A","B","C","D",nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "dddd", keywords_abcd,
                                         &a,&b,&c,&d)) {
@@ -100,7 +95,7 @@ int PlanePy::PyInit(PyObject* args, PyObject* kwds)
     }
 
     PyObject *pV1, *pV2, *pV3;
-    static char* keywords_ppp[] = {"Point1","Point2","Point3",NULL};
+    static char* keywords_ppp[] = {"Point1","Point2","Point3",nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!", keywords_ppp,
                                          &(Base::VectorPy::Type), &pV1,
@@ -123,7 +118,7 @@ int PlanePy::PyInit(PyObject* args, PyObject* kwds)
     }
 
     // location and normal
-    static char* keywords_cnr[] = {"Location","Normal",NULL};
+    static char* keywords_cnr[] = {"Location","Normal",nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!O!", keywords_cnr,
                                         &(Base::VectorPy::Type), &pV1,
@@ -142,7 +137,7 @@ int PlanePy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    static char* keywords_p[] = {"Plane",NULL};
+    static char* keywords_p[] = {"Plane",nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", keywords_p, &(PlanePy::Type), &pPlane)) {
         PlanePy* pcPlane = static_cast<PlanePy*>(pPlane);
@@ -154,7 +149,7 @@ int PlanePy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    static char* keywords_n[] = {NULL};
+    static char* keywords_n[] = {nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "", keywords_n)) {
         // do nothing
@@ -257,7 +252,7 @@ void PlanePy::setAxis(Py::Object arg)
 
 PyObject *PlanePy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int PlanePy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

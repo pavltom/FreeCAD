@@ -28,9 +28,9 @@
 #	include <list>
 #endif
 
-
 #include "Factory.h"
 #include "Console.h"
+
 
 using namespace Base;
 
@@ -82,14 +82,14 @@ ScriptFactorySingleton* ScriptFactorySingleton::_pcSingleton = nullptr;
 
 ScriptFactorySingleton& ScriptFactorySingleton::Instance()
 {
-  if (_pcSingleton == nullptr)
+  if (!_pcSingleton)
     _pcSingleton = new ScriptFactorySingleton;
   return *_pcSingleton;
 }
 
 void ScriptFactorySingleton::Destruct ()
 {
-  if (_pcSingleton != nullptr)
+  if (_pcSingleton)
     delete _pcSingleton;
   _pcSingleton = nullptr;
 }

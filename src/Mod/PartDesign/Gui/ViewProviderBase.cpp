@@ -23,13 +23,11 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-#endif
-
 #include <App/Document.h>
-#include "ViewProviderBase.h"
-#include <Mod/PartDesign/App/FeatureBase.h>
 #include <Gui/Command.h>
+#include <Mod/PartDesign/App/FeatureBase.h>
+
+#include "ViewProviderBase.h"
 
 
 using namespace PartDesignGui;
@@ -87,7 +85,7 @@ bool ViewProviderBase::setEdit(int ModNum)
     if (!base->Placement.testStatus(App::Property::Immutable) &&
         !base->Placement.testStatus(App::Property::ReadOnly) &&
         !base->Placement.testStatus(App::Property::Hidden)) {
-        return PartGui::ViewProviderPart::setEdit(ModNum);
+        return PartGui::ViewProviderPart::setEdit(ModNum); // clazy:exclude=skipped-base-method
     }
 
     return false;
@@ -95,5 +93,5 @@ bool ViewProviderBase::setEdit(int ModNum)
 
 void ViewProviderBase::unsetEdit(int ModNum)
 {
-    PartGui::ViewProviderPart::unsetEdit(ModNum);
+    PartGui::ViewProviderPart::unsetEdit(ModNum); // clazy:exclude=skipped-base-method
 }

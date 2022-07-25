@@ -1,0 +1,1357 @@
+[{
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTile.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTile.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTile.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mtextedit.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mtextedit.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mtextedit.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgTemplateField.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgTemplateField.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgTemplateField.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIView.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIView.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIView.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITile.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITile.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITile.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawScaleImp.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawScaleImp.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawScaleImp.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawColorsImp.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawColorsImp.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawColorsImp.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomImage.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomImage.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomImage.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomBorder.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomBorder.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomBorder.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreCompiled.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreCompiled.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreCompiled.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomRect.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomRect.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomRect.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DrawGuiUtil.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DrawGuiUtil.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DrawGuiUtil.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIRichAnno.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIRichAnno.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIRichAnno.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/CommandAnnotate.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/CommandAnnotate.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/CommandAnnotate.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDrawingView.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDrawingView.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDrawingView.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroupItem.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroupItem.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroupItem.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGVPage.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGVPage.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGVPage.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TemplateTextField.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TemplateTextField.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TemplateTextField.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/MDIViewPage.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/MDIViewPage.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/MDIViewPage.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomSvg.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomSvg.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomSvg.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosmeticLine.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosmeticLine.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosmeticLine.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderGeomHatch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderGeomHatch.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderGeomHatch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGEPath.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGEPath.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGEPath.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mrichtextedit.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mrichtextedit.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mrichtextedit.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewPart.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewPart.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewPart.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Workbench.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Workbench.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Workbench.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewAnnotation.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewAnnotation.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewAnnotation.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawDimensionsImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawDimensionsImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawDimensionsImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomText.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomText.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomText.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGMText.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGMText.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGMText.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskRichAnno.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskRichAnno.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskRichAnno.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawColorsImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawColorsImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawColorsImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITemplate.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITemplate.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITemplate.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIUserTypes.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIUserTypes.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIUserTypes.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGEPath.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGEPath.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGEPath.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Rez.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Rez.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Rez.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Workbench.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Workbench.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Workbench.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISectionLine.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISectionLine.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISectionLine.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskActiveView.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskActiveView.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskActiveView.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroup.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroup.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroup.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderAnnotation.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderAnnotation.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderAnnotation.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDimension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDimension.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDimension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroup.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroup.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroup.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIRichAnno.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIRichAnno.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIRichAnno.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DrawGuiStd.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DrawGuiStd.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DrawGuiStd.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISectionLine.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISectionLine.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISectionLine.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Grabber3d.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Grabber3d.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Grabber3d.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITile.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITile.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITile.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIMatting.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIMatting.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIMatting.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderImage.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderImage.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderImage.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSpreadsheet.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSpreadsheet.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSpreadsheet.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewSection.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewSection.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewSection.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderHatch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderHatch.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderHatch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAnnotationImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAnnotationImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAnnotationImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDrawingView.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDrawingView.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDrawingView.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosVertex.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosVertex.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosVertex.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAnnotationImp.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAnnotationImp.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAnnotationImp.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewPart.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewPart.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewPart.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskGeomHatch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskGeomHatch.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskGeomHatch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTemplate.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTemplate.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTemplate.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTile.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTile.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTile.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderLeader.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderLeader.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderLeader.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGILeaderLine.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGILeaderLine.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGILeaderLine.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/CommandCreateDims.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/CommandCreateDims.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/CommandCreateDims.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIView.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIView.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIView.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewDimension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewDimension.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewDimension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomClip.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomClip.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomClip.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosmeticLine.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosmeticLine.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosmeticLine.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskSectionView.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskSectionView.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskSectionView.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskWeldingSymbol.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskWeldingSymbol.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskWeldingSymbol.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTemplate.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTemplate.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderTemplate.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ZVALUE.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ZVALUE.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ZVALUE.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawGeneralImp.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawGeneralImp.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawGeneralImp.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIProjGroup.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIProjGroup.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIProjGroup.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIHighlight.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIHighlight.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIHighlight.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewAnnotation.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewAnnotation.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewAnnotation.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawScaleImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawScaleImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawScaleImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSpreadsheet.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSpreadsheet.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSpreadsheet.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISVGTemplate.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISVGTemplate.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISVGTemplate.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDrawingTemplate.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDrawingTemplate.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDrawingTemplate.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mtextedit.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mtextedit.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mtextedit.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/CommandDecorate.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/CommandDecorate.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/CommandDecorate.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskProjGroup.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskProjGroup.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskProjGroup.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGMText.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGMText.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGMText.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskGeomHatch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskGeomHatch.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskGeomHatch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewClip.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewClip.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewClip.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewBalloon.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewBalloon.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewBalloon.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLeaderLine.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLeaderLine.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLeaderLine.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISVGTemplate.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISVGTemplate.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGISVGTemplate.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIArrow.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIArrow.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIArrow.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDetail.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDetail.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDetail.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QEnhancedSvgGenerator.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QEnhancedSvgGenerator.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QEnhancedSvgGenerator.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreferencesGui.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreferencesGui.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreferencesGui.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIMatting.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIMatting.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIMatting.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskProjGroup.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskProjGroup.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskProjGroup.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDetail.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDetail.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDetail.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewPart.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewPart.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewPart.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewImage.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewImage.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewImage.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomLabel.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomLabel.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomLabel.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawHLRImp.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawHLRImp.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawHLRImp.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICMark.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICMark.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICMark.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIPrimPath.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIPrimPath.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIPrimPath.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderRichAnno.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderRichAnno.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderRichAnno.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIWeldSymbol.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIWeldSymbol.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIWeldSymbol.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLineDecor.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLineDecor.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLineDecor.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSymbol.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSymbol.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSymbol.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Grabber3d.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Grabber3d.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Grabber3d.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDimension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDimension.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDimension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewClip.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewClip.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewClip.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGDisplayArea.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGDisplayArea.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGDisplayArea.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLinkDim.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLinkDim.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLinkDim.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgTemplateField.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgTemplateField.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgTemplateField.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderImage.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderImage.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderImage.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICenterLine.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICenterLine.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICenterLine.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSymbol.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSymbol.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSymbol.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITemplate.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITemplate.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGITemplate.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICMark.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICMark.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICMark.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderPage.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderPage.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderPage.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskSectionView.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskSectionView.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskSectionView.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderLeader.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderLeader.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderLeader.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICaption.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICaption.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICaption.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/SymbolChooser.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/SymbolChooser.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/SymbolChooser.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSpreadsheet.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSpreadsheet.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSpreadsheet.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLineDecor.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLineDecor.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLineDecor.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDecoration.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDecoration.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDecoration.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderWeld.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderWeld.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderWeld.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLeaderLine.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLeaderLine.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLeaderLine.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomImage.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomImage.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomImage.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/SymbolChooser.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/SymbolChooser.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/SymbolChooser.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskBalloon.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskBalloon.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskBalloon.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIArrow.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIArrow.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIArrow.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewDimension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewDimension.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewDimension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroupItem.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroupItem.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderProjGroupItem.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIHighlight.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIHighlight.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIHighlight.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewBalloon.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewBalloon.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewBalloon.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomText.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomText.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomText.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAdvancedImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAdvancedImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAdvancedImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskHatch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskHatch.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskHatch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSymbol.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSymbol.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSymbol.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosVertex.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosVertex.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCosVertex.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mrichtextedit.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mrichtextedit.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/mrichtextedit.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIWeldSymbol.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIWeldSymbol.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIWeldSymbol.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDimLines.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDimLines.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDimLines.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomRect.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomRect.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomRect.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderGeomHatch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderGeomHatch.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderGeomHatch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICenterLine.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICenterLine.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICenterLine.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderCosmeticExtension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderCosmeticExtension.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderCosmeticExtension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Command.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Command.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Command.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskWeldingSymbol.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskWeldingSymbol.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskWeldingSymbol.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderAnnotation.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderAnnotation.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderAnnotation.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIEdge.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIEdge.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIEdge.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Rez.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Rez.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/Rez.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskHatch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskHatch.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskHatch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIGhostHighlight.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIGhostHighlight.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIGhostHighlight.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDrawingTemplate.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDrawingTemplate.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDrawingTemplate.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreCompiled.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreCompiled.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreCompiled.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSymbol.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSymbol.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSymbol.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomLabel.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomLabel.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomLabel.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewClip.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewClip.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewClip.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderWeld.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderWeld.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderWeld.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDecoration.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDecoration.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDecoration.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomSvg.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomSvg.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomSvg.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewSection.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewSection.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewSection.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIVertex.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIVertex.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIVertex.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDimLines.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDimLines.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIDimLines.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomBorder.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomBorder.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomBorder.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskActiveView.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskActiveView.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskActiveView.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawGeneralImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawGeneralImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawGeneralImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderHatch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderHatch.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderHatch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderBalloon.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderBalloon.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderBalloon.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QEnhancedSvgGenerator.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QEnhancedSvgGenerator.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QEnhancedSvgGenerator.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSection.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSection.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSection.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIFace.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIFace.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIFace.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TemplateTextField.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TemplateTextField.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TemplateTextField.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIEdge.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIEdge.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIEdge.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIPrimPath.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIPrimPath.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIPrimPath.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderPage.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderPage.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderPage.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLinkDim.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLinkDim.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskLinkDim.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIProjGroup.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIProjGroup.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIProjGroup.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewCollection.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewCollection.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewCollection.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDimension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDimension.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderDimension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderRichAnno.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderRichAnno.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderRichAnno.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewClip.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewClip.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderViewClip.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGILeaderLine.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGILeaderLine.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGILeaderLine.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIFace.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIFace.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIFace.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGDisplayArea.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGDisplayArea.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGDisplayArea.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICaption.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICaption.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGICaption.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAdvancedImp.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAdvancedImp.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawAdvancedImp.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawHLRImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawHLRImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawHLRImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawDimensionsImp.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawDimensionsImp.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DlgPrefsTechDrawDimensionsImp.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewCollection.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewCollection.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewCollection.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCenterLine.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCenterLine.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCenterLine.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/MDIViewPage.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/MDIViewPage.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/MDIViewPage.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderCosmeticExtension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderCosmeticExtension.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderCosmeticExtension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/AppTechDrawGui.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/AppTechDrawGui.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/AppTechDrawGui.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGTracker.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGTracker.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGTracker.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSpreadsheet.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSpreadsheet.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderSpreadsheet.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDimension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDimension.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskDimension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIVertex.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIVertex.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIVertex.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewImage.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewImage.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewImage.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSection.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSection.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewSection.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreferencesGui.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreferencesGui.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/PreferencesGui.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/AppTechDrawGuiPy.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/AppTechDrawGuiPy.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/AppTechDrawGuiPy.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCenterLine.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCenterLine.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskCenterLine.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DrawGuiUtil.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DrawGuiUtil.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/DrawGuiUtil.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGVPage.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGVPage.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGVPage.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomClip.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomClip.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGCustomClip.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIGhostHighlight.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIGhostHighlight.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIGhostHighlight.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskBalloon.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskBalloon.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskBalloon.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskRichAnno.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskRichAnno.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/TaskRichAnno.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderBalloon.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderBalloon.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/ViewProviderBalloon.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGTracker.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGTracker.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGTracker.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewPart.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewPart.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/Gui/QGIViewPart.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticExtensionPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticExtensionPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticExtensionPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/HatchLine.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/HatchLine.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/HatchLine.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawParametricTemplate.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawParametricTemplate.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawParametricTemplate.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimension.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDetail.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDetail.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDetail.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimExtent.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimExtent.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimExtent.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroup.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroup.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroup.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/LandmarkDimension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/LandmarkDimension.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/LandmarkDimension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/Cosmetic.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Cosmetic.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Cosmetic.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTemplatePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTemplatePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTemplatePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/LandmarkDimension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/LandmarkDimension.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/LandmarkDimension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/ArrowPropEnum.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/ArrowPropEnum.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/ArrowPropEnum.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimension.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewBalloon.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewBalloon.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewBalloon.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewMulti.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewMulti.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewMulti.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawLeaderLine.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawLeaderLine.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawLeaderLine.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawGeomHatch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawGeomHatch.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawGeomHatch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTemplate.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTemplate.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTemplate.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSection.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSection.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSection.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCenterLineList.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCenterLineList.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCenterLineList.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTileWeld.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTileWeld.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTileWeld.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/ArrowPropEnum.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/ArrowPropEnum.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/ArrowPropEnum.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTemplate.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTemplate.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTemplate.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSymbolPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSymbolPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSymbolPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTile.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTile.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTile.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawGeomHatch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawGeomHatch.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawGeomHatch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawHatch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawHatch.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawHatch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticVertexList.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticVertexList.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticVertexList.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPart.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPart.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPart.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewClip.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewClip.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewClip.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawSVGTemplatePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawSVGTemplatePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawSVGTemplatePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewImage.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewImage.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewImage.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/EdgeWalker.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/EdgeWalker.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/EdgeWalker.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawView.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawView.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawView.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewCollection.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewCollection.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewCollection.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticEdgeList.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticEdgeList.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticEdgeList.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDetail.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDetail.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDetail.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCenterLineList.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCenterLineList.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCenterLineList.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimensionPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimensionPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimensionPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTile.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTile.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTile.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTilePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTilePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTilePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawWeldSymbolPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawWeldSymbolPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawWeldSymbolPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticEdgeList.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticEdgeList.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticEdgeList.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/Preferences.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Preferences.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Preferences.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/ShapeExtractor.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/ShapeExtractor.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/ShapeExtractor.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/LineGroup.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/LineGroup.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/LineGroup.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/ShapeExtractor.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/ShapeExtractor.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/ShapeExtractor.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewBalloon.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewBalloon.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewBalloon.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawHatchPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawHatchPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawHatchPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewCollectionPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewCollectionPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewCollectionPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/Geometry.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Geometry.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Geometry.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/Preferences.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Preferences.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Preferences.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/Geometry.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Geometry.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Geometry.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawDimHelper.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawDimHelper.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawDimHelper.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewImage.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewImage.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewImage.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjectSplit.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjectSplit.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjectSplit.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawWeldSymbol.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawWeldSymbol.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawWeldSymbol.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticExtension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticExtension.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticExtension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPart.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPart.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPart.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/LineGroup.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/LineGroup.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/LineGroup.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyGeomFormatList.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyGeomFormatList.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyGeomFormatList.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimExtentPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimExtentPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimExtentPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSpreadsheet.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSpreadsheet.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSpreadsheet.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupItem.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupItem.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupItem.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/AppTechDraw.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/AppTechDraw.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/AppTechDraw.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewClip.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewClip.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewClip.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupItem.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupItem.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupItem.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewArch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewArch.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewArch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDraft.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDraft.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDraft.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/HatchLine.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/HatchLine.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/HatchLine.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyGeomFormatList.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyGeomFormatList.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyGeomFormatList.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawLeaderLinePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawLeaderLinePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawLeaderLinePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSpreadsheet.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSpreadsheet.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSpreadsheet.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawRichAnnoPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawRichAnnoPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawRichAnnoPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroup.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroup.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroup.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawPagePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawPagePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawPagePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/EdgeWalker.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/EdgeWalker.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/EdgeWalker.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewCollection.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewCollection.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewCollection.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawSVGTemplate.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawSVGTemplate.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawSVGTemplate.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewMulti.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewMulti.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewMulti.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticEdgePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticEdgePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticEdgePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawParametricTemplate.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawParametricTemplate.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawParametricTemplate.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PreCompiled.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PreCompiled.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PreCompiled.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/CenterLinePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CenterLinePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CenterLinePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawHatch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawHatch.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawHatch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTileWeld.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTileWeld.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTileWeld.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimExtent.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimExtent.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDimExtent.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawUtil.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawUtil.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawUtil.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawParametricTemplatePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawParametricTemplatePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawParametricTemplatePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewArch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewArch.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewArch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawUtil.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawUtil.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawUtil.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawGeomHatchPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawGeomHatchPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawGeomHatchPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticVertexPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticVertexPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticVertexPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewAnnotation.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewAnnotation.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewAnnotation.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawRichAnno.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawRichAnno.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawRichAnno.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/GeometryObject.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/GeometryObject.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/GeometryObject.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawRichAnno.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawRichAnno.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawRichAnno.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/QDomNodeModel.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/QDomNodeModel.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/QDomNodeModel.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/GeometryObject.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/GeometryObject.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/GeometryObject.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewAnnotation.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewAnnotation.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewAnnotation.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticExtension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticExtension.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/CosmeticExtension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/Cosmetic.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Cosmetic.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/Cosmetic.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewClipPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewClipPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewClipPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTileWeldPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTileWeldPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawTileWeldPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticVertexList.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticVertexList.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PropertyCosmeticVertexList.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/QDomNodeModel.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/QDomNodeModel.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/QDomNodeModel.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupItemPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupItemPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjGroupItemPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawLeaderLine.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawLeaderLine.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawLeaderLine.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/AppTechDrawPy.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/AppTechDrawPy.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/AppTechDrawPy.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawSVGTemplate.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawSVGTemplate.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawSVGTemplate.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDraft.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDraft.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewDraft.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSymbol.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSymbol.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSymbol.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/GeomFormatPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/GeomFormatPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/GeomFormatPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPartPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPartPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPartPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjectSplit.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjectSplit.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawProjectSplit.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawWeldSymbol.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawWeldSymbol.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawWeldSymbol.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawDimHelper.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawDimHelper.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawDimHelper.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewAnnotationPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewAnnotationPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewAnnotationPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/PreCompiled.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PreCompiled.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/PreCompiled.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSection.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSection.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSection.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawPage.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawPage.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawPage.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawPage.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawPage.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawPage.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawView.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawView.h -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawView.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSymbol.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSymbol.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewSymbol.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/TechDraw/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/TechDraw/App/DrawViewPyImp.cpp.o  -I. -I.  -g"
+ }]

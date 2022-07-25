@@ -28,9 +28,10 @@
 # include <Inventor/nodes/SoCamera.h>
 #endif
 #include <Inventor/SbVec2s.h>
-#include "View3DInventorViewer.h"
 
 #include "Flag.h"
+#include "View3DInventorViewer.h"
+
 
 using namespace Gui;
 
@@ -229,7 +230,7 @@ QLayoutItem *FlagLayout::itemAt(int index) const
     if (wrapper)
         return wrapper->item;
     else
-        return 0;
+        return nullptr;
 }
 
 QSize FlagLayout::minimumSize() const
@@ -297,7 +298,7 @@ QLayoutItem *FlagLayout::takeAt(int index)
         ItemWrapper *layoutStruct = list.takeAt(index);
         return layoutStruct->item;
     }
-    return 0;
+    return nullptr;
 }
 
 void FlagLayout::add(QLayoutItem *item, Position position)
@@ -327,7 +328,7 @@ QSize FlagLayout::calculateSize(SizeType sizeType) const
 
 TYPESYSTEM_SOURCE_ABSTRACT(Gui::GLFlagWindow, Gui::GLGraphicsItem)
 
-GLFlagWindow::GLFlagWindow(View3DInventorViewer* view) : _viewer(view), _flagLayout(0)
+GLFlagWindow::GLFlagWindow(View3DInventorViewer* view) : _viewer(view), _flagLayout(nullptr)
 {
 }
 
@@ -381,7 +382,7 @@ Flag* GLFlagWindow::getFlag(int index) const
         QWidget* flag = _flagLayout->itemAt(index)->widget();
         return qobject_cast<Flag*>(flag);
     }
-    return 0;
+    return nullptr;
 }
 
 int GLFlagWindow::countFlags() const

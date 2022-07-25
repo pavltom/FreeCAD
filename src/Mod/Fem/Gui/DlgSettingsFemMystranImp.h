@@ -37,8 +37,11 @@ class DlgSettingsFemMystranImp : public Gui::Dialog::PreferencePage
     Q_OBJECT
 
 public:
-    DlgSettingsFemMystranImp( QWidget* parent = 0 );
+    DlgSettingsFemMystranImp( QWidget* parent = nullptr );
     ~DlgSettingsFemMystranImp();
+
+protected Q_SLOTS:
+    void onfileNameChanged(QString FileName);
 
 protected:
     void saveSettings();

@@ -24,9 +24,9 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
+# include <Python.h>
 # include <cstdlib>
 # include <memory>
-# include <Python.h>
 # include <Bnd_Box.hxx>
 # include <BRep_Tool.hxx>
 # include <BRepBndLib.hxx>
@@ -50,7 +50,6 @@
 # include <SMESHDS_GroupBase.hxx>
 # include <SMESHDS_Group.hxx>
 # include <SMESHDS_Mesh.hxx>
-//# include <SMDS_PolyhedralVolumeOfNodes.hxx>
 # include <SMDS_VolumeTool.hxx>
 # include <StdMeshers_MaxLength.hxx>
 # include <StdMeshers_LocalLength.hxx>
@@ -97,7 +96,7 @@ using namespace boost;
 static int StatCount = 0;
 #endif
 
-SMESH_Gen* FemMesh::_mesh_gen = 0;
+SMESH_Gen* FemMesh::_mesh_gen = nullptr;
 
 TYPESYSTEM_SOURCE(Fem::FemMesh , Base::Persistence)
 
@@ -1086,7 +1085,7 @@ std::set<int> FemMesh::getEdgesOnly(void) const
                 break;
             }
         }
-        if (edgeBelongsToAFace == false)
+        if (!edgeBelongsToAFace)
             resultIDs.insert(aEdge->GetID());
     }
 
@@ -1145,7 +1144,7 @@ std::set<int> FemMesh::getFacesOnly(void) const
                 break;
             }
         }
-        if (faceBelongsToAVolume == false)
+        if (!faceBelongsToAVolume)
             resultIDs.insert(aFace->GetID());
     }
 
@@ -1880,7 +1879,7 @@ void FemMesh::read(const char *FileName)
         readNastran(File.filePath());
     }
 #ifdef FC_USE_VTK
-    else if (File.hasExtension("vtk") || File.hasExtension("vtu")) {
+    else if (File.hasExtension("vtk") || File.hasExtension("vtu") || File.hasExtension("pvtu")) {
         // read *.vtk legacy format or *.vtu XML unstructure Mesh
         FemVTKTools::readVTKMesh(File.filePath().c_str(), this);
     }
@@ -2173,7 +2172,7 @@ void FemMesh::writeABAQUS(const std::string &Filename, int elemParam, bool group
                         anABAQUS_Output  << ", " << *kt;
                     }
                     else {
-                        if (first_line == true) {
+                        if (first_line) {
                             anABAQUS_Output << "," << std::endl;
                             first_line = false;
                         }
@@ -2233,7 +2232,7 @@ void FemMesh::writeABAQUS(const std::string &Filename, int elemParam, bool group
     anABAQUS_Output << elsetname << std::endl;
 
     // groups
-    if (groupParam == false) {
+    if (!groupParam) {
         anABAQUS_Output.close();
     }
     else {
@@ -2490,7 +2489,7 @@ Base::BoundBox3d FemMesh::getBoundBox(void) const
 {
     Base::BoundBox3d box;
 
-    SMESHDS_Mesh* data = const_cast<SMESH_Mesh*>(getSMesh())->GetMeshDS();
+    const SMESHDS_Mesh* data = getSMesh()->GetMeshDS();
 
     SMDS_NodeIteratorPtr aNodeIter = data->nodesIterator();
     for (;aNodeIter->more();) {
@@ -2527,14 +2526,14 @@ Data::Segment* FemMesh::getSubElement(const char* /*Type*/, unsigned long /*n*/)
     //str << Type << n;
     //std::string temp = str.str();
     //return new ShapeSegment(getSubShape(temp.c_str()));
-    return 0;
+    return nullptr;
 }
 
 struct Fem::FemMesh::FemMeshInfo FemMesh::getInfo(void) const{
 
     struct FemMeshInfo rtrn;
 
-    SMESHDS_Mesh* data =  const_cast<SMESH_Mesh*>(getSMesh())->GetMeshDS();
+    const SMESHDS_Mesh* data =  getSMesh()->GetMeshDS();
     const SMDS_MeshInfo& info = data->GetMeshInfo();
     rtrn.numFaces = data->NbFaces();
     rtrn.numNode = info.NbNodes();

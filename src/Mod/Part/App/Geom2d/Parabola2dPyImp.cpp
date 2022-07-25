@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <Geom2d_Parabola.hxx>
@@ -28,10 +27,10 @@
 
 #include <Base/GeometryPyCXX.h>
 
-#include <Mod/Part/App/OCCError.h>
-#include <Mod/Part/App/Geometry2d.h>
-#include <Mod/Part/App/Geom2d/Parabola2dPy.h>
-#include <Mod/Part/App/Geom2d/Parabola2dPy.cpp>
+#include "Geom2d/Parabola2dPy.h"
+#include "Geom2d/Parabola2dPy.cpp"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -87,7 +86,7 @@ Py::Float Parabola2dPy::getParameter(void) const
 
 PyObject *Parabola2dPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int Parabola2dPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

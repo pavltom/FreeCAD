@@ -28,22 +28,18 @@
 # include <QAction>
 # include <QApplication>
 # include <QMenu>
-#include <Inventor/nodes/SoSwitch.h>
 #endif
 
-#include <Gui/ActionFunction.h>
-#include <Gui/Command.h>
-#include <Gui/MDIView.h>
-#include <Gui/Control.h>
-#include <Gui/Application.h>
-#include <Gui/Document.h>
-#include <Gui/BitmapFactory.h>
 #include <Base/Exception.h>
+#include <App/Document.h>
+#include <Gui/Application.h>
+#include <Gui/BitmapFactory.h>
+#include <Gui/Command.h>
+#include <Gui/Control.h>
+#include <Gui/Document.h>
 #include <Mod/PartDesign/App/Body.h>
 #include <Mod/PartDesign/App/Feature.h>
-#include <Mod/Sketcher/App/SketchObject.h>
 
-#include "Utils.h"
 #include "TaskFeatureParameters.h"
 
 #include "ViewProvider.h"
@@ -54,7 +50,7 @@ using namespace PartDesignGui;
 PROPERTY_SOURCE_WITH_EXTENSIONS(PartDesignGui::ViewProvider, PartGui::ViewProviderPart)
 
 ViewProvider::ViewProvider()
-:oldWb(""), oldTip(NULL), isSetTipIcon(false)
+:oldWb(""), oldTip(nullptr), isSetTipIcon(false)
 {
     PartGui::ViewProviderAttachExtension::initExtension(this);
 }
@@ -78,7 +74,8 @@ bool ViewProvider::doubleClicked(void)
 
 void ViewProvider::setupContextMenu(QMenu* menu, QObject* receiver, const char* member)
 {
-    QAction* act = menu->addAction(QObject::tr("Set colors..."), receiver, member);
+    QIcon iconObject = mergeGreyableOverlayIcons(Gui::BitmapFactory().pixmap("Part_ColorFace.svg"));
+    QAction* act = menu->addAction(iconObject, QObject::tr("Set colors..."), receiver, member);
     act->setData(QVariant((int)ViewProvider::Color));
     // Call the extensions
     Gui::ViewProvider::setupContextMenu(menu, receiver, member);
@@ -94,7 +91,7 @@ bool ViewProvider::setEdit(int ModNum)
         TaskDlgFeatureParameters *featureDlg = qobject_cast<TaskDlgFeatureParameters *>(dlg);
         // NOTE: if the dialog is not partDesigan dialog the featureDlg will be NULL
         if (featureDlg && featureDlg->viewProvider() != this) {
-            featureDlg = 0; // another feature left open its task panel
+            featureDlg = nullptr; // another feature left open its task panel
         }
         if (dlg && !featureDlg) {
             QMessageBox msgBox;
@@ -156,11 +153,11 @@ void ViewProvider::unsetEdit(int ModNum)
             Gui::Command::doCommand(Gui::Command::Gui,"FreeCADGui.runCommand('PartDesign_MoveTip')");
         }
 #endif
-        oldTip = NULL;
+        oldTip = nullptr;
     }
     else {
         PartGui::ViewProviderPart::unsetEdit(ModNum);
-        oldTip = NULL;
+        oldTip = nullptr;
     }
 }
 
@@ -251,7 +248,7 @@ bool ViewProvider::onDelete(const std::vector<std::string> &)
     // find surrounding features in the tree
     Part::BodyBase* body = PartDesign::Body::findBodyOf(getObject());
 
-    if (body != NULL) {
+    if (body) {
         // Deletion from the tree of a feature is handled by Document.removeObject, which has no clue
         // about what a body is. Therefore, Bodies, although an "activable" container, know nothing
         // about what happens at Document level with the features they contain.

@@ -90,9 +90,8 @@ void QGIViewImage::setViewImageFeature(TechDraw::DrawViewImage *obj)
 void QGIViewImage::updateView(bool update)
 {
     auto viewImage( dynamic_cast<TechDraw::DrawViewImage *>(getViewObject()) );
-    if( viewImage == nullptr ) {
+    if (!viewImage)
         return;
-    }
 
     if (update ||
         viewImage->isTouched() ||
@@ -120,9 +119,8 @@ void QGIViewImage::draw()
         return;
 
     auto vp = static_cast<ViewProviderImage*>(getViewProvider(getViewObject()));
-    if ( vp == nullptr ) {
+    if (!vp)
         return;
-    }
     bool crop = vp->Crop.getValue();
 
     drawImage();
@@ -141,12 +139,11 @@ void QGIViewImage::draw()
 void QGIViewImage::drawImage()
 {
     auto viewImage( dynamic_cast<TechDraw::DrawViewImage *>(getViewObject()) );
-    if( viewImage == nullptr ) {
+    if (!viewImage)
         return;
-    }
 
-    if (!viewImage->ImageFile.isEmpty()) {
-        QString fileSpec = QString::fromUtf8(viewImage->ImageFile.getValue(),strlen(viewImage->ImageFile.getValue()));
+    if (!viewImage->ImageIncluded.isEmpty()) {
+        QString fileSpec = QString::fromUtf8(viewImage->ImageIncluded.getValue(),strlen(viewImage->ImageIncluded.getValue()));
         m_imageItem->load(fileSpec);
         m_imageItem->setScale(viewImage->getScale());
         QRectF br = m_cliparea->rect();
@@ -164,5 +161,3 @@ void QGIViewImage::rotateView(void)
     double rot = getViewObject()->Rotation.getValue();
     m_cliparea->setRotation(-rot);
 }
-
-

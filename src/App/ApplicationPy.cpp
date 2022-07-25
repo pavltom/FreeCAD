@@ -22,34 +22,24 @@
  ***************************************************************************/
 
 
-
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-# include <stdexcept>
-#endif
-
+#include <Base/Console.h>
+#include <Base/Exception.h>
+#include <Base/FileInfo.h>
+#include <Base/Interpreter.h>
+#include <Base/Parameter.h>
+#include <Base/Sequencer.h>
 
 #include "Application.h"
-#include "Document.h"
 #include "DocumentPy.h"
 #include "DocumentObserverPython.h"
 #include "DocumentObjectPy.h"
 
-// FreeCAD Base header
-#include <Base/Interpreter.h>
-#include <Base/Exception.h>
-#include <Base/Parameter.h>
-#include <Base/Console.h>
-#include <Base/Factory.h>
-#include <Base/FileInfo.h>
-#include <Base/UnitsApi.h>
-#include <Base/Sequencer.h>
 
 //using Base::GetConsole;
 using namespace Base;
 using namespace App;
-
 
 
 //**************************************************************************
@@ -88,6 +78,8 @@ PyMethodDef Application::Methods[] = {
      "Get the name of the module that can export the filetype"},
     {"getResourceDir", (PyCFunction) Application::sGetResourcePath, METH_VARARGS,
      "Get the root directory of all resources"},
+    {"getLibraryDir", (PyCFunction) Application::sGetLibraryPath, METH_VARARGS,
+     "Get the directory of all extension modules"},
     {"getTempPath", (PyCFunction) Application::sGetTempPath, METH_VARARGS,
      "Get the root directory of cached files"},
     {"getUserCachePath", (PyCFunction) Application::sGetUserCachePath, METH_VARARGS,
@@ -190,21 +182,21 @@ PyMethodDef Application::Methods[] = {
      "This only works if there is an active sequencer (or ProgressIndicator in Python).\n"
      "There is an active sequencer during document restore and recomputation. User may\n"
      "abort the operation by pressing the ESC key. Once detected, this function will\n"
-     "trigger a BaseExceptionFreeCADAbort exception."},
-    {NULL, NULL, 0, NULL}		/* Sentinel */
+     "trigger a Base.FreeCADAbort exception."},
+    {nullptr, nullptr, 0, nullptr}		/* Sentinel */
 };
 
 
 PyObject* Application::sLoadFile(PyObject * /*self*/, PyObject *args)
 {
     char *path, *doc="",*mod="";
-    if (!PyArg_ParseTuple(args, "s|ss", &path, &doc, &mod))     // convert args: Python->C
-        return 0;                             // NULL triggers exception
+    if (!PyArg_ParseTuple(args, "s|ss", &path, &doc, &mod))
+        return nullptr;
     try {
         Base::FileInfo fi(path);
         if (!fi.isFile() || !fi.exists()) {
             PyErr_Format(PyExc_IOError, "File %s doesn't exist.", path);
-            return 0;
+            return nullptr;
         }
 
         std::string module = mod;
@@ -213,7 +205,7 @@ PyObject* Application::sLoadFile(PyObject * /*self*/, PyObject *args)
             std::vector<std::string> modules = GetApplication().getImportModules(ext.c_str());
             if (modules.empty()) {
                 PyErr_Format(PyExc_IOError, "Filetype %s is not supported.", ext.c_str());
-                return 0;
+                return nullptr;
             }
             else {
                 module = modules.front();
@@ -236,13 +228,13 @@ PyObject* Application::sLoadFile(PyObject * /*self*/, PyObject *args)
     catch (const std::exception& e) {
         // might be subclass from zipios
         PyErr_Format(PyExc_IOError, "Invalid project file %s: %s", path, e.what());
-        return 0;
+        return nullptr;
     }
 }
 
 PyObject* Application::sIsRestoring(PyObject * /*self*/, PyObject *args) {
     if (!PyArg_ParseTuple(args, ""))
-        return NULL;
+        return nullptr;
     return Py::new_reference_to(Py::Boolean(GetApplication().isRestoring()));
 }
 
@@ -250,42 +242,40 @@ PyObject* Application::sOpenDocument(PyObject * /*self*/, PyObject *args, PyObje
 {
     char* Name;
     PyObject *hidden = Py_False;
-    static char *kwlist[] = {"name","hidden",0};
-    if (!PyArg_ParseTupleAndKeywords(args, kwd, "et|O", kwlist,
-                "utf-8", &Name, &hidden))
-        return NULL;
+    static char *kwlist[] = {"name","hidden",nullptr};
+    if (!PyArg_ParseTupleAndKeywords(args, kwd, "et|O!", kwlist,
+                "utf-8", &Name, &PyBool_Type, &hidden))
+        return nullptr;
     std::string EncodedName = std::string(Name);
     PyMem_Free(Name);
     try {
         // return new document
-        return (GetApplication().openDocument(EncodedName.c_str(),!PyObject_IsTrue(hidden))->getPyObject());
+        return (GetApplication().openDocument(EncodedName.c_str(), !Base::asBoolean(hidden))->getPyObject());
     }
     catch (const Base::Exception& e) {
         PyErr_SetString(PyExc_IOError, e.what());
-        return 0L;
+        return nullptr;
     }
     catch (const std::exception& e) {
         // might be subclass from zipios
         PyErr_Format(PyExc_IOError, "Invalid project file %s: %s\n", EncodedName.c_str(), e.what());
-        return 0L;
+        return nullptr;
     }
 }
 
 PyObject* Application::sNewDocument(PyObject * /*self*/, PyObject *args, PyObject *kwd)
 {
-    char *docName = 0;
-    char *usrName = 0;
+    char *docName = nullptr;
+    char *usrName = nullptr;
     PyObject *hidden = Py_False;
     PyObject *temp = Py_False;
-    static char *kwlist[] = {"name","label","hidden","temp",0};
-    if (!PyArg_ParseTupleAndKeywords(args, kwd, "|etetOO", kwlist,
-                "utf-8", &docName, "utf-8", &usrName, &hidden, &temp))
-        return NULL;
+    static char *kwlist[] = {"name","label","hidden","temp",nullptr};
+    if (!PyArg_ParseTupleAndKeywords(args, kwd, "|etetO!O!", kwlist,
+                "utf-8", &docName, "utf-8", &usrName, &PyBool_Type, &hidden, &PyBool_Type, &temp))
+        return nullptr;
 
     PY_TRY {
-        App::Document* doc = GetApplication().newDocument(docName, usrName,
-                                                          !PyObject_IsTrue(hidden),
-                                                          PyObject_IsTrue(temp));
+        App::Document* doc = GetApplication().newDocument(docName, usrName, !Base::asBoolean(hidden), Base::asBoolean(temp));
         PyMem_Free(docName);
         PyMem_Free(usrName);
         return doc->getPyObject();
@@ -294,16 +284,16 @@ PyObject* Application::sNewDocument(PyObject * /*self*/, PyObject *args, PyObjec
 
 PyObject* Application::sSetActiveDocument(PyObject * /*self*/, PyObject *args)
 {
-    char *pstr = 0;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return NULL;                             // NULL triggers exception
+    char *pstr = nullptr;
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
 
     try {
         GetApplication().setActiveDocument(pstr);
     }
     catch (const Base::Exception& e) {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
-        return NULL;
+        e.setPyException();
+        return nullptr;
     }
 
     Py_Return;
@@ -311,23 +301,23 @@ PyObject* Application::sSetActiveDocument(PyObject * /*self*/, PyObject *args)
 
 PyObject* Application::sCloseDocument(PyObject * /*self*/, PyObject *args)
 {
-    char *pstr = 0;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return NULL;                             // NULL triggers exception
+    char *pstr = nullptr;
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
 
     Document* doc = GetApplication().getDocument(pstr);
     if (!doc) {
         PyErr_Format(PyExc_NameError, "Unknown document '%s'", pstr);
-        return NULL;
+        return nullptr;
     }
     if (!doc->isClosable()) {
         PyErr_Format(PyExc_RuntimeError, "The document '%s' is not closable for the moment", pstr);
-        return NULL;
+        return nullptr;
     }
 
-    if (GetApplication().closeDocument(pstr) == false) {
+    if (!GetApplication().closeDocument(pstr)) {
         PyErr_Format(PyExc_RuntimeError, "Closing the document '%s' failed", pstr);
-        return NULL;
+        return nullptr;
     }
 
     Py_Return;
@@ -336,46 +326,28 @@ PyObject* Application::sCloseDocument(PyObject * /*self*/, PyObject *args)
 PyObject* Application::sSaveDocument(PyObject * /*self*/, PyObject *args)
 {
     char *pDoc;
-    if (!PyArg_ParseTuple(args, "s", &pDoc))     // convert args: Python->C
-        return NULL;                             // NULL triggers exception
+    if (!PyArg_ParseTuple(args, "s", &pDoc))
+        return nullptr;
 
     Document* doc = GetApplication().getDocument(pDoc);
     if ( doc ) {
-        if ( doc->save() == false ) {
-            PyErr_Format(Base::BaseExceptionFreeCADError, "Cannot save document '%s'", pDoc);
-            return 0L;
+        if (!doc->save()) {
+            PyErr_Format(Base::PyExc_FC_GeneralError, "Cannot save document '%s'", pDoc);
+            return nullptr;
         }
     }
     else {
         PyErr_Format(PyExc_NameError, "Unknown document '%s'", pDoc);
-        return NULL;
+        return nullptr;
     }
 
     Py_Return;
 }
-#if 0
-PyObject* Application::sSaveDocumentAs(PyObject * /*self*/, PyObject *args)
-{
-    char *pDoc, *pFileName;
-    if (!PyArg_ParseTuple(args, "ss", &pDoc, &pFileName))     // convert args: Python->C
-        return NULL;                             // NULL triggers exception
 
-    Document* doc = GetApplication().getDocument(pDoc);
-    if (doc) {
-        doc->saveAs( pFileName );
-    }
-    else {
-        PyErr_Format(PyExc_NameError, "Unknown document '%s'", pDoc);
-        return NULL;
-    }
-
-    Py_Return;
-}
-#endif
 PyObject* Application::sActiveDocument(PyObject * /*self*/, PyObject *args)
 {
-    if (!PyArg_ParseTuple(args, ""))     // convert args: Python->C
-        return NULL;                       // NULL triggers exception
+    if (!PyArg_ParseTuple(args, ""))
+        return nullptr;
 
     Document* doc = GetApplication().getActiveDocument();
     if (doc) {
@@ -389,14 +361,14 @@ PyObject* Application::sActiveDocument(PyObject * /*self*/, PyObject *args)
 
 PyObject* Application::sGetDocument(PyObject * /*self*/, PyObject *args)
 {
-    char *pstr=0;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return NULL;                             // NULL triggers exception
+    char *pstr=nullptr;
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
 
     Document* doc = GetApplication().getDocument(pstr);
     if ( !doc ) {
         PyErr_Format(PyExc_NameError, "Unknown document '%s'", pstr);
-        return 0L;
+        return nullptr;
     }
 
     return doc->getPyObject();
@@ -404,9 +376,9 @@ PyObject* Application::sGetDocument(PyObject * /*self*/, PyObject *args)
 
 PyObject* Application::sGetParam(PyObject * /*self*/, PyObject *args)
 {
-    char *pstr=0;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return NULL;                             // NULL triggers exception
+    char *pstr=nullptr;
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
 
     PY_TRY {
         return GetPyObject(GetApplication().GetParameterGroupByPath(pstr));
@@ -417,7 +389,7 @@ PyObject* Application::sSaveParameter(PyObject * /*self*/, PyObject *args)
 {
     char *pstr = "User parameter";
     if (!PyArg_ParseTuple(args, "|s", &pstr))
-        return NULL;
+        return nullptr;
 
     PY_TRY {
         ParameterManager* param = App::GetApplication().GetParameterSet(pstr);
@@ -425,13 +397,13 @@ PyObject* Application::sSaveParameter(PyObject * /*self*/, PyObject *args)
             std::stringstream str;
             str << "No parameter set found with name: " << pstr;
             PyErr_SetString(PyExc_ValueError, str.str().c_str());
-            return NULL;
+            return nullptr;
         }
         else if (!param->HasSerializer()) {
             std::stringstream str;
             str << "Parameter set cannot be serialized: " << pstr;
             PyErr_SetString(PyExc_RuntimeError, str.str().c_str());
-            return NULL;
+            return nullptr;
         }
 
         param->SaveDocument();
@@ -445,8 +417,8 @@ PyObject* Application::sGetConfig(PyObject * /*self*/, PyObject *args)
 {
     char *pstr;
 
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return NULL;                             // NULL triggers exception
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
     const std::map<std::string, std::string>& Map = GetApplication().Config();
 
     std::map<std::string, std::string>::const_iterator it = Map.find(pstr);
@@ -461,8 +433,8 @@ PyObject* Application::sGetConfig(PyObject * /*self*/, PyObject *args)
 
 PyObject* Application::sDumpConfig(PyObject * /*self*/, PyObject *args)
 {
-    if (!PyArg_ParseTuple(args, "") )    // convert args: Python->C
-        return NULL;                             // NULL triggers exception
+    if (!PyArg_ParseTuple(args, ""))
+        return nullptr;
 
     PyObject *dict = PyDict_New();
     for (std::map<std::string,std::string>::iterator It= GetApplication()._mConfig.begin();
@@ -476,8 +448,8 @@ PyObject* Application::sSetConfig(PyObject * /*self*/, PyObject *args)
 {
     char *pstr,*pstr2;
 
-    if (!PyArg_ParseTuple(args, "ss", &pstr,&pstr2))  // convert args: Python->C
-        return NULL; // NULL triggers exception
+    if (!PyArg_ParseTuple(args, "ss", &pstr,&pstr2))
+        return nullptr;
 
     GetApplication()._mConfig[pstr] = pstr2;
 
@@ -487,8 +459,8 @@ PyObject* Application::sSetConfig(PyObject * /*self*/, PyObject *args)
 
 PyObject* Application::sGetVersion(PyObject * /*self*/, PyObject *args)
 {
-    if (!PyArg_ParseTuple(args, ""))     // convert args: Python->C
-        return NULL; // NULL triggers exception
+    if (!PyArg_ParseTuple(args, ""))
+        return nullptr;
 
     Py::List list;
     const std::map<std::string, std::string>& cfg = Application::Config();
@@ -525,7 +497,7 @@ PyObject* Application::sAddImportType(PyObject * /*self*/, PyObject *args)
     char *psKey,*psMod;
 
     if (!PyArg_ParseTuple(args, "ss", &psKey,&psMod))
-        return NULL;
+        return nullptr;
 
     GetApplication().addImportType(psKey,psMod);
 
@@ -546,10 +518,10 @@ PyObject* Application::sChangeImportModule(PyObject * /*self*/, PyObject *args)
 
 PyObject* Application::sGetImportType(PyObject * /*self*/, PyObject *args)
 {
-    char*       psKey=0;
+    char*       psKey=nullptr;
 
-    if (!PyArg_ParseTuple(args, "|s", &psKey))     // convert args: Python->C
-        return NULL;                             // NULL triggers exception
+    if (!PyArg_ParseTuple(args, "|s", &psKey))
+        return nullptr;
 
     if (psKey) {
         Py::List list;
@@ -589,7 +561,7 @@ PyObject* Application::sAddExportType(PyObject * /*self*/, PyObject *args)
     char *psKey,*psMod;
 
     if (!PyArg_ParseTuple(args, "ss", &psKey,&psMod))
-        return NULL;
+        return nullptr;
 
     GetApplication().addExportType(psKey,psMod);
 
@@ -610,10 +582,10 @@ PyObject* Application::sChangeExportModule(PyObject * /*self*/, PyObject *args)
 
 PyObject* Application::sGetExportType(PyObject * /*self*/, PyObject *args)
 {
-    char*       psKey=0;
+    char*       psKey=nullptr;
 
-    if (!PyArg_ParseTuple(args, "|s", &psKey))     // convert args: Python->C
-        return NULL;                             // NULL triggers exception
+    if (!PyArg_ParseTuple(args, "|s", &psKey))
+        return nullptr;
 
     if (psKey) {
         Py::List list;
@@ -654,6 +626,15 @@ PyObject* Application::sGetResourcePath(PyObject * /*self*/, PyObject *args)
         return nullptr;
 
     Py::String datadir(Application::getResourceDir(),"utf-8");
+    return Py::new_reference_to(datadir);
+}
+
+PyObject* Application::sGetLibraryPath(PyObject * /*self*/, PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ""))
+        return nullptr;
+
+    Py::String datadir(Application::getLibraryDir(),"utf-8");
     return Py::new_reference_to(datadir);
 }
 
@@ -700,7 +681,7 @@ PyObject* Application::sGetUserMacroPath(PyObject * /*self*/, PyObject *args)
         return nullptr;
 
     std::string macroDir = Application::getUserMacroDir();
-    if (PyObject_IsTrue(actual)) {
+    if (Base::asBoolean(actual)) {
         macroDir = App::GetApplication().
             GetParameterGroupByPath("User parameter:BaseApp/Preferences/Macro")
             ->GetASCII("MacroPath",macroDir.c_str());
@@ -731,15 +712,15 @@ PyObject* Application::sGetHomePath(PyObject * /*self*/, PyObject *args)
 PyObject* Application::sListDocuments(PyObject * /*self*/, PyObject *args)
 {
     PyObject *sort = Py_False;
-    if (!PyArg_ParseTuple(args, "|O",&sort))     // convert args: Python->C
-        return NULL;                       // NULL triggers exception
+    if (!PyArg_ParseTuple(args, "|O!", &PyBool_Type, &sort))
+        return nullptr;
     PY_TRY {
         PyObject *pDict = PyDict_New();
         PyObject *pKey;
         Base::PyObjectBase* pValue;
 
         std::vector<Document*> docs = GetApplication().getDocuments();;
-        if(PyObject_IsTrue(sort))
+        if (Base::asBoolean(sort))
             docs = Document::getDependentDocuments(docs,true);
 
         for (auto doc : docs) {
@@ -759,7 +740,7 @@ PyObject* Application::sAddDocObserver(PyObject * /*self*/, PyObject *args)
 {
     PyObject* o;
     if (!PyArg_ParseTuple(args, "O",&o))
-        return NULL;
+        return nullptr;
     PY_TRY {
         DocumentObserverPython::addObserver(Py::Object(o));
         Py_Return;
@@ -770,7 +751,7 @@ PyObject* Application::sRemoveDocObserver(PyObject * /*self*/, PyObject *args)
 {
     PyObject* o;
     if (!PyArg_ParseTuple(args, "O",&o))
-        return NULL;
+        return nullptr;
     PY_TRY {
         DocumentObserverPython::removeObserver(Py::Object(o));
         Py_Return;
@@ -782,7 +763,7 @@ PyObject *Application::sSetLogLevel(PyObject * /*self*/, PyObject *args)
     char *tag;
     PyObject *pcObj;
     if (!PyArg_ParseTuple(args, "sO", &tag, &pcObj))
-        return NULL;
+        return nullptr;
     PY_TRY{
         int l;
         if (PyUnicode_Check(pcObj)) {
@@ -800,9 +781,9 @@ PyObject *Application::sSetLogLevel(PyObject * /*self*/, PyObject *args)
             else if(strcmp(pstr,"Default") == 0)
                 l = FC_LOGLEVEL_DEFAULT;
             else {
-                Py_Error(Base::BaseExceptionFreeCADError,
+                Py_Error(PyExc_ValueError,
                         "Unknown Log Level (use 'Default', 'Error', 'Warning', 'Message', 'Log', 'Trace' or an integer)");
-                return NULL;
+                return nullptr;
             }
         }else
             l = PyLong_AsLong(pcObj);
@@ -826,7 +807,7 @@ PyObject *Application::sGetLogLevel(PyObject * /*self*/, PyObject *args)
 {
     char *tag;
     if (!PyArg_ParseTuple(args, "s", &tag))
-        return NULL;
+        return nullptr;
 
     PY_TRY{
         int l = -1;
@@ -844,21 +825,6 @@ PyObject *Application::sGetLogLevel(PyObject * /*self*/, PyObject *args)
         }
         // For performance reason, we only output integer value
         return Py_BuildValue("i",Base::Console().LogLevel(l));
-
-        // switch(l) {
-        // case FC_LOGLEVEL_LOG:
-        //     return Py_BuildValue("s","Log");
-        // case FC_LOGLEVEL_WARN:
-        //     return Py_BuildValue("s","Warning");
-        // case FC_LOGLEVEL_ERR:
-        //     return Py_BuildValue("s","Error");
-        // case FC_LOGLEVEL_MSG:
-        //     return Py_BuildValue("s","Message");
-        // case FC_LOGLEVEL_TRACE:
-        //     return Py_BuildValue("s","Trace");
-        // default:
-        //     return Py_BuildValue("i",l);
-        // }
     } PY_CATCH;
 }
 
@@ -866,7 +832,7 @@ PyObject *Application::sCheckLinkDepth(PyObject * /*self*/, PyObject *args)
 {
     short depth = 0;
     if (!PyArg_ParseTuple(args, "h", &depth))
-        return NULL;
+        return nullptr;
 
     PY_TRY {
         return Py::new_reference_to(Py::Int(GetApplication().checkLinkDepth(depth,false)));
@@ -879,14 +845,14 @@ PyObject *Application::sGetLinksTo(PyObject * /*self*/, PyObject *args)
     int options = 0;
     short count = 0;
     if (!PyArg_ParseTuple(args, "|Oih",&pyobj,&options, &count))
-        return NULL;
+        return nullptr;
 
     PY_TRY {
-        DocumentObject *obj = 0;
+        DocumentObject *obj = nullptr;
         if(pyobj!=Py_None) {
             if(!PyObject_TypeCheck(pyobj,&DocumentObjectPy::Type)) {
                 PyErr_SetString(PyExc_TypeError, "Expect the first argument of type document object");
-                return 0;
+                return nullptr;
             }
             obj = static_cast<DocumentObjectPy*>(pyobj)->getDocumentObjectPtr();
         }
@@ -904,24 +870,27 @@ PyObject *Application::sGetDependentObjects(PyObject * /*self*/, PyObject *args)
     PyObject *obj;
     int options = 0;
     if (!PyArg_ParseTuple(args, "O|i", &obj,&options))
-        return 0;
+        return nullptr;
 
     std::vector<App::DocumentObject*> objs;
-    if(PySequence_Check(obj)) {
+    if (PySequence_Check(obj)) {
         Py::Sequence seq(obj);
-        for(Py_ssize_t i=0;i<seq.size();++i) {
+        for (Py_ssize_t i=0;i<seq.size();++i) {
             if(!PyObject_TypeCheck(seq[i].ptr(),&DocumentObjectPy::Type)) {
                 PyErr_SetString(PyExc_TypeError, "Expect element in sequence to be of type document object");
-                return 0;
+                return nullptr;
             }
             objs.push_back(static_cast<DocumentObjectPy*>(seq[i].ptr())->getDocumentObjectPtr());
         }
-    }else if(!PyObject_TypeCheck(obj,&DocumentObjectPy::Type)) {
+    }
+    else if(!PyObject_TypeCheck(obj,&DocumentObjectPy::Type)) {
         PyErr_SetString(PyExc_TypeError,
             "Expect first argument to be either a document object or sequence of document objects");
-        return 0;
-    }else
+        return nullptr;
+    }
+    else {
         objs.push_back(static_cast<DocumentObjectPy*>(obj)->getDocumentObjectPtr());
+    }
 
     PY_TRY {
         auto ret = App::Document::getDependencyList(objs,options);
@@ -938,11 +907,11 @@ PyObject *Application::sSetActiveTransaction(PyObject * /*self*/, PyObject *args
 {
     char *name;
     PyObject *persist = Py_False;
-    if (!PyArg_ParseTuple(args, "s|O", &name,&persist))
-        return 0;
+    if (!PyArg_ParseTuple(args, "s|O!", &name, &PyBool_Type, &persist))
+        return nullptr;
 
     PY_TRY {
-        Py::Int ret(GetApplication().setActiveTransaction(name,PyObject_IsTrue(persist)));
+        Py::Int ret(GetApplication().setActiveTransaction(name, Base::asBoolean(persist)));
         return Py::new_reference_to(ret);
     }PY_CATCH;
 }
@@ -950,7 +919,7 @@ PyObject *Application::sSetActiveTransaction(PyObject * /*self*/, PyObject *args
 PyObject *Application::sGetActiveTransaction(PyObject * /*self*/, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
 
     PY_TRY {
         int id = 0;
@@ -968,11 +937,11 @@ PyObject *Application::sCloseActiveTransaction(PyObject * /*self*/, PyObject *ar
 {
     PyObject *abort = Py_False;
     int id = 0;
-    if (!PyArg_ParseTuple(args, "|Oi", &abort,&id))
-        return 0;
+    if (!PyArg_ParseTuple(args, "|O!i", &PyBool_Type, &abort,&id))
+        return nullptr;
 
     PY_TRY {
-        GetApplication().closeActiveTransaction(PyObject_IsTrue(abort),id);
+        GetApplication().closeActiveTransaction(Base::asBoolean(abort), id);
         Py_Return;
     } PY_CATCH;
 }
@@ -980,7 +949,7 @@ PyObject *Application::sCloseActiveTransaction(PyObject * /*self*/, PyObject *ar
 PyObject *Application::sCheckAbort(PyObject * /*self*/, PyObject *args)
 {
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
 
     PY_TRY {
         Base::Sequencer().checkAbort();

@@ -20,17 +20,17 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <Geom2d_Conic.hxx>
 #endif
 
-#include <Mod/Part/App/OCCError.h>
-#include <Mod/Part/App/Geom2d/Conic2dPy.h>
-#include <Mod/Part/App/Geom2d/Conic2dPy.cpp>
-
 #include <Base/GeometryPyCXX.h>
+
+#include "Geom2d/Conic2dPy.h"
+#include "Geom2d/Conic2dPy.cpp"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -45,7 +45,7 @@ PyObject *Conic2dPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // Py
     // never create such objects with the constructor
     PyErr_SetString(PyExc_RuntimeError,
         "You cannot create an instance of the abstract class 'Conic2d'.");
-    return 0;
+    return nullptr;
 }
 
 // constructor method
@@ -106,7 +106,7 @@ void  Conic2dPy::setYAxis(Py::Object arg)
 
 PyObject *Conic2dPy::getCustomAttributes(const char* ) const
 {
-    return 0;
+    return nullptr;
 }
 
 int Conic2dPy::setCustomAttributes(const char* , PyObject *)

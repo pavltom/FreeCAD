@@ -20,32 +20,31 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <QSignalMapper>
+#include <QClipboard>
 #include <QDockWidget>
 #include <QMessageBox>
-#include <QClipboard>
 #include <QMetaObject>
-#include <boost_bind_bind.hpp>
+#include <QSignalMapper>
 #endif
 
-#include "Placement.h"
-#include "ui_Placement.h"
-#include <Gui/DockWindowManager.h>
+#include <App/ComplexGeoData.h>
+#include <App/Document.h>
+#include <App/GeoFeature.h>
+#include <Base/Console.h>
+#include <Base/Tools.h>
 #include <Gui/Application.h>
 #include <Gui/Command.h>
+#include <Gui/DockWindowManager.h>
 #include <Gui/Document.h>
 #include <Gui/Selection.h>
 #include <Gui/ViewProvider.h>
 #include <Gui/Window.h>
-#include <App/Document.h>
-#include <App/GeoFeature.h>
-#include <App/PropertyGeo.h>
-#include <Base/Console.h>
-#include <Base/Tools.h>
-#include <Base/UnitsApi.h>
+
+#include "Placement.h"
+#include "ui_Placement.h"
+
 
 using namespace Gui::Dialog;
 namespace bp = boost::placeholders;
@@ -183,7 +182,7 @@ QWidget* Placement::getInvalidInput() const
         if (!(*it)->hasValidInput())
             return (*it);
     }
-    return 0;
+    return nullptr;
 }
 
 void Placement::revertTransformation()
@@ -220,7 +219,8 @@ void Placement::revertTransformation()
 void Placement::applyPlacement(const Base::Placement& p, bool incremental)
 {
     Gui::Document* document = Application::Instance->activeDocument();
-    if (!document) return;
+    if (!document)
+        return;
 
     std::vector<App::DocumentObject*> sel = Gui::Selection().getObjectsOfType
         (App::DocumentObject::getClassTypeId(), document->getDocument()->getName());
@@ -258,7 +258,8 @@ void Placement::applyPlacement(const Base::Placement& p, bool incremental)
 void Placement::applyPlacement(const QString& data, bool incremental)
 {
     Gui::Document* document = Application::Instance->activeDocument();
-    if (!document) return;
+    if (!document)
+        return;
 
     // When directly changing the property we now only have to commit the transaction,
     // do a recompute and open a new transaction
@@ -287,17 +288,17 @@ void Placement::applyPlacement(const QString& data, bool incremental)
                     if (incremental)
                         cmd = QString::fromLatin1(
                             "App.getDocument(\"%1\").%2.%3=%4.multiply(App.getDocument(\"%1\").%2.%3)")
-                            .arg(QLatin1String((*it)->getDocument()->getName()))
-                            .arg(QLatin1String((*it)->getNameInDocument()))
-                            .arg(QLatin1String(this->propertyName.c_str()))
-                            .arg(data);
+                            .arg(QString::fromLatin1((*it)->getDocument()->getName()),
+                                 QString::fromLatin1((*it)->getNameInDocument()),
+                                 QString::fromLatin1(this->propertyName.c_str()),
+                                 data);
                     else {
                         cmd = QString::fromLatin1(
                             "App.getDocument(\"%1\").%2.%3=%4")
-                            .arg(QLatin1String((*it)->getDocument()->getName()))
-                            .arg(QLatin1String((*it)->getNameInDocument()))
-                            .arg(QLatin1String(this->propertyName.c_str()))
-                            .arg(data);
+                            .arg(QString::fromLatin1((*it)->getDocument()->getName()),
+                                 QString::fromLatin1((*it)->getNameInDocument()),
+                                 QString::fromLatin1(this->propertyName.c_str()),
+                                 data);
                     }
 
                     Gui::Command::runCommand(Gui::Command::App, cmd.toLatin1());
@@ -328,7 +329,7 @@ void Placement::onPlacementChanged(int)
     applyPlacement(plm, incr);
 
     QVariant data = QVariant::fromValue<Base::Placement>(plm);
-    /*emit*/ placementChanged(data, incr, false);
+    Q_EMIT placementChanged(data, incr, false);
 }
 
 void Placement::on_centerOfMass_toggled(bool on)
@@ -381,7 +382,7 @@ void Placement::on_selectedVertex_clicked()
     //of the same object the rotation still gets applied twice
     Gui::Selection().clearSelection();
     //reselect original object that was selected when placement dlg first opened
-    for (auto it : selectionObjects)
+    for (const auto& it : selectionObjects)
         Gui::Selection().addSelection(it);
 
     if (picked.size() == 1) {
@@ -561,7 +562,7 @@ void Placement::reject()
     applyPlacement(plm, true);
 
     QVariant data = QVariant::fromValue<Base::Placement>(plm);
-    /*emit*/ placementChanged(data, true, false);
+    Q_EMIT placementChanged(data, true, false);
 
     revertTransformation();
 
@@ -610,7 +611,7 @@ bool Placement::onApply()
     applyPlacement(getPlacementString(), incr);
 
     QVariant data = QVariant::fromValue<Base::Placement>(plm);
-    /*emit*/ placementChanged(data, incr, true);
+    Q_EMIT placementChanged(data, incr, true);
 
     if (ui->applyIncrementalPlacement->isChecked()) {
         QList<Gui::QuantitySpinBox*> sb = this->findChildren<Gui::QuantitySpinBox*>();
@@ -657,7 +658,7 @@ void Placement::bindObject()
 void Placement::directionActivated(int index)
 {
     if (ui->directionActivated(this, index)) {
-        /*emit*/ directionChanged();
+        Q_EMIT directionChanged();
     }
 }
 
@@ -846,7 +847,7 @@ TaskPlacement::TaskPlacement()
     this->setButtonPosition(TaskPlacement::South);
     widget = new Placement();
     widget->showDefaultButtons(false);
-    taskbox = new Gui::TaskView::TaskBox(QPixmap(), widget->windowTitle(),true, 0);
+    taskbox = new Gui::TaskView::TaskBox(QPixmap(), widget->windowTitle(),true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
 
     Content.push_back(taskbox);
@@ -888,7 +889,7 @@ void TaskPlacement::setPlacement(const Base::Placement& p)
 
 void TaskPlacement::slotPlacementChanged(const QVariant & p, bool incr, bool data)
 {
-    /*emit*/ placementChanged(p, incr, data);
+    Q_EMIT placementChanged(p, incr, data);
 }
 
 bool TaskPlacement::accept()

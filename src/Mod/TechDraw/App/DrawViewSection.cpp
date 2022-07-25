@@ -100,13 +100,13 @@ const char* DrawViewSection::SectionDirEnums[]= {"Right",
                                             "Left",
                                             "Up",
                                             "Down",
-                                             NULL};
+                                             nullptr};
 
 const char* DrawViewSection::CutSurfaceEnums[]= {"Hide",
                                             "Color",
                                             "SvgHatch",
                                             "PatHatch",
-                                             NULL};
+                                             nullptr};
 
 
 //===========================================================================
@@ -121,7 +121,7 @@ DrawViewSection::DrawViewSection()
     static const char *fgroup = "Cut Surface Format";
 
     ADD_PROPERTY_TYPE(SectionSymbol ,(""),sgroup,App::Prop_None,"The identifier for this section");
-    ADD_PROPERTY_TYPE(BaseView ,(0),sgroup,App::Prop_None,"2D View source for this Section");
+    ADD_PROPERTY_TYPE(BaseView ,(nullptr),sgroup,App::Prop_None,"2D View source for this Section");
     BaseView.setScope(App::LinkScope::Global);
     ADD_PROPERTY_TYPE(SectionNormal ,(0,0,1.0) ,sgroup,App::Prop_None,
                         "Section Plane normal direction");  //direction of extrusion of cutting prism
@@ -192,7 +192,7 @@ void DrawViewSection::onChanged(const App::Property* prop)
         } else if (prop == &SectionOrigin) {
             App::DocumentObject* base = BaseView.getValue();
             TechDraw::DrawView* dv = dynamic_cast<TechDraw::DrawView*>(base);
-            if (dv != nullptr) {
+            if (dv) {
                 dv->requestPaint();
             }
         } else if (prop == &CutSurfaceDisplay) {
@@ -201,8 +201,7 @@ void DrawViewSection::onChanged(const App::Property* prop)
             }
         }
 
-        if ((prop == &FileHatchPattern) &&
-            (doc != nullptr) ) {
+        if ((prop == &FileHatchPattern) && doc) {
             if (!FileHatchPattern.isEmpty()) {
                 Base::FileInfo fi(FileHatchPattern.getValue());
                 if (fi.isReadable()) {
@@ -211,8 +210,7 @@ void DrawViewSection::onChanged(const App::Property* prop)
             }
         }
 
-        if ( (prop == &FileGeomPattern) &&
-             (doc != nullptr) ) {
+        if ((prop == &FileGeomPattern) && doc) {
             if (!FileGeomPattern.isEmpty()) {
                 Base::FileInfo fi(FileGeomPattern.getValue());
                 if (fi.isReadable()) {
@@ -291,7 +289,7 @@ App::DocumentObjectExecReturn *DrawViewSection::execute(void)
     }
 
     App::DocumentObject* base = BaseView.getValue();
-    if (base == nullptr) {
+    if (!base) {
         return new App::DocumentObjectExecReturn("BaseView object not found");
     }
 
@@ -340,7 +338,7 @@ App::DocumentObjectExecReturn *DrawViewSection::execute(void)
             double newScale = autoScale();
             Scale.setValue(newScale);
             Scale.purgeTouched();
-            if (geometryObject != nullptr) {
+            if (geometryObject) {
                 delete geometryObject;
                 geometryObject = nullptr;
                 sectionExec(baseShape);
@@ -357,7 +355,7 @@ void DrawViewSection::sectionExec(TopoDS_Shape baseShape)
 // cut base shape with tool
     //is SectionOrigin valid?
     Bnd_Box centerBox;
-    BRepBndLib::Add(baseShape, centerBox);
+    BRepBndLib::AddOptimal(baseShape, centerBox);
     centerBox.SetGap(0.0);
 
 // make tool
@@ -414,7 +412,7 @@ void DrawViewSection::sectionExec(TopoDS_Shape baseShape)
 
 // check for error in cut
     Bnd_Box testBox;
-    BRepBndLib::Add(rawShape, testBox);
+    BRepBndLib::AddOptimal(rawShape, testBox);
     testBox.SetGap(0.0);
     if (testBox.IsVoid()) {           //prism & input don't intersect.  rawShape is garbage, don't bother.
         Base::Console().Warning("DVS::execute - prism & input don't intersect - %s\n", Label.getValue());
@@ -522,7 +520,7 @@ void DrawViewSection::sectionExec(TopoDS_Shape baseShape)
                     iedge++;
                     const TopoDS_Edge& edge = TopoDS::Edge(expWire.Current());
                     TechDraw::BaseGeomPtr e = BaseGeom::baseFactory(edge);
-                    if (e != nullptr) {
+                    if (e) {
                         w->geoms.push_back(e);
                     }
                 }
@@ -646,7 +644,7 @@ Base::Vector3d DrawViewSection::getXDirection(void) const
 //    Base::Console().Message("DVS::getXDirection() - %s\n", Label.getValue());
     Base::Vector3d result(1.0, 0.0, 0.0);               //default X
     App::Property* prop = getPropertyByName("XDirection");
-    if (prop != nullptr) {                              //have an XDirection property
+    if (prop) {                              //have an XDirection property
         Base::Vector3d propVal = XDirection.getValue();
         if (DrawUtil::fpCompare(propVal.Length(), 0.0))  {   //but it has no value
             std::string sectName = SectionDirection.getValueAsString();
@@ -810,7 +808,7 @@ TopoDS_Face DrawViewSection::getSectionTFace(int i)
 void DrawViewSection::unsetupObject()
 {
     TechDraw::DrawViewPart* base = getBaseDVP();
-    if (base != nullptr) {
+    if (base) {
         base->touch();
     }
     DrawViewPart::unsetupObject();
@@ -820,7 +818,7 @@ TechDraw::DrawViewPart* DrawViewSection::getBaseDVP() const
 {
     TechDraw::DrawViewPart* baseDVP = nullptr;
     App::DocumentObject* base = BaseView.getValue();
-    if (base != nullptr) {
+    if (base) {
         if (base->getTypeId().isDerivedFrom(TechDraw::DrawViewPart::getClassTypeId())) {
             baseDVP = static_cast<TechDraw::DrawViewPart*>(base);
         }
@@ -832,7 +830,7 @@ TechDraw::DrawProjGroupItem* DrawViewSection::getBaseDPGI() const
 {
     TechDraw::DrawProjGroupItem* baseDPGI = nullptr;
     App::DocumentObject* base = BaseView.getValue();
-    if (base != nullptr) {
+    if (base) {
         if (base->getTypeId().isDerivedFrom(TechDraw::DrawProjGroupItem::getClassTypeId())) {
             baseDPGI = static_cast<TechDraw::DrawProjGroupItem*>(base);
         }

@@ -22,28 +22,26 @@
 
 
 #include "PreCompiled.h"
-#ifndef _PreComp_
-# include <cmath>
-# include <climits>
-#endif
 
 #include <boost/algorithm/string/predicate.hpp>
+#include "Base/Exception.h"
+
 #include "Rotation.h"
 #include "Matrix.h"
-#include "Base/Exception.h"
+
 
 using namespace Base;
 
 Rotation::Rotation()
+    : quat{0.0,0.0,0.0,1.0}
+    , _axis{0.0,0.0,1.0}
+    , _angle{0.0}
 {
-    quat[0]=quat[1]=quat[2]=0.0;quat[3]=1.0;
-
-    _axis.Set(0.0, 0.0, 1.0);
-    _angle = 0.0;
 }
 
 /** Construct a rotation by rotation axis and angle */
 Rotation::Rotation(const Vector3d& axis, const double fAngle)
+    : Rotation()
 {
     // set to (0,0,1) as fallback in case the passed axis is the null vector
     _axis.Set(0.0, 0.0, 1.0);
@@ -51,6 +49,7 @@ Rotation::Rotation(const Vector3d& axis, const double fAngle)
 }
 
 Rotation::Rotation(const Matrix4D& matrix)
+    : Rotation()
 {
     this->setValue(matrix);
 }
@@ -60,6 +59,7 @@ Rotation::Rotation(const Matrix4D& matrix)
  * where the quaternion is specified by q=w+xi+yj+zk.
  */
 Rotation::Rotation(const double q[4])
+    : Rotation()
 {
     this->setValue(q);
 }
@@ -69,16 +69,19 @@ Rotation::Rotation(const double q[4])
  * where the quaternion is specified by q=w+xi+yj+zk.
  */
 Rotation::Rotation(const double q0, const double q1, const double q2, const double q3)
+    : Rotation()
 {
     this->setValue(q0, q1, q2, q3);
 }
 
 Rotation::Rotation(const Vector3d & rotateFrom, const Vector3d & rotateTo)
+    : Rotation()
 {
     this->setValue(rotateFrom, rotateTo);
 }
 
 Rotation::Rotation(const Rotation& rot)
+    : Rotation()
 {
     this->quat[0] = rot.quat[0];
     this->quat[1] = rot.quat[1];
@@ -174,10 +177,14 @@ void Rotation::getValue(Matrix4D & matrix) const
 {
     // Taken from <http://de.wikipedia.org/wiki/Quaternionen>
     //
-    const double x = this->quat[0];
-    const double y = this->quat[1];
-    const double z = this->quat[2];
-    const double w = this->quat[3];
+    const double l = sqrt(this->quat[0] * this->quat[0] +
+                          this->quat[1] * this->quat[1] +
+                          this->quat[2] * this->quat[2] +
+                          this->quat[3] * this->quat[3]);
+    const double x = this->quat[0] / l;
+    const double y = this->quat[1] / l;
+    const double z = this->quat[2] / l;
+    const double w = this->quat[3] / l;
 
     matrix[0][0] = 1.0-2.0*(y*y+z*z);
     matrix[0][1] = 2.0*(x*y-z*w);
@@ -339,6 +346,7 @@ Rotation Rotation::inverse() const
     rot._axis[0] = -this->_axis[0];
     rot._axis[1] = -this->_axis[1];
     rot._axis[2] = -this->_axis[2];
+    rot._angle = this->_angle;
     return rot;
 }
 
@@ -517,7 +525,7 @@ Rotation Rotation::makeRotationByAxes(Vector3d xdir, Vector3d ydir, Vector3d zdi
 
 
     auto dropPriority = [&order](int index){
-        char tmp;
+        int tmp;
         if (index == 0){
             tmp = order[0];
             order[0] = order[1];
@@ -533,7 +541,7 @@ Rotation Rotation::makeRotationByAxes(Vector3d xdir, Vector3d ydir, Vector3d zdi
     //pick up the strict direction
     Vector3d mainDir;
     for (int i = 0; i < 3; ++i){
-        mainDir = *(dirs[order[0]]);
+        mainDir = *(dirs[size_t(order[0])]);
         if (mainDir.Length() > tol)
             break;
         else
@@ -546,7 +554,7 @@ Rotation Rotation::makeRotationByAxes(Vector3d xdir, Vector3d ydir, Vector3d zdi
     //pick up the 2nd priority direction, "hint" direction.
     Vector3d hintDir;
     for (int i = 0; i < 2; ++i){
-        hintDir = *(dirs[order[1]]);
+        hintDir = *(dirs[size_t(order[1])]);
         if ((hintDir.Cross(mainDir)).Length() > tol)
             break;
         else
@@ -851,7 +859,7 @@ const char *EulerSequenceNames[] = {
 const char * Rotation::eulerSequenceName(EulerSequence seq)
 {
     if (seq == Invalid || seq >= EulerSequenceLast)
-        return 0;
+        return nullptr;
     return EulerSequenceNames[seq-1];
 }
 

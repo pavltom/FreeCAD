@@ -20,17 +20,15 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
 # include <sstream>
 #endif
 
-#include "GeometryDefaultExtension.h"
-
 #include "GeometryStringExtensionPy.h"
 #include "GeometryStringExtensionPy.cpp"
+
 
 using namespace Part;
 
@@ -98,7 +96,7 @@ void GeometryStringExtensionPy::setValue(Py::String value)
 
 PyObject *GeometryStringExtensionPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int GeometryStringExtensionPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

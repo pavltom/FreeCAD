@@ -35,27 +35,23 @@
 #   include <config.h>
 #endif // HAVE_CONFIG_H
 
+#include <cstdio>
 #include <map>
-#include <vector>
-#include <algorithm>
 #include <stdexcept>
 
-#include <cstdio>
 #include <QApplication>
-#include <QFile>
-#include <QMessageBox>
 #include <QLocale>
+#include <QMessageBox>
 #include <QTextCodec>
 
 // FreeCAD header
-#include <Base/Console.h>
+#include <App/Application.h>
+#include <Base/ConsoleObserver.h>
 #include <Base/Interpreter.h>
 #include <Base/Parameter.h>
 #include <Base/Exception.h>
-#include <Base/Factory.h>
-#include <App/Application.h>
-#include <Gui/BitmapFactory.h>
 #include <Gui/Application.h>
+
 
 void PrintInitHelp(void);
 
@@ -164,16 +160,11 @@ int main( int argc, char ** argv )
     }
 #endif
 
-#if defined(_MSC_VER) && _MSC_VER <= 1800
-    // See InterpreterSingleton::init
-    Redirection out(stdout), err(stderr), inp(stdin);
-#endif
-
     // Name and Version of the Application
     App::Application::Config()["ExeName"] = "FreeCAD";
     App::Application::Config()["ExeVendor"] = "FreeCAD";
     App::Application::Config()["AppDataSkipVendor"] = "true";
-    App::Application::Config()["MaintainerUrl"] = "http://www.freecadweb.org/wiki/Main_Page";
+    App::Application::Config()["MaintainerUrl"] = "http://www.freecad.org/wiki/Main_Page";
 
     // set the banner (for logging and console)
     App::Application::Config()["CopyrightInfo"] = sBanner;
@@ -185,6 +176,7 @@ int main( int argc, char ** argv )
     App::Application::Config()["SplashAlignment" ] = "Bottom|Left";
     App::Application::Config()["SplashTextColor" ] = "#ffffff"; // white
     App::Application::Config()["SplashInfoColor" ] = "#c8c8c8"; // light grey
+    App::Application::Config()["SplashInfoPosition" ] = "15.210";
 
     QGuiApplication::setDesktopFileName(QStringLiteral("org.freecadweb.FreeCAD.desktop"));
 
@@ -226,7 +218,7 @@ int main( int argc, char ** argv )
         QString appName = QString::fromLatin1(App::Application::Config()["ExeName"].c_str());
         QString msg = QString::fromLatin1(e.what());
         QString s = QLatin1String("<pre>") + msg + QLatin1String("</pre>");
-        QMessageBox::critical(0, appName, s);
+        QMessageBox::critical(nullptr, appName, s);
         exit(1);
     }
     catch (const Base::ProgramInformation& e) {
@@ -252,7 +244,7 @@ int main( int argc, char ** argv )
                           "Python is searching for its files in the following directories:\n%3\n\n"
                           "Python version information:\n%4\n")
                           .arg(appName, QString::fromUtf8(e.what()),
-                          QString::fromUtf8(Py_EncodeLocale(Py_GetPath(),NULL)), QString::fromLatin1(Py_GetVersion()));
+                          QString::fromUtf8(Py_EncodeLocale(Py_GetPath(),nullptr)), QString::fromLatin1(Py_GetVersion()));
         const char* pythonhome = getenv("PYTHONHOME");
         if (pythonhome) {
             msg += QObject::tr("\nThe environment variable PYTHONHOME is set to '%1'.")
@@ -263,7 +255,7 @@ int main( int argc, char ** argv )
             msg += QObject::tr("\nPlease contact the application's support team for more information.\n\n");
         }
 
-        QMessageBox::critical(0, QObject::tr("Initialization of %1 failed").arg(appName), msg);
+        QMessageBox::critical(nullptr, QObject::tr("Initialization of %1 failed").arg(appName), msg);
         exit(100);
     }
     catch (...) {
@@ -272,7 +264,7 @@ int main( int argc, char ** argv )
         QString appName = QString::fromLatin1(App::Application::Config()["ExeName"].c_str());
         QString msg = QObject::tr("Unknown runtime error occurred while initializing %1.\n\n"
                                   "Please contact the application's support team for more information.\n\n").arg(appName);
-        QMessageBox::critical(0, QObject::tr("Initialization of %1 failed").arg(appName), msg);
+        QMessageBox::critical(nullptr, QObject::tr("Initialization of %1 failed").arg(appName), msg);
         exit(101);
     }
 

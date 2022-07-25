@@ -23,25 +23,19 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <QDir>
-# include <QFileInfo>
-# include <QLineEdit>
-# include <QInputDialog>
 # include <Standard_math.hxx>
 #endif
 
-#include <Base/Exception.h>
 #include <App/Document.h>
 #include <App/DocumentObject.h>
+#include <Base/Exception.h>
 #include <Gui/Application.h>
 #include <Gui/Command.h>
-#include <Gui/Document.h>
 #include <Gui/MainWindow.h>
 #include <Gui/Selection.h>
+#include <Gui/SelectionObject.h>
 #include <Gui/WaitCursor.h>
 
-#include "../App/PartFeature.h"
-#include "../App/TopoShape.h"
 #include "DlgPartCylinderImp.h"
 #include "ShapeFromMesh.h"
 
@@ -195,16 +189,19 @@ CmdPartSimpleCopy::CmdPartSimpleCopy()
 static void _copyShape(const char *cmdName, bool resolve,bool needElement=false, bool refine=false) {
     Gui::WaitCursor wc;
     Gui::Command::openCommand(cmdName);
-    for(auto &sel : Gui::Selection().getSelectionEx("*",App::DocumentObject::getClassTypeId(),resolve)) {
+    for(auto &sel : Gui::Selection().getSelectionEx("*", App::DocumentObject::getClassTypeId(),
+                                                    resolve ? Gui::ResolveMode::OldStyleElement : Gui::ResolveMode::NoResolve)) {
         std::map<std::string,App::DocumentObject*> subMap;
         auto obj = sel.getObject();
-        if(!obj) continue;
-        if(resolve || !sel.hasSubNames())
+        if (!obj)
+            continue;
+        if (resolve || !sel.hasSubNames()) {
             subMap.emplace("",obj);
+        }
         else {
             for(const auto &sub : sel.getSubNames()) {
-                const char *element = 0;
-                auto sobj = obj->resolve(sub.c_str(),0,0,&element);
+                const char *element = nullptr;
+                auto sobj = obj->resolve(sub.c_str(),nullptr,nullptr,&element);
                 if(!sobj) continue;
                 if(!needElement && element) 
                     subMap.emplace(sub.substr(0,element-sub.c_str()),sobj);
@@ -221,8 +218,9 @@ static void _copyShape(const char *cmdName, bool resolve,bool needElement=false,
                     "App.ActiveDocument.addObject('Part::Feature','%s').Shape=__shape\n"
                     "App.ActiveDocument.ActiveObject.Label=%s.Label\n",
                         parentName.c_str(), v.first.c_str(),
-                        needElement?"True":"False", refine?"True":"False",
-                        needElement?".copy()":"", 
+                        needElement ? "True" : "False",
+                        refine ? "True" : "False",
+                        needElement ? ".copy()" : "",
                         v.second->getNameInDocument(), 
                         Gui::Command::getObjectCmd(v.second).c_str());
             auto newObj = App::GetApplication().getActiveDocument()->getActiveObject();
@@ -384,7 +382,7 @@ void CmdPartDefeaturing::activated(int iMsg)
     Q_UNUSED(iMsg);
     Gui::WaitCursor wc;
     Base::Type partid = Base::Type::fromName("Part::Feature");
-    std::vector<Gui::SelectionObject> objs = Gui::Selection().getSelectionEx(0, partid);
+    std::vector<Gui::SelectionObject> objs = Gui::Selection().getSelectionEx(nullptr, partid);
     openCommand(QT_TRANSLATE_NOOP("Command", "Defeaturing"));
     for (std::vector<Gui::SelectionObject>::iterator it = objs.begin(); it != objs.end(); ++it) {
         try {
@@ -426,7 +424,7 @@ void CmdPartDefeaturing::activated(int iMsg)
 bool CmdPartDefeaturing::isActive(void)
 {
     Base::Type partid = Base::Type::fromName("Part::Feature");
-    std::vector<Gui::SelectionObject> objs = Gui::Selection().getSelectionEx(0, partid);
+    std::vector<Gui::SelectionObject> objs = Gui::Selection().getSelectionEx(nullptr, partid);
     for (std::vector<Gui::SelectionObject>::iterator it = objs.begin(); it != objs.end(); ++it) {
         std::vector<std::string> subnames = it->getSubNames();
         for (std::vector<std::string>::iterator sub = subnames.begin(); sub != subnames.end(); ++sub) {
@@ -437,18 +435,6 @@ bool CmdPartDefeaturing::isActive(void)
     }
     return false;
 }
-
-
-// {
-//     if (getActiveGuiDocument())
-// #if OCC_VERSION_HEX < 0x060900
-//         return false;
-// #else
-//         return true;
-// #endif
-//     else
-//         return false;
-// }
 
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

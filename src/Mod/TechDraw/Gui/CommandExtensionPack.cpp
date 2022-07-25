@@ -22,6 +22,7 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
+# include <QApplication>
 # include <QMessageBox>
 # include <iostream>
 # include <string>
@@ -30,9 +31,11 @@
 # include <exception>
 #endif  //#ifndef _PreComp_
 
+# include <App/Document.h>
 # include <App/DocumentObject.h>
 # include <Base/Exception.h>
 # include <Base/Console.h>
+# include <Base/Tools.h>
 # include <Base/Type.h>
 # include <Gui/Action.h>
 # include <Gui/Application.h>
@@ -41,6 +44,7 @@
 # include <Gui/Control.h>
 # include <Gui/Document.h>
 # include <Gui/Selection.h>
+# include <Gui/SelectionObject.h>
 # include <Gui/MainWindow.h>
 # include <Gui/FileDialog.h>
 # include <Gui/ViewProvider.h>
@@ -48,6 +52,7 @@
 # include <Mod/Part/App/PartFeature.h>
 # include <Mod/Part/App/Geometry2d.h>
 
+# include <Mod/TechDraw/App/Cosmetic.h>
 # include <Mod/TechDraw/App/DrawViewPart.h>
 # include <Mod/TechDraw/App/DrawProjGroupItem.h>
 # include <Mod/TechDraw/App/DrawProjGroup.h>
@@ -61,6 +66,7 @@
 # include <Mod/TechDraw/App/DrawViewBalloon.h>
 
 # include "ViewProviderBalloon.h"
+# include "QGSPage.h"
 # include "QGVPage.h"
 # include "DrawGuiUtil.h"
 # include "ViewProviderPage.h"
@@ -83,6 +89,7 @@ namespace TechDrawGui {
     void _setLineAttributes(TechDraw::CosmeticEdge* cosEdge);
     void _setLineAttributes(TechDraw::CenterLine* cosEdge);
     void _setLineAttributes(TechDraw::CosmeticEdge* cosEdge, int style, float weight, App::Color color);
+    void _setLineAttributes(TechDraw::CenterLine* cosEdge, int style, float weight, App::Color color);
     float _getAngle(Base::Vector3d center, Base::Vector3d point);
     std::vector<Base::Vector3d> _getVertexPoints(std::vector<std::string> SubNames, TechDraw::DrawViewPart* objFeat);
     bool _checkSel(Gui::Command* cmd,
@@ -103,7 +110,7 @@ namespace TechDrawGui {
             return;
         const std::vector<std::string> SubNames = selection[0].getSubNames();
         std::vector<TechDraw::CirclePtr> Circles;
-        for (std::string Name : SubNames) {
+        for (const std::string& Name : SubNames) {
             int GeoId = TechDraw::DrawUtil::getIndexFromName(Name);
             std::string GeoType = TechDraw::DrawUtil::getGeomTypeFromName(Name);
             TechDraw::BaseGeomPtr geom = objFeat->getGeomByIndex(GeoId);
@@ -131,7 +138,7 @@ namespace TechDrawGui {
         std::string bigCircleTag = objFeat->addCosmeticEdge(bigCircle);
         TechDraw::CosmeticEdge* ceCircle = objFeat->getCosmeticEdge(bigCircleTag);
         _setLineAttributes(ceCircle);
-        for (TechDraw::CirclePtr oneCircle : Circles) {
+        for (const TechDraw::CirclePtr& oneCircle : Circles) {
             Base::Vector3d oneCircleCenter = oneCircle->center;
             float oneRadius = oneCircle->radius;
             Base::Vector3d delta = (oneCircle->center - bigCenter).Normalize() * (oneRadius + 2);
@@ -194,7 +201,7 @@ void execCircleCenterLines(Gui::Command* cmd) {
     Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Circle Centerlines"));
     double scale = objFeat->getScale();
     const std::vector<std::string> SubNames = selection[0].getSubNames();
-    for (std::string Name : SubNames) {
+    for (const std::string& Name : SubNames) {
         int GeoId = TechDraw::DrawUtil::getIndexFromName(Name);
         TechDraw::BaseGeomPtr geom = objFeat->getGeomByIndex(GeoId);
         std::string GeoType = TechDraw::DrawUtil::getGeomTypeFromName(Name);
@@ -276,7 +283,7 @@ CmdTechDrawExtensionCircleCenterLinesGroup::CmdTechDrawExtensionCircleCenterLine
 
 void CmdTechDrawExtensionCircleCenterLinesGroup::activated(int iMsg) {
     Gui::TaskView::TaskDialog* dlg = Gui::Control().activeDialog();
-    if (dlg != nullptr) {
+    if (dlg) {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Task In Progress"),
             QObject::tr("Close active task dialog and try again."));
         return;
@@ -469,7 +476,7 @@ void execThreadHoleBottom(Gui::Command* cmd) {
         return;
     Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Cosmetic Thread Hole Bottom"));
     const std::vector<std::string> SubNames = selection[0].getSubNames();
-    for (std::string Name : SubNames) {
+    for (const std::string& Name : SubNames) {
         _createThreadCircle(Name, objFeat, 1.177f);
     }
     cmd->getSelection().clearSelection();
@@ -520,7 +527,7 @@ void execThreadBoltBottom(Gui::Command* cmd) {
         return;
     Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Cosmetic Thread Bolt Bottom"));
     const std::vector<std::string> SubNames = selection[0].getSubNames();
-    for (std::string Name : SubNames) {
+    for (const std::string& Name : SubNames) {
         _createThreadCircle(Name, objFeat, 0.85f);
     }
     cmd->getSelection().clearSelection();
@@ -583,7 +590,7 @@ void CmdTechDrawExtensionThreadsGroup::activated(int iMsg)
 {
     //    Base::Console().Message("CMD::TechDrawExtensionThreadsGroup - activated(%d)\n", iMsg);
     Gui::TaskView::TaskDialog* dlg = Gui::Control().activeDialog();
-    if (dlg != nullptr) {
+    if (dlg) {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Task In Progress"),
             QObject::tr("Close active task dialog and try again."));
         return;
@@ -756,10 +763,10 @@ void CmdTechDrawExtensionChangeLineAttributes::activated(int iMsg) {
         return;
     Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Change Line Attributes"));
     const std::vector<std::string> subNames = selection[0].getSubNames();
-    for (std::string name : subNames) {
+    for (const std::string& name : subNames) {
         int num = DrawUtil::getIndexFromName(name);
         BaseGeomPtr baseGeo = objFeat->getGeomByIndex(num);
-        if (baseGeo != nullptr) {
+        if (baseGeo) {
             if (baseGeo->cosmetic) {
                 if (baseGeo->source() == 1) {
                     TechDraw::CosmeticEdge* cosEdgeTag = objFeat->getCosmeticEdgeBySelection(name);
@@ -1061,7 +1068,7 @@ void CmdTechDrawExtensionDrawCirclesGroup::activated(int iMsg)
 {
     //    Base::Console().Message("CMD::ExtensionDrawCirclesGroup - activated(%d)\n", iMsg);
     Gui::TaskView::TaskDialog* dlg = Gui::Control().activeDialog();
-    if (dlg != nullptr) {
+    if (dlg) {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Task In Progress"),
             QObject::tr("Close active task dialog and try again."));
         return;
@@ -1292,7 +1299,7 @@ void CmdTechDrawExtensionLinePPGroup::activated(int iMsg)
 {
     //    Base::Console().Message("CMD::ExtensionLinePPGroup - activated(%d)\n", iMsg);
     Gui::TaskView::TaskDialog* dlg = Gui::Control().activeDialog();
-    if (dlg != nullptr) {
+    if (dlg) {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Task In Progress"),
             QObject::tr("Close active task dialog and try again."));
         return;
@@ -1400,7 +1407,6 @@ void CmdTechDrawExtensionLockUnlockView::activated(int iMsg) {
         return;
     Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Lock/Unlock View"));
     if (objFeat->isDerivedFrom(TechDraw::DrawViewPart::getClassTypeId())) {
-        auto objFeat = dynamic_cast<TechDraw::DrawViewPart*>(selection[0].getObject());
         bool lockPosition = objFeat->LockPosition.getValue();
         lockPosition = !lockPosition;
         objFeat->LockPosition.setValue(lockPosition);
@@ -1446,21 +1452,24 @@ void CmdTechDrawExtensionPositionSectionView::activated(int iMsg) {
             QObject::tr("Selection is empty"));
         return;
     }
-    float xPos, yPos;
+
+    double xPos=0.0, yPos=0.0;
     TechDraw::DrawViewPart* baseView;
     auto objFeat = selection[0].getObject();
-    if (objFeat->isDerivedFrom(TechDraw::DrawViewSection::getClassTypeId())) {
-        TechDraw::DrawViewSection* sectionView = dynamic_cast<TechDraw::DrawViewSection*>(objFeat);
+    if (objFeat && objFeat->isDerivedFrom(TechDraw::DrawViewSection::getClassTypeId())) {
+        TechDraw::DrawViewSection* sectionView = static_cast<TechDraw::DrawViewSection*>(objFeat);
         baseView = sectionView->getBaseDVP();
-        if (baseView->isDerivedFrom(TechDraw::DrawProjGroupItem::getClassTypeId())) {
+        if (baseView && baseView->isDerivedFrom(TechDraw::DrawProjGroupItem::getClassTypeId())) {
             std::vector<App::DocumentObject*> parentViews = baseView->getInList();
             if (!parentViews.empty()) {
                 TechDraw::DrawProjGroup* groupBase = dynamic_cast<TechDraw::DrawProjGroup*>(parentViews[0]);
-                xPos = groupBase->X.getValue();
-                yPos = groupBase->Y.getValue();
+                if (groupBase) {
+                    xPos = groupBase->X.getValue();
+                    yPos = groupBase->Y.getValue();
+                }
             }
         }
-        else {
+        else if (baseView) {
             xPos = baseView->X.getValue();
             yPos = baseView->Y.getValue();
         }
@@ -1497,11 +1506,13 @@ void execExtendShortenLine(Gui::Command* cmd, bool extend) {
         std::string geoType = TechDraw::DrawUtil::getGeomTypeFromName(name);
         if (geoType == "Edge") {
             TechDraw::BaseGeomPtr baseGeo = objFeat->getGeomByIndex(num);
-            if (baseGeo != nullptr) {
+            if (baseGeo) {
                 if (baseGeo->geomType == TechDraw::GENERIC) {
                     TechDraw::GenericPtr genLine = std::static_pointer_cast<TechDraw::Generic>(baseGeo);
                     Base::Vector3d P0 = genLine->points.at(0);
                     Base::Vector3d P1 = genLine->points.at(1);
+                    bool isCenterLine = false;
+                    TechDraw::CenterLine* centerEdge = nullptr;
                     if (baseGeo->cosmetic) {
                         std::string uniTag = baseGeo->getCosmeticTag();
                         int oldStyle = 1;
@@ -1517,11 +1528,8 @@ void execExtendShortenLine(Gui::Command* cmd, bool extend) {
                             objFeat->removeCosmeticEdge(toDelete);
                         }
                         else if (baseGeo->source() == 2) {
-                            auto centerEdge = objFeat->getCenterLine(uniTag);
-                            oldStyle = centerEdge->m_format.m_style;
-                            oldWeight = centerEdge->m_format.m_weight;
-                            oldColor = centerEdge->m_format.m_color;
-                            objFeat->removeCenterLine(toDelete);
+                            isCenterLine = true;
+                            centerEdge = objFeat->getCenterLine(uniTag);
                         }
                         double scale = objFeat->getScale();
                         Base::Vector3d direction = (P1 - P0).Normalize();
@@ -1537,12 +1545,15 @@ void execExtendShortenLine(Gui::Command* cmd, bool extend) {
                         }
                         startPt.y = -startPt.y;
                         endPt.y = -endPt.y;
-                        std::string lineTag = objFeat->addCosmeticEdge(startPt / scale, endPt / scale);
-                        TechDraw::CosmeticEdge* lineEdge = objFeat->getCosmeticEdge(lineTag);
-                        _setLineAttributes(lineEdge, oldStyle, oldWeight, oldColor);
-                        cmd->getSelection().clearSelection();
-                        objFeat->refreshCEGeoms();
-                        objFeat->refreshCLGeoms();
+                        if (isCenterLine) {
+                            centerEdge->m_extendBy += activeDimAttributes.getLineStretch();
+                            objFeat->refreshCLGeoms();
+                        } else {
+                            std::string lineTag = objFeat->addCosmeticEdge(startPt / scale, endPt / scale);
+                            TechDraw::CosmeticEdge* lineEdge = objFeat->getCosmeticEdge(lineTag);
+                            _setLineAttributes(lineEdge, oldStyle, oldWeight, oldColor);
+                            objFeat->refreshCEGeoms();
+                        }
                         objFeat->requestPaint();
                     }
                 }
@@ -1640,9 +1651,9 @@ CmdTechDrawExtendShortenLineGroup::CmdTechDrawExtendShortenLineGroup()
 
 void CmdTechDrawExtendShortenLineGroup::activated(int iMsg)
 {
-    //    Base::Console().Message("CMD::ExtendShortenLineGroup - activated(%d)\n", iMsg);
+    // Base::Console().Message("CMD::ExtendShortenLineGroup - activated(%d)\n", iMsg);
     Gui::TaskView::TaskDialog* dlg = Gui::Control().activeDialog();
-    if (dlg != nullptr) {
+    if (dlg) {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Task In Progress"),
             QObject::tr("Close active task dialog and try again."));
         return;
@@ -1733,7 +1744,7 @@ CmdTechDrawExtensionAreaAnnotation::CmdTechDrawExtensionAreaAnnotation()
     sAppModule      = "TechDraw";
     sGroup          = QT_TR_NOOP("TechDraw");
     sMenuText       = QT_TR_NOOP("Calculate the area of selected faces");
-    sToolTipText    = QT_TR_NOOP("Select several faces\n\
+    sToolTipText    = QT_TR_NOOP("Select several faces<br>\
     - click this tool");
     sWhatsThis      = "TechDraw_ExtensionAreaAnnotation";
     sStatusTip      = sToolTipText;
@@ -1752,11 +1763,11 @@ void CmdTechDrawExtensionAreaAnnotation::activated(int iMsg)
     int totalPoints(0);
     const std::vector<std::string> subNames = selection[0].getSubNames();
     if (!subNames.empty()) {
-        for (std::string name : subNames) {
+        for (const std::string& name : subNames) {
             int idx = TechDraw::DrawUtil::getIndexFromName(name);
             std::vector<TechDraw::BaseGeomPtr> faceEdges = objFeat->getFaceEdgesByIndex(idx);
             // We filter arcs, circles etc. which are not allowed.
-            for (TechDraw::BaseGeomPtr geoPtr : faceEdges)
+            for (const TechDraw::BaseGeomPtr& geoPtr : faceEdges)
                 if (geoPtr->geomType != TechDraw::GENERIC)
                     throw Base::TypeError("CmdTechDrawAreaAnnotation - forbidden border element found\n");
             // We create a list of all points along the boundary of the face.
@@ -1772,7 +1783,7 @@ void CmdTechDrawExtensionAreaAnnotation::activated(int iMsg)
                         std::static_pointer_cast<TechDraw::Generic>(faceEdges[n]);
                 if ((nextEdge->points.at(0)-facePoints.back()).Length() < 0.01)
                     facePoints.push_back(nextEdge->points.at(1));
-                else 
+                else
                     facePoints.push_back(nextEdge->points.at(0));
             }
             facePoints.push_back(facePoints.front());
@@ -1789,10 +1800,10 @@ void CmdTechDrawExtensionAreaAnnotation::activated(int iMsg)
             }
             faceArea = abs(faceArea)/2.0;
             totalArea = totalArea + faceArea;
-            totalPoints = totalPoints + facePoints.size();      
+            totalPoints = totalPoints + facePoints.size();
         }
     }
-    // if area calculation was successfull, wie start the command
+    // if area calculation was successful, start the command
     Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Calculate Face Area"));
     // at first we create the balloon
     std::string balloonName  = _createBalloon(this, objFeat);
@@ -1800,15 +1811,25 @@ void CmdTechDrawExtensionAreaAnnotation::activated(int iMsg)
     balloon = dynamic_cast<TechDraw::DrawViewBalloon *>(this->getDocument()->getObject(balloonName.c_str()));
     if (!balloon)
         throw Base::TypeError("CmdTechDrawNewBalloon - balloon not found\n");
-    // the balloon has been created successfull
-    // we calculate needed variables
+    // the balloon has been created successfully
+    // calculate needed variables
     double scale = objFeat->getScale();
-    totalArea = totalArea*10*10; // Todo: get factor cm->mm if cm set
-    std::stringstream balloonText;
-    balloonText << " " << totalArea << " cm2 ";
-    xCenter = (xCenter/totalPoints)/scale;
-    yCenter = (yCenter/totalPoints)/scale;
-    // we set the attributes in the data tab's fields 
+    double scale2 = scale * scale;
+    totalArea = totalArea / scale2;    //convert from view scale to internal mm2
+
+    //make area unit-aware
+    Base::Quantity asQuantity;
+    asQuantity.setValue(totalArea);
+    asQuantity.setUnit(Base::Unit::Area);
+    QString qUserString = asQuantity.getUserString();
+    std::string sUserString = Base::Tools::toStdString(qUserString);
+
+    if (totalPoints != 0 && scale != 0.0) {
+        xCenter = (xCenter/totalPoints)/scale;
+        yCenter = (yCenter/totalPoints)/scale;
+    }
+
+    // set the attributes in the data tab's fields
     balloon->SourceView.setValue(objFeat);
     balloon->BubbleShape.setValue("Rectangle");
     balloon->EndType.setValue("None");
@@ -1817,17 +1838,16 @@ void CmdTechDrawExtensionAreaAnnotation::activated(int iMsg)
     balloon->Y.setValue(-yCenter);
     balloon->OriginX.setValue(xCenter);
     balloon->OriginY.setValue(-yCenter);
-    balloon->ShapeScale.setValue(0.75);
     balloon->ScaleType.setValue("Page");
-    balloon->Text.setValue(balloonText.str());
-    // we look for the ballons's view provider
+    balloon->Text.setValue(sUserString);
+    // look for the ballons's view provider
     TechDraw::DrawPage* page = objFeat->findParentPage();
     Gui::Document* guiDoc = Gui::Application::Instance->getDocument(page->getDocument());
     auto viewProvider = static_cast<ViewProviderBalloon*>(guiDoc->getViewProvider(balloon));
     if (viewProvider)
     {
-        // view provider successfull found,
-        // we set the attributes in the view tab's fields
+        // view provider successfully found,
+        // set the attributes in the view tab's fields
         viewProvider->Fontsize.setValue(2.0);
         viewProvider->LineWidth.setValue(0.75);
         viewProvider->LineVisible.setValue(false);
@@ -1859,17 +1879,20 @@ namespace TechDrawGui {
     std::string _createBalloon(Gui::Command* cmd, TechDraw::DrawViewPart* objFeat)
         // create a new balloon, return it's name as string
     {
+        std::string featName;
         TechDraw::DrawPage* page = objFeat->findParentPage();
         page->balloonParent = objFeat;
         Gui::Document* guiDoc = Gui::Application::Instance->getDocument(page->getDocument());
         ViewProviderPage* pageVP = dynamic_cast<ViewProviderPage*>(guiDoc->getViewProvider(page));
-        QGVPage* viewPage = pageVP->getGraphicsView();
-        std::string featName = viewPage->getDrawPage()->getDocument()->getUniqueObjectName("Balloon");
-        std::string pageName = viewPage->getDrawPage()->getNameInDocument();
-        cmd->doCommand(cmd->Doc, "App.activeDocument().addObject('TechDraw::DrawViewBalloon','%s')",
-                       featName.c_str());
-        cmd->doCommand(cmd->Doc, "App.activeDocument().%s.addView(App.activeDocument().%s)", 
-                       pageName.c_str(), featName.c_str());
+        if (pageVP) {
+            QGSPage* scenePage = pageVP->getGraphicsScene();
+            featName = scenePage->getDrawPage()->getDocument()->getUniqueObjectName("Balloon");
+            std::string pageName = scenePage->getDrawPage()->getNameInDocument();
+            cmd->doCommand(cmd->Doc, "App.activeDocument().addObject('TechDraw::DrawViewBalloon','%s')",
+                           featName.c_str());
+            cmd->doCommand(cmd->Doc, "App.activeDocument().%s.addView(App.activeDocument().%s)",
+                           pageName.c_str(), featName.c_str());
+        }
         return featName;
     }
 
@@ -1878,30 +1901,29 @@ namespace TechDrawGui {
         TechDraw::DrawViewPart*& objFeat,
         std::string message) {
         // check selection of getSelectionEx() and selection[0].getObject()
-        bool OK = true;
         selection = cmd->getSelection().getSelectionEx();
         if (selection.empty()) {
             QMessageBox::warning(Gui::getMainWindow(),
                 QObject::tr(message.c_str()),
                 QObject::tr("Selection is empty"));
-            OK = false;
+            return false;
         }
-        if (OK) {
-            objFeat = dynamic_cast<TechDraw::DrawViewPart*>(selection[0].getObject());
-            if (objFeat == nullptr) {
-                QMessageBox::warning(Gui::getMainWindow(),
-                    QObject::tr(message.c_str()),
-                    QObject::tr("No object selected"));
-                OK = false;
-            }
+        
+        objFeat = dynamic_cast<TechDraw::DrawViewPart*>(selection[0].getObject());
+        if (!objFeat) {
+            QMessageBox::warning(Gui::getMainWindow(),
+                QObject::tr(message.c_str()),
+                QObject::tr("No object selected"));
+            return false;
         }
-        return OK;
+
+        return true;
     }
 
     std::vector<Base::Vector3d> _getVertexPoints(std::vector<std::string> SubNames, TechDraw::DrawViewPart* objFeat) {
         // get vertex points as Vector3d
         std::vector<Base::Vector3d> vertexPoints;
-        for (std::string Name : SubNames) {
+        for (const std::string& Name : SubNames) {
             std::string GeoType = TechDraw::DrawUtil::getGeomTypeFromName(Name);
             if (GeoType == "Vertex") {
                 int GeoId = TechDraw::DrawUtil::getIndexFromName(Name);
@@ -1941,17 +1963,16 @@ namespace TechDrawGui {
         int GeoId = TechDraw::DrawUtil::getIndexFromName(Name);
         TechDraw::BaseGeomPtr geom = objFeat->getGeomByIndex(GeoId);
         std::string GeoType = TechDraw::DrawUtil::getGeomTypeFromName(Name);
-        if (GeoType == "Edge") {
-            if (geom->geomType == TechDraw::CIRCLE) {
-                TechDraw::CirclePtr cgen = std::static_pointer_cast<TechDraw::Circle> (geom);
-                Base::Vector3d center = cgen->center;
-                float radius = cgen->radius;
-                TechDraw::BaseGeomPtr threadArc =
-                    std::make_shared<TechDraw::AOC>(center / scale, radius * factor / scale, 255.0, 165.0);
-                std::string arcTag = objFeat->addCosmeticEdge(threadArc);
-                TechDraw::CosmeticEdge* arc = objFeat->getCosmeticEdge(arcTag);
-                _setLineAttributes(arc);
-            }
+
+        if (GeoType == "Edge" && geom->geomType == TechDraw::CIRCLE) {
+            TechDraw::CirclePtr cgen = std::static_pointer_cast<TechDraw::Circle> (geom);
+            Base::Vector3d center = cgen->center;
+            float radius = cgen->radius;
+            TechDraw::BaseGeomPtr threadArc =
+                std::make_shared<TechDraw::AOC>(center / scale, radius * factor / scale, 255.0, 165.0);
+            std::string arcTag = objFeat->addCosmeticEdge(threadArc);
+            TechDraw::CosmeticEdge* arc = objFeat->getCosmeticEdge(arcTag);
+            _setLineAttributes(arc);
         }
     }
 
@@ -1965,39 +1986,38 @@ namespace TechDrawGui {
             int GeoId1 = TechDraw::DrawUtil::getIndexFromName(SubNames[1]);
             TechDraw::BaseGeomPtr geom0 = objFeat->getGeomByIndex(GeoId0);
             TechDraw::BaseGeomPtr geom1 = objFeat->getGeomByIndex(GeoId1);
-            if ((geom0->geomType == TechDraw::GENERIC) && (geom1->geomType == TechDraw::GENERIC)) {
-                TechDraw::GenericPtr line0 = std::static_pointer_cast<TechDraw::Generic> (geom0);
-                TechDraw::GenericPtr line1 = std::static_pointer_cast<TechDraw::Generic> (geom1);
-                Base::Vector3d start0 = line0->points.at(0);
-                Base::Vector3d end0 = line0->points.at(1);
-                Base::Vector3d start1 = line1->points.at(0);
-                Base::Vector3d end1 = line1->points.at(1);
-                if (DrawUtil::circulation(start0, end0, start1) != DrawUtil::circulation(end0, end1, start1)) {
-                    Base::Vector3d help1 = start1;
-                    Base::Vector3d help2 = end1;
-                    start1 = help2;
-                    end1 = help1;
-                }
-                start0.y = -start0.y;
-                end0.y = -end0.y;
-                start1.y = -start1.y;
-                end1.y = -end1.y;
-                float kernelDiam = (start1 - start0).Length();
-                float kernelFactor = (kernelDiam * factor - kernelDiam) / 2;
-                Base::Vector3d delta = (start1 - start0).Normalize() * kernelFactor;
-                std::string line0Tag = objFeat->addCosmeticEdge((start0 - delta) / scale, (end0 - delta) / scale);
-                std::string line1Tag = objFeat->addCosmeticEdge((start1 + delta) / scale, (end1 + delta) / scale);
-                TechDraw::CosmeticEdge* cosTag0 = objFeat->getCosmeticEdge(line0Tag);
-                TechDraw::CosmeticEdge* cosTag1 = objFeat->getCosmeticEdge(line1Tag);
-                _setLineAttributes(cosTag0);
-                _setLineAttributes(cosTag1);
-            }
-            else {
+            if (geom0->geomType != TechDraw::GENERIC || geom1->geomType != TechDraw::GENERIC) {
                 QMessageBox::warning(Gui::getMainWindow(),
                     QObject::tr("TechDraw Thread Hole Side"),
                     QObject::tr("Please select two straight lines"));
                 return;
             }
+
+            TechDraw::GenericPtr line0 = std::static_pointer_cast<TechDraw::Generic> (geom0);
+            TechDraw::GenericPtr line1 = std::static_pointer_cast<TechDraw::Generic> (geom1);
+            Base::Vector3d start0 = line0->points.at(0);
+            Base::Vector3d end0 = line0->points.at(1);
+            Base::Vector3d start1 = line1->points.at(0);
+            Base::Vector3d end1 = line1->points.at(1);
+            if (DrawUtil::circulation(start0, end0, start1) != DrawUtil::circulation(end0, end1, start1)) {
+                Base::Vector3d help1 = start1;
+                Base::Vector3d help2 = end1;
+                start1 = help2;
+                end1 = help1;
+            }
+            start0.y = -start0.y;
+            end0.y = -end0.y;
+            start1.y = -start1.y;
+            end1.y = -end1.y;
+            float kernelDiam = (start1 - start0).Length();
+            float kernelFactor = (kernelDiam * factor - kernelDiam) / 2;
+            Base::Vector3d delta = (start1 - start0).Normalize() * kernelFactor;
+            std::string line0Tag = objFeat->addCosmeticEdge((start0 - delta) / scale, (end0 - delta) / scale);
+            std::string line1Tag = objFeat->addCosmeticEdge((start1 + delta) / scale, (end1 + delta) / scale);
+            TechDraw::CosmeticEdge* cosTag0 = objFeat->getCosmeticEdge(line0Tag);
+            TechDraw::CosmeticEdge* cosTag1 = objFeat->getCosmeticEdge(line1Tag);
+            _setLineAttributes(cosTag0);
+            _setLineAttributes(cosTag1);
         }
     }
 
@@ -2017,6 +2037,13 @@ namespace TechDrawGui {
 
     void _setLineAttributes(TechDraw::CosmeticEdge* cosEdge, int style, float weight, App::Color color) {
         // set line attributes of a cosmetic edge
+        cosEdge->m_format.m_style = style;
+        cosEdge->m_format.m_weight = weight;
+        cosEdge->m_format.m_color = color;
+    }
+
+    void _setLineAttributes(TechDraw::CenterLine* cosEdge, int style, float weight, App::Color color) {
+        // set line attributes of a centerline
         cosEdge->m_format.m_style = style;
         cosEdge->m_format.m_weight = weight;
         cosEdge->m_format.m_color = color;

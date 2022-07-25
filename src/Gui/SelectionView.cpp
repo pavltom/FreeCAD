@@ -20,32 +20,31 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <QVBoxLayout>
+ #include <QCheckBox>
+# include <QLabel>
+# include <QLineEdit>
 # include <QListWidget>
 # include <QListWidgetItem>
-# include <QLineEdit>
+# include <QMenu>
 # include <QTextStream>
 # include <QToolButton>
- #include <QCheckBox>
-# include <QMenu>
-# include <QLabel>
+# include <QVBoxLayout>
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <Base/Console.h>
+#include <App/ComplexGeoData.h>
 #include <App/Document.h>
 #include <App/GeoFeature.h>
-#include "SelectionView.h"
-#include "Command.h"
-#include "Application.h"
-#include "Document.h"
-#include "ViewProvider.h"
-#include "BitmapFactory.h"
 
-FC_LOG_LEVEL_INIT("Selection",true,true,true)
+#include "SelectionView.h"
+#include "Application.h"
+#include "BitmapFactory.h"
+#include "Command.h"
+#include "Document.h"
+
+
+FC_LOG_LEVEL_INIT("Selection", true, true, true)
 
 using namespace Gui;
 using namespace Gui::DockWnd;
@@ -55,7 +54,7 @@ using namespace Gui::DockWnd;
 
 SelectionView::SelectionView(Gui::Document* pcDocument, QWidget *parent)
   : DockWindow(pcDocument,parent)
-  , SelectionObserver(true,0)
+  , SelectionObserver(true, ResolveMode::NoResolve)
   , x(0.0f), y(0.0f), z(0.0f)
   , openedAutomatically(false)
 {
@@ -178,7 +177,8 @@ void SelectionView::onSelectionChanged(const SelectionChanges &Reason)
             str << Reason.pDocName;
             str << "#";
             // remove all items
-            for(auto item : selectionView->findItems(selObject,Qt::MatchStartsWith))
+            const auto items = selectionView->findItems(selObject,Qt::MatchStartsWith);
+            for(auto item : items)
                 delete item;
         }
     }
@@ -202,7 +202,7 @@ void SelectionView::onSelectionChanged(const SelectionChanges &Reason)
     else if (Reason.Type == SelectionChanges::SetSelection) {
         // remove all items
         selectionView->clear();
-        std::vector<SelectionSingleton::SelObj> objs = Gui::Selection().getSelection(Reason.pDocName,0);
+        std::vector<SelectionSingleton::SelObj> objs = Gui::Selection().getSelection(Reason.pDocName, ResolveMode::NoResolve);
         for (std::vector<SelectionSingleton::SelObj>::iterator it = objs.begin(); it != objs.end(); ++it) {
             // save as user data
             QStringList list;
@@ -314,7 +314,7 @@ void SelectionView::validateSearch(void)
         if (doc) {
             Gui::Selection().clearSelection();
             for (std::vector<App::DocumentObject*>::iterator it = searchList.begin(); it != searchList.end(); ++it) {
-                Gui::Selection().addSelection(doc->getName(),(*it)->getNameInDocument(),0);
+                Gui::Selection().addSelection(doc->getName(),(*it)->getNameInDocument(),nullptr);
             }
         }
     }
@@ -361,11 +361,13 @@ void SelectionView::deselect(void)
 
 void SelectionView::toggleSelect(QListWidgetItem* item)
 {
-    if (!item) return;
+    if (!item)
+        return;
     std::string name = item->text().toLatin1().constData();
     char *docname = &name.at(0);
     char *objname = std::strchr(docname,'#');
-    if(!objname) return;
+    if(!objname)
+        return;
     *objname++ = 0;
     char *subname = std::strchr(objname,'.');
     if(subname) {
@@ -380,15 +382,15 @@ void SelectionView::toggleSelect(QListWidgetItem* item)
     if(Gui::Selection().isSelected(docname,objname,subname))
         cmd = QString::fromLatin1("Gui.Selection.removeSelection("
             "App.getDocument('%1').getObject('%2'),'%3')")
-            .arg(QString::fromLatin1(docname))
-            .arg(QString::fromLatin1(objname))
-            .arg(QString::fromLatin1(subname));
+            .arg(QString::fromLatin1(docname),
+                 QString::fromLatin1(objname),
+                 QString::fromLatin1(subname));
     else
         cmd = QString::fromLatin1("Gui.Selection.addSelection("
             "App.getDocument('%1').getObject('%2'),'%3',%4,%5,%6)")
-            .arg(QString::fromLatin1(docname))
-            .arg(QString::fromLatin1(objname))
-            .arg(QString::fromLatin1(subname))
+            .arg(QString::fromLatin1(docname),
+                 QString::fromLatin1(objname),
+                 QString::fromLatin1(subname))
             .arg(x).arg(y).arg(z);
     try {
         Gui::Command::runCommand(Gui::Command::Gui,cmd.toLatin1());
@@ -399,11 +401,13 @@ void SelectionView::toggleSelect(QListWidgetItem* item)
 
 void SelectionView::preselect(QListWidgetItem* item)
 {
-    if (!item) return;
+    if (!item)
+        return;
     std::string name = item->text().toLatin1().constData();
     char *docname = &name.at(0);
     char *objname = std::strchr(docname,'#');
-    if(!objname) return;
+    if(!objname)
+        return;
     *objname++ = 0;
     char *subname = std::strchr(objname,'.');
     if(subname) {
@@ -416,9 +420,9 @@ void SelectionView::preselect(QListWidgetItem* item)
     }
     QString cmd = QString::fromLatin1("Gui.Selection.setPreselection("
         "App.getDocument('%1').getObject('%2'),'%3',tp=2)")
-        .arg(QString::fromLatin1(docname))
-        .arg(QString::fromLatin1(objname))
-        .arg(QString::fromLatin1(subname));
+        .arg(QString::fromLatin1(docname),
+             QString::fromLatin1(objname),
+             QString::fromLatin1(subname));
     try {
         Gui::Command::runCommand(Gui::Command::Gui,cmd.toLatin1());
     }catch(Base::Exception &e) {

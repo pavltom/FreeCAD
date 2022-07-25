@@ -26,12 +26,10 @@
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSurroundScale.h>
-#include <Inventor/nodes/SoTransform.h>
 #include <Inventor/sensors/SoFieldSensor.h>
 
 // Include files for child dragger classes.
 #include <Inventor/draggers/SoRotateCylindricalDragger.h>
-//#include "TranslateRadialDragger.h"
 #include <Inventor/draggers/SoTranslate1Dragger.h>
 
 // Include file for our new class.
@@ -40,9 +38,6 @@
 // Include file the binaray of SoNavigationDraggerLayout.iv, the layout of the dragger.
 #include "SoNavigationDraggerLayout.h"
 
-// This file contains RotTransDragger::geomBuffer, which
-// describes the default geometry resources for this class.
-//#include "RotTransDraggerGeom.h"
 
 SO_KIT_SOURCE(RotTransDragger)
 
@@ -170,9 +165,9 @@ RotTransDragger::RotTransDragger()
 
 RotTransDragger::~RotTransDragger()
 {
-   if (rotFieldSensor!=NULL)
+   if (rotFieldSensor)
      delete rotFieldSensor;
-   if (translFieldSensor!=NULL)
+   if (translFieldSensor)
      delete translFieldSensor;
 }
 
@@ -274,7 +269,7 @@ RotTransDragger::setUpConnections(SbBool onOff, SbBool doItAlways)
 
 
      // Call the sensor CB to make things up-to-date.
-     fieldSensorCB(this, NULL);
+     fieldSensorCB(this, nullptr);
 
      // Connect the field sensors
      if (translFieldSensor->getAttachedField() != &translation)
@@ -320,9 +315,9 @@ RotTransDragger::setUpConnections(SbBool onOff, SbBool doItAlways)
       unregisterChildDragger(ZD);
 
      // Disconnect the field sensors.
-     if (translFieldSensor->getAttachedField()!=NULL)
+     if (translFieldSensor->getAttachedField())
         translFieldSensor->detach();
-     if (rotFieldSensor->getAttachedField()!=NULL)
+     if (rotFieldSensor->getAttachedField())
         rotFieldSensor->detach();
 
      SoDragger::setUpConnections(onOff, doItAlways);
@@ -339,7 +334,7 @@ RotTransDragger::valueChangedCB(void *, SoDragger *inDragger)
    RotTransDragger *myself = (RotTransDragger *) inDragger;
 
    // Factor the motionMatrix into its parts
-   SbMatrix motMat = myself->getMotionMatrix();
+   SbMatrix motMat = myself->getMotionMatrix(); // clazy:exclude=rule-of-two-soft
    SbVec3f   trans, scale;
    SbRotation rot, scaleOrient;
    motMat.getTransform(trans, rot, scale, scaleOrient);
@@ -362,7 +357,7 @@ RotTransDragger::fieldSensorCB(void *inDragger, SoSensor *)
 {
    RotTransDragger *myself = (RotTransDragger *) inDragger;
 
-   SbMatrix motMat = myself->getMotionMatrix();
+   SbMatrix motMat = myself->getMotionMatrix(); // clazy:exclude=rule-of-two-soft
    myself->workFieldsIntoTransform(motMat);
 
    myself->setMotionMatrix(motMat);
@@ -379,7 +374,7 @@ RotTransDragger::invalidateSurroundScaleCB(void *parent, SoDragger *)
    // Invalidate the surroundScale, if it exists.
    SoSurroundScale *mySS = SO_CHECK_PART(
             myParentDragger, "surroundScale", SoSurroundScale);
-   if (mySS != NULL)
+   if (mySS)
       mySS->invalidate();
 }
 

@@ -20,18 +20,16 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_DOCKWND_REPORTVIEW_H
 #define GUI_DOCKWND_REPORTVIEW_H
 
+#include <QPointer>
 #include <QTextEdit>
 #include <QSyntaxHighlighter>
-#include <Base/Console.h>
-#include <QPointer>
-#include <QDockWidget>
-#include "DockWindow.h"
+
 #include "Window.h"
 #include <FCGlobal.h>
+
 
 class QTabWidget;
 
@@ -53,7 +51,7 @@ class ReportView : public QWidget
     Q_OBJECT
 
 public:
-    ReportView( QWidget* parent = 0);
+    ReportView( QWidget* parent = nullptr);
     ~ReportView();
 
 protected:
@@ -130,7 +128,7 @@ class GuiExport ReportOutput : public QTextEdit, public WindowParameter, public 
     Q_OBJECT
 
 public:
-    ReportOutput(QWidget* parent=0);
+    ReportOutput(QWidget* parent=nullptr);
     virtual ~ReportOutput();
 
     /** Observes its parameter group. */

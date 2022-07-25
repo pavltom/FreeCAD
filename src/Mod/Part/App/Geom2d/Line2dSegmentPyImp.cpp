@@ -20,25 +20,21 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp.hxx>
-# include <gp_Lin2d.hxx>
+# include <GCE2d_MakeSegment.hxx>
 # include <Geom2d_Line.hxx>
 # include <Geom2d_TrimmedCurve.hxx>
-# include <GCE2d_MakeLine.hxx>
-# include <GCE2d_MakeSegment.hxx>
-# include <Precision.hxx>
+# include <gp_Lin2d.hxx>
 #endif
 
 #include <Base/GeometryPyCXX.h>
 
-#include <Mod/Part/App/OCCError.h>
-#include <Mod/Part/App/Geometry2d.h>
-#include <Mod/Part/App/Geom2d/Line2dPy.h>
-#include <Mod/Part/App/Geom2d/Line2dSegmentPy.h>
-#include <Mod/Part/App/Geom2d/Line2dSegmentPy.cpp>
+#include "Geom2d/Line2dSegmentPy.h"
+#include "Geom2d/Line2dSegmentPy.cpp"
+#include "Geom2d/Line2dPy.h"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -180,7 +176,7 @@ PyObject* Line2dSegmentPy::setParameterRange(PyObject *args)
 {
     double first, last;
     if (!PyArg_ParseTuple(args, "dd", &first, &last))
-        return NULL;
+        return nullptr;
 
     try {
         Handle(Geom2d_TrimmedCurve) this_curve = Handle(Geom2d_TrimmedCurve)::DownCast
@@ -190,7 +186,7 @@ PyObject* Line2dSegmentPy::setParameterRange(PyObject *args)
     catch (Standard_Failure& e) {
 
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return NULL;
+        return nullptr;
     }
 
     Py_Return; 
@@ -306,7 +302,7 @@ void Line2dSegmentPy::setEndPoint(Py::Object arg)
 
 PyObject *Line2dSegmentPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int Line2dSegmentPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

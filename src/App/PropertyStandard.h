@@ -24,20 +24,18 @@
 #ifndef APP_PROPERTYSTANDARD_H
 #define APP_PROPERTYSTANDARD_H
 
-// Std. configurations
-
-
+#include <list>
 #include <memory>
 #include <string>
-#include <list>
 #include <vector>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/filesystem/path.hpp>
-
 #include <Base/Uuid.h>
-#include "Enumeration.h"
+
 #include "Property.h"
+#include "Enumeration.h"
 #include "Material.h"
+
 
 namespace Base {
 class Writer;
@@ -208,7 +206,7 @@ public:
     /// set enum values as vector of strings
     void setEnumVector(const std::vector<std::string> &);
     /// get the pointer to the enum list
-    const char ** getEnums(void) const;
+    bool hasEnums() const;
 
     /// Returns true if the instance is in a usable state
     bool isValid(void) const;

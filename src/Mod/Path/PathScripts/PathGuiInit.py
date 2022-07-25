@@ -19,9 +19,9 @@
 # *   USA                                                                   *
 # *                                                                         *
 # ***************************************************************************
-# pylint: disable=unused-import
 
 import PathScripts.PathLog as PathLog
+import subprocess
 
 LOGLEVEL = False
 
@@ -33,10 +33,11 @@ else:
 
 Processed = False
 
+
 def Startup():
-    global Processed # pylint: disable=global-statement
+    global Processed
     if not Processed:
-        PathLog.debug('Initializing PathGui')
+        PathLog.debug("Initializing PathGui")
         from PathScripts import PathAdaptiveGui
         from PathScripts import PathArray
         from PathScripts import PathComment
@@ -76,6 +77,25 @@ def Startup():
         from PathScripts import PathToolLibraryManager
         from PathScripts import PathUtilsGui
         from PathScripts import PathVcarveGui
+
+        from packaging.version import Version, parse
+
+        # If camotics is installed and current enough, import the GUI
+        try:
+            import camotics
+
+            r = subprocess.run(
+                ["camotics", "--version"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            ).stderr.strip()
+
+            v = parse(r.decode("utf-8"))
+            if v >= Version("1.2.2"):
+                from PathScripts import PathCamoticsGui
+        except (FileNotFoundError, ModuleNotFoundError):
+            pass
+
         Processed = True
     else:
-        PathLog.debug('Skipping PathGui initialisation')
+        PathLog.debug("Skipping PathGui initialisation")

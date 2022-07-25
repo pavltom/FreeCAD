@@ -23,14 +23,11 @@
 #ifndef TECHDRAWGUI_TASKCOSVERTEX_H
 #define TECHDRAWGUI_TASKCOSVERTEX_H
 
-#include <App/DocumentObject.h>
-#include <Base/Vector3D.h>
-#include <Gui/TaskView/TaskView.h>
 #include <Gui/TaskView/TaskDialog.h>
-
-#include <Mod/TechDraw/Gui/ui_TaskCosVertex.h>
+#include <Gui/TaskView/TaskView.h>
 
 #include "QGTracker.h"
+
 
 //TODO: make this a proper enum
 #define TRACKERPICK 0
@@ -38,21 +35,17 @@
 #define TRACKERCANCEL 2
 #define TRACKERCANCELEDIT 3
 
-class Ui_TaskCosVertex;
-
-namespace App {
-class DocumentObject;
-}
-
 namespace TechDraw
 {
 class DrawPage;
 class DrawView;
+class DrawViewPart;
 class DrawCosVertex;
 }
 
 namespace TechDrawGui
 {
+class QGSPage;
 class QGVPage;
 class QGIView;
 class QGIPrimPath;
@@ -62,6 +55,7 @@ class QGEPath;
 class QGMText;
 class QGICosVertex;
 class ViewProviderLeader;
+class Ui_TaskCosVertex;
 
 class TaskCosVertex : public QWidget
 {
@@ -74,7 +68,7 @@ public:
 
 public Q_SLOTS:
     void onTrackerClicked(bool b);
-    void onTrackerFinished(std::vector<QPointF> pts, QGIView* qgParent);
+    void onTrackerFinished(std::vector<QPointF> pts, TechDrawGui::QGIView* qgParent);
 
 public:
     virtual bool accept();
@@ -106,7 +100,7 @@ private:
     QGTracker* m_tracker;
     
     MDIViewPage* m_mdi;
-    QGraphicsScene* m_scene;
+    QGSPage* m_scene;
     QGVPage* m_view;
     TechDraw::DrawViewPart* m_baseFeat;
     TechDraw::DrawPage* m_basePage;

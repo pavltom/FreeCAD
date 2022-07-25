@@ -22,45 +22,36 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <boost_bind_bind.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost_graph_reverse_graph.hpp>
-
-#include <QApplication>
-#include <QString>
-#include <QGraphicsTextItem>
-#include <QGraphicsEllipseItem>
-#include <QGraphicsPixmapItem>
-#include <QGraphicsRectItem>
-#include <QGraphicsSceneHoverEvent>
-#include <QGraphicsProxyWidget>
-#include <QPen>
+#include <memory>
 #include <QBrush>
 #include <QColor>
-#include <QPainter>
+#include <QGraphicsPixmapItem>
+#include <QGraphicsProxyWidget>
+#include <QGraphicsSceneContextMenuEvent>
+#include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QMenu>
+#include <QPainter>
+#include <QPen>
+#include <QString>
 #include <QTimer>
 #endif
 
-#include <QAbstractEventDispatcher>
-
-#include <deque>
-#include <memory>
-
-#include <unordered_set>
-
-#include <Base/TimeInfo.h>
 #include <Base/Console.h>
+#include <Base/TimeInfo.h>
+#include <App/Document.h>
 #include <Gui/Application.h>
-#include <Gui/Document.h>
-#include <Gui/ViewProviderDocumentObject.h>
-#include <Gui/Selection.h>
 #include <Gui/BitmapFactory.h>
-#include <Gui/MenuManager.h>
+#include <Gui/Document.h>
 #include <Gui/MainWindow.h>
+#include <Gui/MenuManager.h>
+#include <Gui/Selection.h>
+#include <Gui/ViewProviderDocumentObject.h>
 
 #include "DAGModel.h"
+
 
 using namespace Gui;
 using namespace DAG;
@@ -1104,7 +1095,7 @@ void Model::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void Model::onRenameSlot()
 {
-  assert(proxy == nullptr);
+  assert(!proxy);
   std::vector<Gui::DAG::Vertex> selections = getAllSelected();
   assert(selections.size() == 1);
   

@@ -23,8 +23,6 @@
 
 #include "PreCompiled.h"
 
-#include "App/GeoFeature.h"
-
 // inclusion of the generated files (generated out of GeoFeaturePy.xml)
 #include "GeoFeaturePy.h"
 #include "GeoFeaturePy.cpp"
@@ -42,13 +40,13 @@ std::string GeoFeaturePy::representation(void) const
 PyObject* GeoFeaturePy::getPaths(PyObject * /*args*/)
 {
     PyErr_SetString(PyExc_NotImplementedError, "Not yet implemented");
-    return 0;
+    return nullptr;
 }
 
 PyObject* GeoFeaturePy::getGlobalPlacement(PyObject * args) {
     
     if (!PyArg_ParseTuple(args, ""))
-        return 0;
+        return nullptr;
     
     try {
         Base::Placement p = static_cast<GeoFeature*>(getDocumentObjectPtr())->globalPlacement();
@@ -88,7 +86,7 @@ PyObject* GeoFeaturePy::getPropertyOfGeometry(PyObject * args)
 
 PyObject *GeoFeaturePy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int GeoFeaturePy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

@@ -30,6 +30,7 @@
 // inclution of the generated files (generated out of PropertyContainerPy.xml)
 #include "ViewProviderExtensionPy.h"
 #include "ViewProviderExtensionPy.cpp"
+#include "ViewProviderDocumentObject.h"
 
 using namespace Gui;
 
@@ -56,7 +57,7 @@ PyObject* ViewProviderExtensionPy::setIgnoreOverlayIcon(PyObject *args)
         }
     }
 
-    ext->setIgnoreOverlayIcon(PyObject_IsTrue(ignore) ? true : false);
+    ext->setIgnoreOverlayIcon(Base::asBoolean(ignore));
     Py_Return;
 }
 
@@ -82,7 +83,7 @@ PyObject* ViewProviderExtensionPy::ignoreOverlayIcon(PyObject *args)
 
 PyObject *ViewProviderExtensionPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ViewProviderExtensionPy::setCustomAttributes(const char* /*attr*/, PyObject * /*obj*/)

@@ -35,13 +35,14 @@
 #include <fcntl.h>
 #include <cstdio>
 #include <cassert>
-#include <time.h>
+#include <ctime>
 #include <cfloat>
 #ifdef FC_OS_WIN32
 #define _USE_MATH_DEFINES
 #endif // FC_OS_WIN32
 #include <cmath>
 #include <climits>
+#include <codecvt>
 
 #ifdef FC_OS_WIN32
 #include <direct.h>
@@ -65,6 +66,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <set>
 #include <stack>

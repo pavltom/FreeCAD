@@ -58,26 +58,15 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <cfloat>
-# include <QAction>
-# include <QActionGroup>
 # include <QApplication>
-# include <QByteArray>
-# include <QCursor>
-# include <QList>
-# include <QMenu>
-# include <QMetaObject>
-# include <QRegExp>
 #endif
 
-#include <App/Application.h>
 #include <Base/Console.h>
+
 #include "NavigationStyle.h"
-#include "View3DInventorViewer.h"
-#include "Application.h"
-#include "MenuManager.h"
-#include "MouseSelection.h"
 #include "SoTouchEvents.h"
+#include "View3DInventorViewer.h"
+
 
 using namespace Gui;
 
@@ -131,7 +120,9 @@ SbBool MayaGestureNavigationStyle::processSoEvent(const SoEvent * const ev)
     // Events when in "ready-to-seek" mode are ignored, except those
     // which influence the seek mode itself -- these are handled further
     // up the inheritance hierarchy.
-    if (this->isSeekMode()) { return inherited::processSoEvent(ev); }
+    if (this->isSeekMode()) {
+        return inherited::processSoEvent(ev);
+    }
     // Switch off viewing mode (Bug #0000911)
     if (!this->isSeekMode()&& !this->isAnimating() && this->isViewing() )
         this->setViewing(false); // by default disable viewing mode to render the scene
@@ -558,7 +549,6 @@ SbBool MayaGestureNavigationStyle::processSoEvent(const SoEvent * const ev)
                 //shouldn't happen. Gestures are not expected to start in the middle of navigation.
                 //we'll consume it, without reacting.
                 processed=true;
-                //This does, unfortunately, happen on regular basis for pan gesture on Windows8.1+Qt4.8
             }
         }
 

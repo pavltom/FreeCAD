@@ -23,28 +23,24 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <TopoDS_Solid.hxx>
+
 # include <TopoDS_Wire.hxx>
 # include <TopExp_Explorer.hxx>
-# include <BRepAlgoAPI_Fuse.hxx>
-# include <BRepAlgoAPI_Common.hxx>
-# include <BRepOffsetAPI_ThruSections.hxx>
-# include <BRepBuilderAPI_Sewing.hxx>
-# include <BRepBuilderAPI_MakeSolid.hxx>
-# include <BRepClass3d_SolidClassifier.hxx>
 # include <BRepAlgoAPI_Cut.hxx>
+# include <BRepAlgoAPI_Fuse.hxx>
+# include <BRepBuilderAPI_MakeSolid.hxx>
+# include <BRepBuilderAPI_Sewing.hxx>
+# include <BRepClass3d_SolidClassifier.hxx>
+# include <BRepOffsetAPI_ThruSections.hxx>
 # include <TopoDS.hxx>
 # include <Precision.hxx>
 #endif
 
-#include <Base/Exception.h>
-#include <Base/Placement.h>
-#include <Base/Console.h>
-#include <Base/Reader.h>
 #include <App/Document.h>
+#include <Base/Exception.h>
+#include <Base/Reader.h>
 #include <Mod/Part/App/FaceMakerCheese.h>
 
-//#include "Body.h"
 #include "FeatureLoft.h"
 
 
@@ -54,8 +50,8 @@ PROPERTY_SOURCE(PartDesign::Loft, PartDesign::ProfileBased)
 
 Loft::Loft()
 {
-    ADD_PROPERTY_TYPE(Sections,(0),"Loft",App::Prop_None,"List of sections");
-    Sections.setValue(0);
+    ADD_PROPERTY_TYPE(Sections,(nullptr),"Loft",App::Prop_None,"List of sections");
+    Sections.setValue(nullptr);
     ADD_PROPERTY_TYPE(Ruled,(false),"Loft",App::Prop_None,"Create ruled surface");
     ADD_PROPERTY_TYPE(Closed,(false),"Loft",App::Prop_None,"Close Last to First Profile");
 }

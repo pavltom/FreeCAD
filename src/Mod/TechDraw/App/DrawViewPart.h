@@ -26,30 +26,21 @@
 #define _DrawViewPart_h_
 
 #include <TopoDS_Edge.hxx>
-#include <TopoDS_Vertex.hxx>
 #include <TopoDS_Wire.hxx>
 
 #include <App/DocumentObject.h>
-#include <App/PropertyLinks.h>
-#include <App/PropertyStandard.h>
-#include <App/PropertyUnits.h>
 #include <App/FeaturePython.h>
-
+#include <App/PropertyLinks.h>
+#include <App/PropertyUnits.h>
 #include <Base/BoundBox.h>
 
-#include "PropertyGeomFormatList.h"
-#include "PropertyCenterLineList.h"
-#include "PropertyCosmeticEdgeList.h"
-#include "PropertyCosmeticVertexList.h"
 #include "CosmeticExtension.h"
 #include "DrawView.h"
+
 
 class gp_Pnt;
 class gp_Pln;
 class gp_Ax2;
-//class TopoDS_Edge;
-//class TopoDS_Vertex;
-//class TopoDS_Wire;
 class TopoDS_Shape;
 
 namespace App
@@ -156,6 +147,7 @@ public:
     virtual gp_Ax2 getProjectionCS(Base::Vector3d pt) const;
     virtual Base::Vector3d getXDirection(void) const;       //don't use XDirection.getValue()
     virtual Base::Vector3d getOriginalCentroid(void) const;
+    virtual Base::Vector3d getCurrentCentroid(void) const;
     virtual Base::Vector3d getLegacyX(const Base::Vector3d& pt,
                                       const Base::Vector3d& axis,
                                       const bool flip = true)  const;

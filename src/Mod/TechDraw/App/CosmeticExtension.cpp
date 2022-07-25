@@ -47,10 +47,10 @@ CosmeticExtension::CosmeticExtension()
 {
     static const char *cgroup = "Cosmetics";
 
-    EXTENSION_ADD_PROPERTY_TYPE(CosmeticVertexes, (0), cgroup, App::Prop_Output, "CosmeticVertex Save/Restore");
-    EXTENSION_ADD_PROPERTY_TYPE(CosmeticEdges, (0), cgroup, App::Prop_Output, "CosmeticEdge Save/Restore");
-    EXTENSION_ADD_PROPERTY_TYPE(CenterLines ,(0),cgroup,App::Prop_Output,"Geometry format Save/Restore");
-    EXTENSION_ADD_PROPERTY_TYPE(GeomFormats ,(0),cgroup,App::Prop_Output,"Geometry format Save/Restore");
+    EXTENSION_ADD_PROPERTY_TYPE(CosmeticVertexes, (nullptr), cgroup, App::Prop_Output, "CosmeticVertex Save/Restore");
+    EXTENSION_ADD_PROPERTY_TYPE(CosmeticEdges, (nullptr), cgroup, App::Prop_Output, "CosmeticEdge Save/Restore");
+    EXTENSION_ADD_PROPERTY_TYPE(CenterLines ,(nullptr),cgroup,App::Prop_Output,"Geometry format Save/Restore");
+    EXTENSION_ADD_PROPERTY_TYPE(GeomFormats ,(nullptr),cgroup,App::Prop_Output,"Geometry format Save/Restore");
 
     initExtensionType(CosmeticExtension::getExtensionClassTypeId());
 }
@@ -111,17 +111,14 @@ TechDraw::CosmeticVertex* CosmeticExtension::getCosmeticVertexBySelection(std::s
     CosmeticVertex* result = nullptr;
     App::DocumentObject* extObj = const_cast<App::DocumentObject*> (getExtendedObject());
     TechDraw::DrawViewPart* dvp = dynamic_cast<TechDraw::DrawViewPart*>(extObj);
-    if (dvp == nullptr) {
+    if (!dvp)
         return result;
-    }
     int idx = DrawUtil::getIndexFromName(name);
     TechDraw::VertexPtr v = dvp->getProjVertexByIndex(idx);
-    if (v == nullptr) {
+    if (!v)
         return result;
-    }
-    if (!v->cosmeticTag.empty()) {
+    if (!v->cosmeticTag.empty())
         result = getCosmeticVertex(v->cosmeticTag);
-    }
     return result;
 }
 
@@ -219,18 +216,15 @@ TechDraw::CosmeticEdge* CosmeticExtension::getCosmeticEdgeBySelection(std::strin
     CosmeticEdge* result = nullptr;
     App::DocumentObject* extObj = const_cast<App::DocumentObject*> (getExtendedObject());
     TechDraw::DrawViewPart* dvp = dynamic_cast<TechDraw::DrawViewPart*>(extObj);
-    if (dvp == nullptr) {
+    if (!dvp)
         return result;
-    }
     int idx = DrawUtil::getIndexFromName(name);
     TechDraw::BaseGeomPtr base = dvp->getGeomByIndex(idx);
-    if (base == nullptr) {
+    if (!base)
         return result;
-    }
     
-    if (!base->getCosmeticTag().empty()) {
+    if (!base->getCosmeticTag().empty())
         result = getCosmeticEdge(base->getCosmeticTag());
-    }
     return result;
 }
 
@@ -281,7 +275,8 @@ std::string CosmeticExtension::addCenterLine(Base::Vector3d start,
                                                Base::Vector3d end)
 {
 //    Base::Console().Message("CEx::addCenterLine(%s)\n",
- //                           DrawUtil::formatVector(pos).c_str());
+//                            DrawUtil::formatVector(start).c_str(),
+//                            DrawUtil::formatVector(end).c_str());
     std::vector<CenterLine*> cLines = CenterLines.getValues();
     TechDraw::CenterLine* cl = new TechDraw::CenterLine(start, end);
     cLines.push_back(cl);
@@ -337,17 +332,14 @@ TechDraw::CenterLine* CosmeticExtension::getCenterLineBySelection(std::string na
     CenterLine* result = nullptr;
     App::DocumentObject* extObj = const_cast<App::DocumentObject*> (getExtendedObject());
     TechDraw::DrawViewPart* dvp = dynamic_cast<TechDraw::DrawViewPart*>(extObj);
-    if (dvp == nullptr) {
+    if (!dvp)
         return result;
-    }
     int idx = DrawUtil::getIndexFromName(name);
     TechDraw::BaseGeomPtr base = dvp->getGeomByIndex(idx);
-    if (base == nullptr) {
+    if (!base)
         return result;
-    }
-    if (!base->getCosmeticTag().empty()) {
+    if (!base->getCosmeticTag().empty())
         result = getCenterLine(base->getCosmeticTag());
-    }
     return result;
 }
 
@@ -429,9 +421,8 @@ TechDraw::GeomFormat* CosmeticExtension::getGeomFormatBySelection(std::string na
     GeomFormat* result = nullptr;
     App::DocumentObject* extObj = const_cast<App::DocumentObject*> (getExtendedObject());
     TechDraw::DrawViewPart* dvp = dynamic_cast<TechDraw::DrawViewPart*>(extObj);
-    if (dvp == nullptr) {
+    if (!dvp)
         return result;
-    }
     int idx = DrawUtil::getIndexFromName(name);
     const std::vector<TechDraw::GeomFormat*> formats = GeomFormats.getValues();
     for (auto& gf: formats) {

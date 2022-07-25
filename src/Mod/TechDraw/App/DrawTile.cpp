@@ -47,7 +47,7 @@ DrawTile::DrawTile(void)
 {
     static const char *group = "Tile";
 
-    ADD_PROPERTY_TYPE(TileParent,(0),group,(App::PropertyType)(App::Prop_None),
+    ADD_PROPERTY_TYPE(TileParent,(nullptr),group,(App::PropertyType)(App::Prop_None),
                       "Object to which this tile is attached");
     ADD_PROPERTY_TYPE(TileRow, (0), group, App::Prop_None, "Row in parent object\n 0 for arrow side, -1 for other side");
     ADD_PROPERTY_TYPE(TileColumn, (0), group, App::Prop_None, "Column in parent object");
@@ -101,15 +101,7 @@ void DrawTile::handleChangedPropertyType(Base::XMLReader &reader, const char *Ty
 DrawView* DrawTile::getParent(void) const
 {
 //    Base::Console().Message("DT::getParent() - %s\n", getNameInDocument());
-    DrawView* result = nullptr;
-    App::DocumentObject* baseObj = TileParent.getValue();
-    if (baseObj != nullptr) {
-        DrawView* cast = dynamic_cast<DrawView*>(baseObj);
-        if (cast != nullptr) {
-            result = cast;
-        }
-    }
-    return result;
+    return dynamic_cast<DrawView*>(TileParent.getValue());
 }
 
 PyObject *DrawTile::getPyObject(void)

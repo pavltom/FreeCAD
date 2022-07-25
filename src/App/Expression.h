@@ -23,22 +23,21 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
+#include <deque>
+#include <set>
 #include <string>
-#include <tuple>
-#include <Base/Exception.h>
-#include <Base/Unit.h>
+
 #include <App/PropertyLinks.h>
 #include <App/ObjectIdentifier.h>
-#include <Base/BaseClass.h>
-#include <Base/Quantity.h>
-#include <set>
-#include <deque>
 #include <App/Range.h>
+#include <Base/Exception.h>
+#include <Base/BaseClass.h>
 
-#if defined(__clang__)
-# pragma clang diagnostic push
-# pragma clang diagnostic ignored "-Woverloaded-virtual"
-#endif
+
+namespace Base
+{
+class Quantity;
+}
 
 namespace App  {
 
@@ -49,7 +48,7 @@ class Document;
 typedef std::unique_ptr<Expression> ExpressionPtr;
 
 AppExport bool isAnyEqual(const App::any &v1, const App::any &v2);
-AppExport Base::Quantity anyToQuantity(const App::any &value, const char *errmsg = 0);
+AppExport Base::Quantity anyToQuantity(const App::any &value, const char *errmsg = nullptr);
 
 // Map of depending objects to a map of depending property name to the full referencing object identifier
 typedef std::map<App::DocumentObject*, std::map<std::string, std::vector<ObjectIdentifier> > > ExpressionDeps;
@@ -61,7 +60,7 @@ public:
     virtual void aboutToChange() {}
     virtual int changed() const { return 0;}
     virtual void reset() {}
-    virtual App::PropertyLinkBase* getPropertyLink() {return 0;}
+    virtual App::PropertyLinkBase* getPropertyLink() {return nullptr;}
 
 protected:
     void getIdentifiers(Expression &e, std::map<App::ObjectIdentifier, bool> &); 
@@ -146,8 +145,8 @@ public:
     void getDeps(ExpressionDeps &deps, int option=DepNormal) const;
     ExpressionDeps getDeps(int option=DepNormal) const;
 
-    std::map<App::DocumentObject*,bool> getDepObjects(std::vector<std::string> *labels=0) const;
-    void getDepObjects(std::map<App::DocumentObject*,bool> &, std::vector<std::string> *labels=0) const;
+    std::map<App::DocumentObject*,bool> getDepObjects(std::vector<std::string> *labels=nullptr) const;
+    void getDepObjects(std::map<App::DocumentObject*,bool> &, std::vector<std::string> *labels=nullptr) const;
 
     ExpressionPtr importSubNames(const std::map<std::string,std::string> &nameMap) const;
 
@@ -176,8 +175,8 @@ public:
     typedef std::vector<Component*> ComponentList;
 
     static Component *createComponent(const std::string &n);
-    static Component *createComponent(Expression *e1, Expression *e2=0,
-            Expression *e3=0, bool isRange=false);
+    static Component *createComponent(Expression *e1, Expression *e2=nullptr,
+            Expression *e3=nullptr, bool isRange=false);
 
     bool hasComponent() const {return !components.empty();}
 
@@ -223,9 +222,5 @@ public:
 };
 
 }
-
-#if defined(__clang__)
-# pragma clang diagnostic pop
-#endif
 
 #endif // EXPRESSION_H

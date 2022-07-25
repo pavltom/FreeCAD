@@ -21,21 +21,21 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
+#ifndef _PreComp_
 #include <QApplication>
-#include <QPainter>
-#include <QDesktopWidget>
 #include <QMenu>
 #include <QMouseEvent>
+#endif
+
+#include <App/Application.h>
+#include <App/DocumentObject.h>
+#include <App/ExpressionParser.h>
+#include <Base/Tools.h>
 
 #include "DlgExpressionInput.h"
 #include "ui_DlgExpressionInput.h"
-#include "ExpressionCompleter.h"
 #include "Tools.h"
-#include <Base/Tools.h>
-#include <Base/Console.h>
-#include <App/Application.h>
-#include <App/ExpressionParser.h>
-#include <App/DocumentObject.h>
+
 
 using namespace App;
 using namespace Gui::Dialog;
@@ -45,13 +45,13 @@ DlgExpressionInput::DlgExpressionInput(const App::ObjectIdentifier & _path,
                                        const Base::Unit & _impliedUnit, QWidget *parent)
   : QDialog(parent)
   , ui(new Ui::DlgExpressionInput)
-  , expression(_expression ? _expression->copy() : 0)
+  , expression(_expression ? _expression->copy() : nullptr)
   , path(_path)
   , discarded(false)
   , impliedUnit(_impliedUnit)
   , minimumWidth(10)
 {
-    assert(path.getDocumentObject() != 0);
+    assert(path.getDocumentObject());
 
     // Setup UI
     ui->setupUi(this);
@@ -118,6 +118,14 @@ QPoint DlgExpressionInput::expressionPosition() const
 
 void DlgExpressionInput::textChanged(const QString &text)
 {
+    if (text.isEmpty()) {
+        ui->okBtn->setDisabled(true);
+        ui->discardBtn->setDefault(true);
+        return;
+    }
+
+    ui->okBtn->setDefault(true);
+
     try {
         //resize the input field according to text size
         QFontMetrics fm(ui->expression->font());
@@ -206,53 +214,13 @@ void DlgExpressionInput::setExpressionInputSize(int width, int height)
 
 void DlgExpressionInput::mouseReleaseEvent(QMouseEvent* ev)
 {
-#if 0//defined(Q_OS_WIN)
-    if (QWidget::mouseGrabber() == this) {
-        QList<QWidget*> childs = this->findChildren<QWidget*>();
-        for (QList<QWidget*>::iterator it = childs.begin(); it != childs.end(); ++it) {
-            QPoint pos = (*it)->mapFromGlobal(ev->globalPos());
-            if ((*it)->rect().contains(pos)) {
-                // Create new mouse event with the correct local position
-                QMouseEvent me(ev->type(), pos, ev->globalPos(), ev->button(), ev->buttons(), ev->modifiers());
-                QObject* obj = *it;
-                obj->event(&me);
-                if (me.isAccepted()) {
-                    break;
-                }
-            }
-        }
-    }
-#else
     Q_UNUSED(ev);
-#endif
 }
 
 void DlgExpressionInput::mousePressEvent(QMouseEvent* ev)
 {
-#if 0//defined(Q_OS_WIN)
-    bool handled = false;
-    if (QWidget::mouseGrabber() == this) {
-        QList<QWidget*> childs = this->findChildren<QWidget*>();
-        for (QList<QWidget*>::iterator it = childs.begin(); it != childs.end(); ++it) {
-            QPoint pos = (*it)->mapFromGlobal(ev->globalPos());
-            if ((*it)->rect().contains(pos)) {
-                // Create new mouse event with the correct local position
-                QMouseEvent me(ev->type(), pos, ev->globalPos(), ev->button(), ev->buttons(), ev->modifiers());
-                QObject* obj = *it;
-                obj->event(&me);
-                if (me.isAccepted()) {
-                    handled = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (handled)
-        return;
-#else
     Q_UNUSED(ev);
-#endif
+
     // The 'FramelessWindowHint' is also set when the background is transparent.
     if (windowFlags() & Qt::FramelessWindowHint) {
         //we need to reject the dialog when clicked on the background. As the background is transparent
@@ -273,17 +241,6 @@ void DlgExpressionInput::show()
 void DlgExpressionInput::showEvent(QShowEvent* ev)
 {
     QDialog::showEvent(ev);
-
-#if 0//defined(Q_OS_WIN)
-    // This way we can fetch click events outside modal dialogs
-    QWidget* widget = QApplication::activeModalWidget();
-    if (widget) {
-        QList<QWidget*> childs = widget->findChildren<QWidget*>();
-        if (childs.contains(this)) {
-            this->grabMouse();
-        }
-    }
-#endif
 }
 
 bool DlgExpressionInput::eventFilter(QObject *obj, QEvent *ev)
@@ -307,7 +264,6 @@ bool DlgExpressionInput::eventFilter(QObject *obj, QEvent *ev)
             }
         }
     }
-
     return false;
 }
 

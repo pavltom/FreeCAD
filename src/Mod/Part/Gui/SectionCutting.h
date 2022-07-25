@@ -24,9 +24,7 @@
 #define PARTGUI_SECTIONCUTTING_H
 
 #include <QDialog>
-#include <App/DocumentObject.h>
 
-namespace Gui { class View3DInventor; }
 
 namespace PartGui {
 
@@ -37,7 +35,7 @@ class SectionCut : public QDialog
     Q_OBJECT
 
 public:
-    static SectionCut* makeDockWidget(Gui::View3DInventor*);
+    static SectionCut* makeDockWidget(QWidget* parent = nullptr);
     SectionCut(QWidget* parent = nullptr);
     ~SectionCut();
 
@@ -51,18 +49,24 @@ protected Q_SLOTS:
     void onCutXHSsliderMoved(int);
     void onCutYHSsliderMoved(int);
     void onCutZHSsliderMoved(int);
+    void onCutXHSChanged(int);
+    void onCutYHSChanged(int);
+    void onCutZHSChanged(int);
     void onFlipXclicked();
     void onFlipYclicked();
     void onFlipZclicked();
     void onRefreshCutPBclicked();
+    void onCutColorclicked();
+    void onTransparencySliderMoved(int);
+    void onTransparencyChanged(int);
 
 public:
     void reject();
 
 private:
     Ui_SectionCut* ui;
-    std::vector<App::DocumentObject*> ObjectsListVisible;
-    App::Document* doc; //pointer to active document
+    std::vector<App::DocumentObjectT> ObjectsListVisible;
+    App::Document* doc = nullptr; // pointer to active document
     bool hasBoxX = false;
     bool hasBoxY = false;
     bool hasBoxZ = false;
@@ -72,6 +76,8 @@ private:
     SbBox3f getViewBoundingBox();
     void refreshCutRanges(SbBox3f, bool forXValue = true, bool forYValue = true, bool forZValue = true,
         bool forXRange = true, bool forYRange = true, bool forZRange = true);
+    void CutValueHelper(double val, QDoubleSpinBox* SpinBox, QSlider* Slider);
+    void FlipClickedHelper(const char* BoxName);
     const char* CompoundName = "SectionCutCompound";
     const char* BoxXName = "SectionCutBoxX";
     const char* BoxYName = "SectionCutBoxY";

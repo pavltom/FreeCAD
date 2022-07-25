@@ -20,15 +20,14 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <algorithm>
 # include <limits>
-# include <QWidget>
-# include <QIcon>
 # include <QDir>
+# include <QIcon>
+# include <QWidget>
 #endif
+
 #include <QMetaType>
 
 // Uncomment this block to remove PySide C++ support and switch to its Python interface
@@ -113,6 +112,12 @@ PyTypeObject** SbkPySide2_QtWidgetsTypes=nullptr;
 # pragma clang diagnostic pop
 #elif defined (__GNUC__)
 # pragma GCC diagnostic pop
+#endif
+
+// Must be imported after PySide headers
+#ifndef _PreComp_
+# include <QGraphicsItem>
+# include <QGraphicsObject>
 #endif
 
 #include <App/Application.h>
@@ -358,7 +363,7 @@ QObject* PythonWrapper::toQObject(const Py::Object& pyobject)
     return reinterpret_cast<QObject*>(ptr);
 #endif
 
-#if 0 // Unwrapping using sip/PyQt
+#ifdef HAVE_PYQT // Unwrapping using sip/PyQt
     void* ptr = qt_getCppPointer(pyobject, "sip", "unwrapinstance");
     return reinterpret_cast<QObject*>(ptr);
 #endif
@@ -369,7 +374,7 @@ QObject* PythonWrapper::toQObject(const Py::Object& pyobject)
 QGraphicsItem* PythonWrapper::toQGraphicsItem(PyObject* pyPtr)
 {
 #if defined (HAVE_SHIBOKEN) && defined(HAVE_PYSIDE)
-    PyTypeObject* type = getPyTypeObjectForTypeName<QObject>();
+    PyTypeObject* type = getPyTypeObjectForTypeName<QGraphicsItem>();
     if (type) {
         if (Shiboken::Object::checkType(pyPtr)) {
             SbkObject* sbkobject = reinterpret_cast<SbkObject*>(pyPtr);
@@ -382,6 +387,26 @@ QGraphicsItem* PythonWrapper::toQGraphicsItem(PyObject* pyPtr)
     //
     void* ptr = qt_getCppPointer(Py::asObject(pyPtr), "shiboken2", "getCppPointer");
     return reinterpret_cast<QGraphicsItem*>(ptr);
+#endif
+    return nullptr;
+}
+
+QGraphicsObject* PythonWrapper::toQGraphicsObject(PyObject* pyPtr)
+{
+#if defined (HAVE_SHIBOKEN) && defined(HAVE_PYSIDE)
+    PyTypeObject* type = getPyTypeObjectForTypeName<QGraphicsObject>();
+    if (type) {
+        if (Shiboken::Object::checkType(pyPtr)) {
+            SbkObject* sbkobject = reinterpret_cast<SbkObject*>(pyPtr);
+            void* cppobject = Shiboken::Object::cppPointer(sbkobject, type);
+            return reinterpret_cast<QGraphicsObject*>(cppobject);
+        }
+    }
+#else
+    // Access shiboken2/PySide2 via Python
+    //
+    void* ptr = qt_getCppPointer(Py::asObject(pyPtr), "shiboken2", "getCppPointer");
+    return reinterpret_cast<QGraphicsObject*>(ptr);
 #endif
     return nullptr;
 }
@@ -474,7 +499,7 @@ Py::Object PythonWrapper::fromQObject(QObject* object, const char* className)
     //
     return qt_wrapInstance<QObject*>(object, className, "shiboken2", "PySide2.QtCore", "wrapInstance");
 #endif
-#if 0 // Unwrapping using sip/PyQt
+#ifdef HAVE_PYQT // Unwrapping using sip/PyQt
     Q_UNUSED(className);
     return qt_wrapInstance<QObject*>(object, "QObject", "sip", "PyQt5.QtCore", "wrapinstance");
 #endif
@@ -504,7 +529,7 @@ Py::Object PythonWrapper::fromQWidget(QWidget* widget, const char* className)
     return qt_wrapInstance<QWidget*>(widget, className, "shiboken2", "PySide2.QtWidgets", "wrapInstance");
 #endif
 
-#if 0 // Unwrapping using sip/PyQt
+#ifdef HAVE_PYQT // Unwrapping using sip/PyQt
     Q_UNUSED(className);
     return qt_wrapInstance<QWidget*>(widget, "QWidget", "sip", "PyQt5.QtWidgets", "wrapinstance");
 #endif

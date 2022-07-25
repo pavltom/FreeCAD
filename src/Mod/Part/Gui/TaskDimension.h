@@ -62,7 +62,7 @@ namespace PartGui
    * @param sub sub-object name to search.
    * @return signal if the search was successful.
    */
-  bool getShapeFromStrings(TopoDS_Shape &shapeOut, const std::string &doc, const std::string &object, const std::string &sub, Base::Matrix4D *mat=0);
+  bool getShapeFromStrings(TopoDS_Shape &shapeOut, const std::string &doc, const std::string &object, const std::string &sub, Base::Matrix4D *mat=nullptr);
   /*!examine pre selection
    * @param shape1 first shape in current selection
    * @param shape2 second shape in current selection
@@ -108,7 +108,10 @@ namespace PartGui
   void ensure3dDimensionVisible();
   /*convert a vertex to vector*/
   gp_Vec convert(const TopoDS_Vertex &vertex);
-  
+
+  auto getDimensionsFontName();
+  auto getDimensionsFontSize();
+
 class DimensionLinear : public SoSeparatorKit
 {
   SO_KIT_HEADER(DimensionLinear);
@@ -190,7 +193,7 @@ class SteppedSelection : public QWidget
 {
   Q_OBJECT
 public:
-  SteppedSelection(const uint &buttonCountIn, QWidget *parent = 0);
+  SteppedSelection(const uint &buttonCountIn, QWidget *parent = nullptr);
   ~SteppedSelection();
   QPushButton* getButton(const uint &index);
   void setIconDone(const uint &index);

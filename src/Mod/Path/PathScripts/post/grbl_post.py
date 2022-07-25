@@ -407,6 +407,8 @@ def export(objectslist, filename, argstring):
     gfile.write(final)
     gfile.close()
 
+    return final
+
 
 def linenumber():
     if not OUTPUT_LINE_NUMBERS:
@@ -505,7 +507,9 @@ def parse(pathobj):
                                         precision_string,
                                     )
                                 )
-                    elif param in ["T", "H", "D", "S", "P", "L"]:
+                    elif param in ["T", "H", "S"]:
+                        outstring.append(param + str(int(c.Parameters[param])))
+                    elif param in ["D", "P", "L"]:
                         outstring.append(param + str(c.Parameters[param]))
                     elif param in ["A", "B", "C"]:
                         outstring.append(
@@ -580,7 +584,7 @@ def parse(pathobj):
                 out += linenumber() + format_outstring(outstring) + "\n"
 
             # Check for comments containing machine-specific commands to pass literally to the controller
-            m = re.match(r'^\(MC_RUN_COMMAND: ([^)]+)\)$', command)
+            m = re.match(r"^\(MC_RUN_COMMAND: ([^)]+)\)$", command)
             if m:
                 raw_command = m.group(1)
                 out += linenumber() + raw_command + "\n"

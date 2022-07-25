@@ -24,16 +24,12 @@
 #ifndef APP_EXTENSIONCONTAINER_H
 #define APP_EXTENSIONCONTAINER_H
 
-#include "Extension.h"
 #include "PropertyContainer.h"
-#include "PropertyPythonObject.h"
-#include "DynamicProperty.h"
-#include <CXX/Objects.hxx>
-#include <Base/Writer.h>
-#include <Base/Reader.h>
+
 
 namespace App {
 
+class Extension;
 /**
  * @brief Container which can hold extensions
  *
@@ -141,7 +137,7 @@ public:
     template<typename ExtensionT>
     std::vector<ExtensionT*> getExtensionsDerivedFromType() const {
         std::vector<ExtensionT*> typevec;
-        for(auto entry : _extensions) {
+        for(const auto& entry : _extensions) {
             if(entry.first.isDerivedFrom(ExtensionT::getExtensionClassTypeId()))
                 typevec.push_back(static_cast<ExtensionT*>(entry.second));
         }

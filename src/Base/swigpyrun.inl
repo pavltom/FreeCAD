@@ -35,8 +35,8 @@ int createSWIGPointerObj_T(const char* TypeName, void* obj, PyObject** ptr, int 
         throw Base::RuntimeError(str.str());
     }
     
-    *ptr = SWIG_NewPointerObj(obj,swig_type,own);
-    if (*ptr == nullptr)
+    *ptr = SWIG_NewPointerObj(obj, swig_type, own);
+    if (!*ptr)
         throw Base::RuntimeError("Cannot convert into requested type");
 
     // success
@@ -51,6 +51,7 @@ int convertSWIGPointerObj_T(const char* TypeName, PyObject* obj, void** ptr, int
 
     swig_type_info * swig_type = nullptr;
     swig_type = SWIG_TypeQuery(TypeName);
+
     if (!swig_type)
         throw Base::RuntimeError("Cannot find type information for requested type");
 
@@ -76,13 +77,13 @@ void cleanupSWIG_T(const char* TypeName)
     PyObject *module, *dict;
     PyObject *modules = PyImport_GetModuleDict();
     module = PyDict_GetItemString(modules, "__builtin__");
-    if (module != nullptr && PyModule_Check(module)) {
+    if (module && PyModule_Check(module)) {
         dict = PyModule_GetDict(module);
         PyDict_SetItemString(dict, "_", Py_None);
     }
 
     module = PyDict_GetItemString(modules, "__main__");
-    if (module != nullptr && PyModule_Check(module)) {
+    if (module && PyModule_Check(module)) {
         PyObject* dict = PyModule_GetDict(module);
         if (!dict) return;
 
@@ -100,4 +101,31 @@ void cleanupSWIG_T(const char* TypeName)
 
     // Run garbage collector
     PyGC_Collect();
+}
+
+int getSWIGPointerTypeObj_T(const char* TypeName, PyTypeObject** ptr)
+{
+    swig_module_info *module = SWIG_GetModule(nullptr);
+    if (!module)
+        return 1;
+
+    swig_type_info * swig_type = nullptr;
+    SwigPyClientData* clientData = nullptr;
+    PyTypeObject* pyType = nullptr;
+    swig_type = SWIG_TypeQuery(TypeName);
+    if (swig_type)
+        clientData = static_cast<SwigPyClientData*>(swig_type->clientdata);
+
+    if (clientData)
+        pyType = reinterpret_cast<PyTypeObject*>(clientData->newargs);
+
+    if (!pyType) {
+        std::stringstream str;
+        str << "SWIG: Cannot find type information for requested type: " << TypeName;
+        throw Base::RuntimeError(str.str());
+    }
+
+    *ptr = pyType;
+
+    return 0;
 }

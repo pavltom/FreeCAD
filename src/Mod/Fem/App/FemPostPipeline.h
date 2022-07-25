@@ -20,17 +20,16 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef Fem_FemPostPipeline_H
 #define Fem_FemPostPipeline_H
 
-#include "FemPostObject.h"
 #include "FemPostFilter.h"
 #include "FemPostFunction.h"
+#include "FemPostObject.h"
 #include "FemResultObject.h"
 
 #include <vtkSmartPointer.h>
-#include <vtkDataSet.h>
+
 
 namespace Fem
 {
@@ -59,6 +58,7 @@ public:
     //load data from files
     static bool canRead(Base::FileInfo file);
     void read(Base::FileInfo file);
+    void scale(double s);
 
     //load from results
     void load(FemResultObject* res);

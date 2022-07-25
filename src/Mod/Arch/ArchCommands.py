@@ -427,7 +427,8 @@ def getCutVolume(cutplane,shapes,clip=False,depth=None):
         return None,None,None
     ce = p.CenterOfMass
     ax = p.normalAt(0,0)
-    u = p.Vertexes[1].Point.sub(p.Vertexes[0].Point).normalize()
+    prm_range = p.ParameterRange # (uMin, uMax, vMin, vMax)
+    u = p.valueAt(prm_range[0], 0).sub(p.valueAt(prm_range[1], 0)).normalize()
     v = u.cross(ax)
     if not bb.isCutPlane(ce,ax):
         #FreeCAD.Console.PrintMessage(translate("Arch","No objects are cut by the plane)+"\n")
@@ -913,8 +914,6 @@ def survey(callback=False):
                                     elif "Edge" in el:
                                         u= FreeCAD.Units.Quantity(e.Length,FreeCAD.Units.Length)
                                         t = u.getUserPreferred()[0]
-                                        if sys.version_info.major < 3:
-                                            t = t.encode("utf8")
                                         anno.LabelText = "l " + t
                                         FreeCAD.Console.PrintMessage("Object: " + n + ", Element: " + el + ", Length: " + utf8_decode(t) + "\n")
                                         FreeCAD.SurveyObserver.totalLength += u.Value
@@ -923,7 +922,6 @@ def survey(callback=False):
                                     elif "Vertex" in el:
                                         u = FreeCAD.Units.Quantity(e.Z,FreeCAD.Units.Length)
                                         t = u.getUserPreferred()[0]
-                                        t = t.encode("utf8")
                                         anno.LabelText = "z " + t
                                         FreeCAD.Console.PrintMessage("Object: " + n + ", Element: " + el + ", Zcoord: " + utf8_decode(t) + "\n")
                                     if FreeCAD.GuiUp and t:
@@ -1706,7 +1704,7 @@ class _ToggleSubs:
                         if mode is None:
                             # take the first sub as base
                             mode = sub.ViewObject.isVisible()
-                        if mode == True:
+                        if mode:
                             sub.ViewObject.hide()
                         else:
                             sub.ViewObject.show()

@@ -24,14 +24,13 @@
 #define PART_FACEMAKER_BULLSEYE_H
 
 #include "FaceMaker.h"
-#include <list>
 
 #include <Geom_Surface.hxx>
 #include <gp_Pln.hxx>
 
+
 namespace Part
 {
-
 
 /**
  * @brief The FaceMakerBullseye class is a tool to make planar faces with holes,

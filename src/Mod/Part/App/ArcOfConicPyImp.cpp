@@ -20,19 +20,18 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <Geom_TrimmedCurve.hxx>
 #endif
 
-#include "Geometry.h"
-#include <Mod/Part/App/ArcOfConicPy.h>
-#include <Mod/Part/App/ArcOfConicPy.cpp>
-#include "OCCError.h"
-
 #include <Base/GeometryPyCXX.h>
 #include <Base/VectorPy.h>
+
+#include "ArcOfConicPy.h"
+#include "ArcOfConicPy.cpp"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -47,7 +46,7 @@ PyObject *ArcOfConicPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  //
     // never create such objects with the constructor
     PyErr_SetString(PyExc_RuntimeError,
         "You cannot create an instance of the abstract class 'ArcOfConic'.");
-    return 0;
+    return nullptr;
 }
 
 // constructor method
@@ -234,7 +233,7 @@ void  ArcOfConicPy::setYAxis(Py::Object arg)
 
 PyObject *ArcOfConicPy::getCustomAttributes(const char* ) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ArcOfConicPy::setCustomAttributes(const char* , PyObject *)

@@ -23,7 +23,6 @@ include_directories(
     ${PYTHON_INCLUDE_DIRS}
     ${OCC_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIR}
-    ${XercesC_INCLUDE_DIRS}
 )
 
 if(BUILD_QT5)
@@ -68,6 +67,7 @@ set(TechDrawGui_UIC_SRCS
     TaskBalloon.ui
     TaskCosmeticLine.ui
     TaskSelectLineAttributes.ui
+    TaskCustomizeFormat.ui
     TaskCosVertex.ui
     TaskCenterLine.ui
     TaskDetail.ui
@@ -82,6 +82,7 @@ set(TechDrawGui_UIC_SRCS
     TaskRichAnno.ui
     TaskSectionView.ui
     TaskWeldingSymbol.ui
+    TaskSurfaceFinishSymbols.ui
     SymbolChooser.ui
     TaskMoveView.ui
     TaskProjection.ui
@@ -146,9 +147,6 @@ SET(TechDrawGui_SRCS
     DlgPrefsTechDrawHLR.ui
     DlgPrefsTechDrawHLRImp.cpp
     DlgPrefsTechDrawHLRImp.h
-    TaskLinkDim.ui
-    TaskLinkDim.cpp
-    TaskLinkDim.h
     DlgTemplateField.ui
     DlgTemplateField.cpp
     DlgTemplateField.h
@@ -182,13 +180,22 @@ SET(TechDrawGui_SRCS
     TaskLineDecor.ui
     TaskLineDecor.cpp
     TaskLineDecor.h
+    TaskLinkDim.ui
+    TaskLinkDim.cpp
+    TaskLinkDim.h
     TaskRestoreLines.ui
     TaskWeldingSymbol.ui
     TaskWeldingSymbol.cpp
     TaskWeldingSymbol.h
+    TaskSurfaceFinishSymbols.ui
+    TaskSurfaceFinishSymbols.cpp
+    TaskSurfaceFinishSymbols.h
     TaskSelectLineAttributes.ui
     TaskSelectLineAttributes.cpp
     TaskSelectLineAttributes.h
+    TaskCustomizeFormat.ui
+    TaskCustomizeFormat.cpp
+    TaskCustomizeFormat.h
     DrawGuiUtil.cpp
     DrawGuiUtil.h
     Rez.cpp
@@ -220,6 +227,8 @@ SET(TechDrawGuiView_SRCS
     MDIViewPage.h
     QGVPage.cpp
     QGVPage.h
+    QGSPage.cpp
+    QGSPage.h
     QGCustomText.cpp
     QGCustomText.h
     QGICaption.cpp
@@ -312,6 +321,32 @@ SET(TechDrawGuiView_SRCS
     QGIGhostHighlight.cpp
     QGIGhostHighlight.h
 )
+
+SET(TechDrawGuiNav_SRCS
+    QGVNavStyle.cpp
+    QGVNavStyle.h
+    QGVNavStyleBlender.cpp
+    QGVNavStyleBlender.h
+    QGVNavStyleCAD.cpp
+    QGVNavStyleCAD.h
+    QGVNavStyleGesture.cpp
+    QGVNavStyleGesture.h
+    QGVNavStyleInventor.cpp
+    QGVNavStyleInventor.h
+    QGVNavStyleMaya.cpp
+    QGVNavStyleMaya.h
+    QGVNavStyleOCC.cpp
+    QGVNavStyleOCC.h
+    QGVNavStyleOpenSCAD.cpp
+    QGVNavStyleOpenSCAD.h
+    QGVNavStyleRevit.cpp
+    QGVNavStyleRevit.h
+    QGVNavStyleTinkerCAD.cpp
+    QGVNavStyleTinkerCAD.h
+    QGVNavStyleTouchpad.cpp
+    QGVNavStyleTouchpad.h
+)
+
 SET(TechDrawGuiViewProvider_SRCS
     ViewProviderPage.cpp
     ViewProviderPage.h
@@ -357,11 +392,6 @@ SET(TechDrawGuiViewProvider_SRCS
     ViewProviderCosmeticExtension.h 
 )
 
-SOURCE_GROUP("MRTE" FILES ${MRTE_SRCS})
-SOURCE_GROUP("Mod" FILES ${TechDrawGui_SRCS})
-SOURCE_GROUP("SVG-View" FILES ${TechDrawGuiView_SRCS})
-SOURCE_GROUP("ViewProvider" FILES ${TechDrawGuiViewProvider_SRCS})
-
 SET(TechDrawGuiTaskDlgs_SRCS
     TaskProjGroup.ui
     TaskLinkDim.ui
@@ -378,15 +408,22 @@ SET(TechDrawGuiTaskDlgs_SRCS
     TaskLineDecor.ui
     TaskRestoreLines.ui
     TaskWeldingSymbol.ui
+    TaskSurfaceFinishSymbols.ui
     SymbolChooser.ui
     TaskActiveView.ui
     TaskDetail.ui
     TaskCosmeticLine.ui
     TaskSelectLineAttributes.ui
+    TaskCustomizeFormat.ui
     TaskMoveView.ui
     TaskProjection.ui
-
 )
+
+SOURCE_GROUP("MRTE" FILES ${MRTE_SRCS})
+SOURCE_GROUP("Mod" FILES ${TechDrawGui_SRCS})
+SOURCE_GROUP("View" FILES ${TechDrawGuiView_SRCS})
+SOURCE_GROUP("Nav" FILES ${TechDrawGuiNav_SRCS})
+SOURCE_GROUP("ViewProvider" FILES ${TechDrawGuiViewProvider_SRCS})
 SOURCE_GROUP("TaskDialogs" FILES ${TechDrawGuiTaskDlgs_SRCS})
 
 SET(TechDrawGuiIcon_SVG
@@ -399,8 +436,16 @@ SET(TechDrawGuiFonts
     Resources/fonts/osifont.license
 )
 
+if(FREECAD_USE_PCH)
+    add_definitions(-D_PreComp_)
+    GET_MSVC_PRECOMPILED_SOURCE("PreCompiled.cpp" PCH_SRCS ${TechDrawGui_SRCS} ${TechDrawGuiView_SRCS}
+                                                           ${TechDrawGuiNav_SRCS}
+                                                           ${TechDrawGuiViewProvider_SRCS} ${MRTE_SRCS})
+    ADD_MSVC_PRECOMPILED_HEADER(TechDrawGui PreCompiled.h PreCompiled.cpp PCH_SRCS)
+endif(FREECAD_USE_PCH)
+
 add_library(TechDrawGui SHARED ${TechDrawGui_SRCS} ${TechDrawGuiView_SRCS} ${TechDrawGuiViewProvider_SRCS}
-                               ${TechDrawGuiIcon_SVG} ${TechDrawGuiFonts} ${MRTE_SRCS})
+                               ${TechDrawGuiNav_SRCS} ${TechDrawGuiIcon_SVG} ${TechDrawGuiFonts} ${MRTE_SRCS})
 target_link_libraries(TechDrawGui ${TechDrawGui_LIBS})
 
 fc_copy_sources(TechDrawGui "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_DATADIR}/Mod/TechDraw/" ${TechDrawGuiIcon_SVG})

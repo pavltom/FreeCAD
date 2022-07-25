@@ -131,9 +131,9 @@ class ToolController:
         # Enumeration lists for App::PropertyEnumeration properties
         enums = {
             "SpindleDir": [
-                (translate("Path_ToolController", "None"), "None"),
                 (translate("Path_ToolController", "Forward"), "Forward"),
                 (translate("Path_ToolController", "Reverse"), "Reverse"),
+                (translate("Path_ToolController", "None"), "None"),
             ],  # this is the direction that the profile runs
         }
 
@@ -155,7 +155,6 @@ class ToolController:
         obj.setEditorMode("Placement", 2)
 
     def onDelete(self, obj, arg2=None):
-        # pylint: disable=unused-argument
         if not self.usesLegacyTool(obj):
             if hasattr(obj.Tool, "InList") and len(obj.Tool.InList) == 1:
                 if hasattr(obj.Tool.Proxy, "onDelete"):
@@ -277,6 +276,7 @@ class ToolController:
                     args["spindledirection"] = SpindleDirection.CW
                 else:
                     args["spindledirection"] = SpindleDirection.CCW
+
         elif obj.SpindleDir == "None":
             args["spindledirection"] = SpindleDirection.OFF
         else:
@@ -367,12 +367,15 @@ def Create(
                 if tool.ViewObject:
                     tool.ViewObject.Visibility = False
         obj.Tool = tool
+
+        if hasattr(obj.Tool, "SpindleDirection"):
+            obj.SpindleDir = obj.Tool.SpindleDirection
+
     obj.ToolNumber = toolNumber
     return obj
 
 
 def FromTemplate(template, assignViewProvider=True):
-    # pylint: disable=unused-argument
     PathLog.track()
 
     name = template.get(ToolControllerTemplate.Name, ToolControllerTemplate.Label)

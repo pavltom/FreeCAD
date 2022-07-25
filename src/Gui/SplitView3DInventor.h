@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_SPLITVIEW3DINVENTOR_H
 #define GUI_SPLITVIEW3DINVENTOR_H
 
@@ -28,8 +27,8 @@
 #include "MDIViewPy.h"
 
 #include <Base/Parameter.h>
-#include <CXX/Extensions.hxx>
 #include <vector>
+
 
 namespace Gui {
 class View3DInventorViewer;
@@ -99,7 +98,7 @@ public:
     Py::Object viewTop(const Py::Tuple&);
     Py::Object viewIsometric(const Py::Tuple&);
     Py::Object getViewer(const Py::Tuple&);
-    Py::Object sequence_item(ssize_t);
+    Py::Object sequence_item(Py_ssize_t);
     Py::Object close(const Py::Tuple&);
     int sequence_length();
 

@@ -56,7 +56,7 @@ QWidget *SpreadsheetDelegate::createEditor(QWidget *parent,
     App::Range range(addr,addr);
     if(sheet && sheet->getCellBinding(range)) {
         FC_ERR("Bound cell " << addr.toString() << " cannot be edited");
-        return 0;
+        return nullptr;
     }
 
     SpreadsheetGui::LineEdit *editor = new SpreadsheetGui::LineEdit(parent);
@@ -109,7 +109,7 @@ static inline void drawBorder(QPainter *painter, const QStyleOptionViewItem &opt
 
     QRect rect = option.rect.adjusted(1,1,0,0);
     if(flags == Sheet::BorderAll) {
-        painter->drawRect(rect);
+        painter->drawRect(rect.adjusted(0,0,-1,-1));
         return;
     }
     if(flags & Sheet::BorderLeft) 

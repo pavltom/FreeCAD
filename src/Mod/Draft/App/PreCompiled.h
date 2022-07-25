@@ -26,15 +26,6 @@
 
 #include <FCConfig.h>
 
-// Exporting of App classes
-#ifdef FC_OS_WIN32
-# define DraftUtilsExport  __declspec(dllexport)
-# define PartExport __declspec(dllexport)
-#else // for Linux
-# define DraftUtilsExport
-# define PartExport
-#endif
-
 #ifdef _MSC_VER
 # pragma warning(disable : 4275)
 #endif
@@ -44,8 +35,8 @@
 // standard
 #include <iostream>
 #include <sstream>
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 #include <string>
 #include <map>
 #include <vector>

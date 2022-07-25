@@ -24,6 +24,7 @@
 
 #ifndef _PreComp_
 #include <cmath>
+#include <QTreeWidget>
 #endif // #ifndef _PreComp_
 
 #include <Base/Console.h>
@@ -143,37 +144,38 @@ void TaskLinkDim::loadToTree(const TechDraw::DrawViewDimension* dim, const bool 
 //! does this dim already have a reference to the selection?
 bool TaskLinkDim::dimReferencesSelection(const TechDraw::DrawViewDimension* dim) const
 {
-    bool result = false;
     if (!dim->has3DReferences()) {
-        return result;
+        return false;
     }
 
     std::vector<App::DocumentObject*> refParts = dim->References3D.getValues();
     std::vector<std::string> refSubs = dim->References3D.getSubValues();
-    if (refParts.size() == m_parts.size()) {
-        if(refParts.size() == 0) {
-            //shouldn't happen!
-        } else if (refParts.size() == 1) {
-            if ((refParts[0] == m_parts[0]) &&
-                 (refSubs[0] == m_subs[0]) ) {         //everything matches
-                result = true;
-            }
-        } else if (refParts.size() == 2) {
-            if (( (refParts[0] == m_parts[0]) &&
-                  (refParts[1] == m_parts[1]) )  &&
-                ( (refSubs[0] == m_subs[0])   &&
-                  (refSubs[1] == m_subs[1]) ) ) {
-                result = true;
-            } else if (( (refParts[0] == m_parts[1]) &&
-                         (refParts[1] == m_parts[0]) )  &&
-                       ( (refSubs[0] == m_subs[1])   &&
-                         (refSubs[1] == m_subs[0]) ) ) {
-                result = true;
-            }
+    if (refParts.size() != m_parts.size()) {
+        return false;
+    }
+
+    if(refParts.size() == 0) {
+        //shouldn't happen!
+    } else if (refParts.size() == 1) {
+        if ((refParts[0] == m_parts[0]) &&
+                (refSubs[0] == m_subs[0]) ) {         //everything matches
+            return true;
+        }
+    } else if (refParts.size() == 2) {
+        if (( (refParts[0] == m_parts[0]) &&
+                (refParts[1] == m_parts[1]) )  &&
+            ( (refSubs[0] == m_subs[0])   &&
+                (refSubs[1] == m_subs[1]) ) ) {
+            return true;
+        } else if (( (refParts[0] == m_parts[1]) &&
+                        (refParts[1] == m_parts[0]) )  &&
+                    ( (refSubs[0] == m_subs[1])   &&
+                        (refSubs[1] == m_subs[0]) ) ) {
+            return true;
         }
     }
 
-    return result;
+    return false;
 }
 
 void TaskLinkDim::updateDims()
@@ -209,7 +211,7 @@ void TaskLinkDim::updateDims()
            std::string DimName = dim->getNameInDocument();
            Gui::Command::doCommand(Gui::Command::Gui,"App.activeDocument().%s.MeasureType = \'%s\'",
                             DimName.c_str(),measureType.c_str());
-           dim->References3D.setValue(0,"");            //DVD.References3D
+           dim->References3D.setValue(nullptr,"");            //DVD.References3D
            dim->clear3DMeasurements();                  //DVD.measurement.References3D
         }
     }
@@ -266,7 +268,7 @@ TaskDlgLinkDim::TaskDlgLinkDim(std::vector<App::DocumentObject*> parts,std::vect
 {
     widget  = new TaskLinkDim(parts,subs,page);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("TechDraw_LinkDimension"),
-                                         widget->windowTitle(), true, 0);
+                                         widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

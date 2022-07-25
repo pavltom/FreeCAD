@@ -23,24 +23,16 @@
 #ifndef TECHDRAWGUI_TASKDETAIL_H
 #define TECHDRAWGUI_TASKDETAIL_H
 
-#include <App/DocumentObject.h>
 #include <Base/Vector3D.h>
-#include <Gui/TaskView/TaskView.h>
 #include <Gui/TaskView/TaskDialog.h>
+#include <Gui/TaskView/TaskView.h>
 
-#include <Mod/TechDraw/Gui/ui_TaskDetail.h>
 
 //TODO: make this a proper enum
 #define TRACKERPICK 0
 #define TRACKEREDIT 1
 #define TRACKERCANCEL 2
 #define TRACKERCANCELEDIT 3
-
-class Ui_TaskDetail;
-
-namespace App {
-class DocumentObject;
-}
 
 namespace TechDraw
 {
@@ -52,6 +44,7 @@ class DrawViewPart;
 
 namespace TechDrawGui
 {
+class QGSPage;
 class QGVPage;
 class QGIView;
 class QGIPrimPath;
@@ -60,6 +53,7 @@ class QGEPath;
 class QGIDetail;
 class QGIGhostHighlight;
 class ViewProviderLeader;
+class Ui_TaskDetail;
 
 class TaskDetail : public QWidget
 {
@@ -116,7 +110,7 @@ private:
     QGIGhostHighlight* m_ghost;
 
     MDIViewPage* m_mdi;
-    QGraphicsScene* m_scene;
+    QGSPage* m_scene;
     QGVPage* m_view;
     TechDraw::DrawViewDetail* m_detailFeat;
     TechDraw::DrawViewPart* m_baseFeat;

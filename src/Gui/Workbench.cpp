@@ -349,8 +349,8 @@ void Workbench::createLinkMenu(MenuItem *item) {
     *linkMenu << "Std_LinkMakeGroup" << "Std_LinkMake";
 
     auto &rMgr = Application::Instance->commandManager();
-    const char *cmds[] = {"Std_LinkMakeRelative",0,"Std_LinkUnlink","Std_LinkReplace",
-        "Std_LinkImport","Std_LinkImportAll",0,"Std_LinkSelectLinked",
+    const char *cmds[] = {"Std_LinkMakeRelative",nullptr,"Std_LinkUnlink","Std_LinkReplace",
+        "Std_LinkImport","Std_LinkImportAll",nullptr,"Std_LinkSelectLinked",
         "Std_LinkSelectLinkedFinal","Std_LinkSelectAllLinks"};
     bool separator = true;
     for(size_t i=0;i<sizeof(cmds)/sizeof(cmds[0]);++i) {
@@ -368,6 +368,38 @@ void Workbench::createLinkMenu(MenuItem *item) {
         }
     }
     *item << linkMenu;
+}
+
+std::vector<std::pair<std::string, std::string>> Workbench::staticMenuItems;
+
+void Workbench::addPermanentMenuItem(const std::string& cmd, const std::string& after)
+{
+    staticMenuItems.emplace_back(cmd, after);
+}
+
+void Workbench::removePermanentMenuItem(const std::string& cmd)
+{
+    auto it = std::find_if(staticMenuItems.begin(), staticMenuItems.end(), [cmd](const std::pair<std::string, std::string>& p) {
+        return (p.first == cmd);
+    });
+
+    if (it != staticMenuItems.end())
+        staticMenuItems.erase(it);
+}
+
+void  Workbench::addPermanentMenuItems(MenuItem* mb) const
+{
+    for (const auto& it : staticMenuItems) {
+        MenuItem* par = mb->findParentOf(it.second);
+        if (par) {
+            Gui::MenuItem* item = par->findItem(it.second);
+            item = par->afterItem(item);
+
+            Gui::MenuItem* add = new Gui::MenuItem();
+            add->setCommand(it.first);
+            par->insertItem(item, add);
+        }
+    }
 }
 
 void Workbench::activated()
@@ -395,6 +427,7 @@ bool Workbench::activate()
     delete dw;
 
     MenuItem* mb = setupMenuBar();
+    addPermanentMenuItems(mb);
     MenuManager::getInstance()->setup( mb );
     delete mb;
 
@@ -435,7 +468,7 @@ std::list<std::string> Workbench::listToolbars() const
     std::unique_ptr<ToolBarItem> tb(setupToolBars());
     std::list<std::string> bars;
     QList<ToolBarItem*> items = tb->getItems();
-    for (QList<ToolBarItem*>::ConstIterator item = items.begin(); item != items.end(); ++item)
+    for (QList<ToolBarItem*>::ConstIterator item = items.cbegin(); item != items.cend(); ++item)
         bars.push_back((*item)->command());
     return bars;
 }
@@ -446,10 +479,10 @@ std::list<std::pair<std::string, std::list<std::string>>> Workbench::getToolbarI
 
     std::list<std::pair<std::string, std::list<std::string>>> itemsList;
     QList<ToolBarItem*> items = tb->getItems();
-    for (QList<ToolBarItem*>::ConstIterator it = items.begin(); it != items.end(); ++it) {
+    for (QList<ToolBarItem*>::ConstIterator it = items.cbegin(); it != items.cend(); ++it) {
         QList<ToolBarItem*> sub = (*it)->getItems();
         std::list<std::string> cmds;
-        for (QList<ToolBarItem*>::ConstIterator jt = sub.begin(); jt != sub.end(); ++jt) {
+        for (QList<ToolBarItem*>::ConstIterator jt = sub.cbegin(); jt != sub.cend(); ++jt) {
             cmds.push_back((*jt)->command());
         }
 
@@ -463,7 +496,7 @@ std::list<std::string> Workbench::listMenus() const
     std::unique_ptr<MenuItem> mb(setupMenuBar());
     std::list<std::string> menus;
     QList<MenuItem*> items = mb->getItems();
-    for ( QList<MenuItem*>::ConstIterator it = items.begin(); it != items.end(); ++it )
+    for ( QList<MenuItem*>::ConstIterator it = items.cbegin(); it != items.cend(); ++it )
         menus.push_back((*it)->command());
     return menus;
 }
@@ -473,7 +506,7 @@ std::list<std::string> Workbench::listCommandbars() const
     std::unique_ptr<ToolBarItem> cb(setupCommandBars());
     std::list<std::string> bars;
     QList<ToolBarItem*> items = cb->getItems();
-    for (QList<ToolBarItem*>::ConstIterator item = items.begin(); item != items.end(); ++item)
+    for (QList<ToolBarItem*>::ConstIterator item = items.cbegin(); item != items.cend(); ++item)
         bars.push_back((*item)->command());
     return bars;
 }
@@ -717,8 +750,8 @@ MenuItem* StdWorkbench::setupMenuBar() const
     help->setCommand("&Help");
     *help << "Std_OnlineHelp" << "Std_FreeCADWebsite" << "Std_FreeCADDonation"
           << "Std_FreeCADUserHub" << "Std_FreeCADPowerUserHub"
-          << "Std_PythonHelp" << "Std_FreeCADForum"
-          << "Std_FreeCADFAQ" << "Std_About" << "Std_WhatsThis";
+          << "Std_PythonHelp" << "Std_FreeCADForum" << "Std_FreeCADFAQ"
+          << "Std_ReportBug" << "Std_About" << "Std_WhatsThis";
 
     return menuBar;
 }
@@ -965,12 +998,12 @@ MenuItem* TestWorkbench::setupMenuBar() const
 
 ToolBarItem* TestWorkbench::setupToolBars() const
 {
-    return 0;
+    return nullptr;
 }
 
 ToolBarItem* TestWorkbench::setupCommandBars() const
 {
-    return 0;
+    return nullptr;
 }
 
 // -----------------------------------------------------------------------
@@ -978,7 +1011,7 @@ ToolBarItem* TestWorkbench::setupCommandBars() const
 TYPESYSTEM_SOURCE_ABSTRACT(Gui::PythonBaseWorkbench, Gui::Workbench)
 
 PythonBaseWorkbench::PythonBaseWorkbench()
-  : _menuBar(0), _contextMenu(0), _toolBar(0), _commandBar(0), _workbenchPy(0)
+  : _menuBar(nullptr), _contextMenu(nullptr), _toolBar(nullptr), _commandBar(nullptr), _workbenchPy(nullptr)
 {
 }
 

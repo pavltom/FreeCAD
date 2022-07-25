@@ -106,7 +106,7 @@ DrawViewDetail::DrawViewDetail()
 {
     static const char *dgroup = "Detail";
 
-    ADD_PROPERTY_TYPE(BaseView ,(0),dgroup,App::Prop_None,"2D View source for this Section");
+    ADD_PROPERTY_TYPE(BaseView ,(nullptr),dgroup,App::Prop_None,"2D View source for this Section");
     BaseView.setScope(App::LinkScope::Global);
     ADD_PROPERTY_TYPE(AnchorPoint ,(0,0,0) ,dgroup,App::Prop_None,"Location of detail in BaseView");
     ADD_PROPERTY_TYPE(Radius,(10.0),dgroup, App::Prop_None, "Size of detail area");
@@ -127,15 +127,15 @@ DrawViewDetail::~DrawViewDetail()
 
 short DrawViewDetail::mustExecute() const
 {
-    short result = 0;
     if (!isRestoring()) {
-        result  = (AnchorPoint.isTouched() ||
-                   Radius.isTouched()     ||
-                   BaseView.isTouched()  ||
-                   Reference.isTouched());
-    }
-    if (result) {
-        return result;
+        if (
+            AnchorPoint.isTouched() ||
+            Radius.isTouched() ||
+            BaseView.isTouched() ||
+            Reference.isTouched()
+        ) {
+            return true;
+        }
     }
     return TechDraw::DrawView::mustExecute();
 }
@@ -163,7 +163,7 @@ void DrawViewDetail::onChanged(const App::Property* prop)
             if (ScaleType.isValue("Page")) {
                 Scale.setStatus(App::Property::ReadOnly, true);
                 // apply the page-wide Scale
-                if (page != nullptr) {
+                if (page) {
                     if (std::abs(page->Scale.getValue() - getScale()) > FLT_EPSILON) {
                         Scale.setValue(page->Scale.getValue());
                         Scale.purgeTouched();
@@ -213,9 +213,9 @@ App::DocumentObjectExecReturn *DrawViewDetail::execute(void)
     DrawViewPart* dvp = nullptr;
     if (!baseObj->getTypeId().isDerivedFrom(TechDraw::DrawViewPart::getClassTypeId())) {
         return new App::DocumentObjectExecReturn("BaseView object is not a DrawViewPart object");
-    } else {
-        dvp = static_cast<DrawViewPart*>(baseObj);
     }
+    
+    dvp = static_cast<DrawViewPart*>(baseObj);
 
     DrawProjGroupItem* dpgi = nullptr;
     if (dvp->isDerivedFrom(TechDraw::DrawProjGroupItem::getClassTypeId())) {
@@ -228,11 +228,13 @@ App::DocumentObjectExecReturn *DrawViewDetail::execute(void)
     }
 
     TopoDS_Shape shape;
-    if (dvs != nullptr) {
+    if (dvs) {
         shape = dvs->getCutShape();
-    } else if (dpgi != nullptr) {
+    }
+    else if (dpgi) {
         shape = dpgi->getSourceShapeFused();
-    } else {
+    }
+    else {
         shape = dvp->getSourceShapeFused();
     }
 
@@ -261,16 +263,14 @@ App::DocumentObjectExecReturn *DrawViewDetail::execute(void)
     addShapes2d();
 
     //second pass if required
-    if (ScaleType.isValue("Automatic")) {
-        if (!checkFit()) {
-            double newScale = autoScale();
-            Scale.setValue(newScale);
-            Scale.purgeTouched();
-            if (geometryObject != nullptr) {
-                delete geometryObject;
-                geometryObject = nullptr;
-                detailExec(shape, dvp, dvs);
-            }
+    if (ScaleType.isValue("Automatic") && !checkFit()) {
+        double newScale = autoScale();
+        Scale.setValue(newScale);
+        Scale.purgeTouched();
+        if (geometryObject != nullptr) {
+            delete geometryObject;
+            geometryObject = nullptr;
+            detailExec(shape, dvp, dvs);
         }
     }
     dvp->requestPaint();  //to refresh detail highlight!
@@ -300,7 +300,7 @@ void DrawViewDetail::detailExec(TopoDS_Shape shape,
     Base::Vector3d shapeCenter = Base::Vector3d(gpCenter.X(),gpCenter.Y(),gpCenter.Z());
     m_saveCentroid = shapeCenter;              //centroid of original shape
 
-    if (dvs != nullptr) {
+    if (dvs) {
         //section cutShape should already be on origin
     } else {
         myShape = TechDraw::moveShape(myShape,                     //centre shape on origin
@@ -313,35 +313,49 @@ void DrawViewDetail::detailExec(TopoDS_Shape shape,
     gp_Ax2 viewAxis;
 
     viewAxis = dvp->getProjectionCS(shapeCenter);
-    anchor = Base::Vector3d(anchor.x,anchor.y, 0.0);
-    Base::Vector3d anchorOffset3d = DrawUtil::toR3(viewAxis, anchor);     //anchor displacement in R3
+    anchor = Base::Vector3d(anchor.x,anchor.y, 0.0);   //anchor coord in projection CS
+    Base::Vector3d anchorOffset3d = DrawUtil::toR3(viewAxis, anchor);     //actual anchor coords in R3
 
     Bnd_Box bbxSource;
     bbxSource.SetGap(0.0);
-    BRepBndLib::Add(myShape, bbxSource);
+    BRepBndLib::AddOptimal(myShape, bbxSource);
     double diag = sqrt(bbxSource.SquareExtent());
 
     Base::Vector3d toolPlaneOrigin = anchorOffset3d + dirDetail * diag * -1.0;    //center tool about anchor
     double extrudeLength = 2.0 * toolPlaneOrigin.Length();
 
-    //make a square face as a basis for cutting prism
-    //this should be square or circle depending on PreferencesGui::mattingStyle()
-    //but that would require bridge between App/Gui
     gp_Pnt gpnt(toolPlaneOrigin.x,toolPlaneOrigin.y,toolPlaneOrigin.z);
     gp_Dir gdir(dirDetail.x,dirDetail.y,dirDetail.z);
-    gp_Pln gpln(gpnt,gdir);
-    double hideToolRadius = radius * 1.0;
-    BRepBuilderAPI_MakeFace mkFace(gpln, -hideToolRadius,hideToolRadius,-hideToolRadius,hideToolRadius);
-    TopoDS_Face aProjFace = mkFace.Face();
-    if(aProjFace.IsNull()) {
-        Base::Console().Warning("DVD::execute - %s - failed to create tool base face\n", getNameInDocument());
-        return;
-    }
 
+    double hideToolRadius = radius * 1.0;
+    TopoDS_Face aProjFace;
     Base::Vector3d extrudeVec = dirDetail * extrudeLength;
     gp_Vec extrudeDir(extrudeVec.x,extrudeVec.y,extrudeVec.z);
-    TopoDS_Shape tool = BRepPrimAPI_MakePrism(aProjFace, extrudeDir, false, true).Shape();
-
+    TopoDS_Shape tool;
+    if (Preferences::mattingStyle()) {
+        //square mat
+        gp_Pln gpln(gpnt,gdir);
+        BRepBuilderAPI_MakeFace mkFace(gpln, -hideToolRadius,hideToolRadius,-hideToolRadius,hideToolRadius);
+        aProjFace = mkFace.Face();
+        if(aProjFace.IsNull()) {
+            Base::Console().Warning("DVD::detailExec - %s - failed to create tool base face\n", getNameInDocument());
+            return;
+        }
+        tool = BRepPrimAPI_MakePrism(aProjFace, extrudeDir, false, true).Shape();
+        if(tool.IsNull()) {
+            Base::Console().Warning("DVD::detailExec - %s - failed to create tool (prism)\n", getNameInDocument());
+            return;
+        }
+    } else {
+        //circular mat
+        gp_Ax2 cs(gpnt, gdir);
+        BRepPrimAPI_MakeCylinder mkTool(cs, hideToolRadius, extrudeLength);
+        tool = mkTool.Shape();
+        if(tool.IsNull()) {
+            Base::Console().Warning("DVD::detailExec - %s - failed to create tool (cylinder)\n", getNameInDocument());
+            return;
+        }
+    }
 
     BRep_Builder builder;
     TopoDS_Compound pieces;
@@ -413,33 +427,30 @@ void DrawViewDetail::detailExec(TopoDS_Shape shape,
 
     gp_Pnt inputCenter;
     try {
-        inputCenter = TechDraw::findCentroid(tool,
+        //centroid of result
+        inputCenter = TechDraw::findCentroid(pieces,
                                              dirDetail);
     Base::Vector3d centroid(inputCenter.X(),
                             inputCenter.Y(),
                             inputCenter.Z());
     m_saveCentroid += centroid;              //center of massaged shape
 
-    Base::Vector3d stdOrg(0.0,0.0,0.0);
-    gp_Ax2 viewAxis = dvp->getProjectionCS(stdOrg);  //sb same CS as base view. 
-
     TopoDS_Shape scaledShape;
     if ((solidCount > 0) ||
         (shellCount > 0)) {
-        //make a detail of the solids/shell in the base view
-        //center shape on origin
+        //align shape with detail anchor
         TopoDS_Shape centeredShape = TechDraw::moveShape(pieces,
-                                                         centroid * -1.0);
+                                                         anchorOffset3d * -1.0);
         scaledShape = TechDraw::scaleShape(centeredShape,
                                            getScale());
         if (debugDetail()) {
-            BRepTools::Write(tool, "DVDScaled.brep");            //debug
+            BRepTools::Write(scaledShape, "DVDScaled.brep");            //debug
         }
     } else {
         //no solids, no shells, do what you can with edges
         TopoDS_Shape projectedEdges = projectEdgesOntoFace(myShape, aProjFace, gdir);
         TopoDS_Shape centeredShape = TechDraw::moveShape(projectedEdges,
-                                                         centroid * -1.0);
+                                                         anchorOffset3d * -1.0);
         if (debugDetail()) {
             BRepTools::Write(projectedEdges, "DVDProjectedEdges.brep");            //debug
             BRepTools::Write(centeredShape, "DVDCenteredShape.brep");            //debug
@@ -447,6 +458,9 @@ void DrawViewDetail::detailExec(TopoDS_Shape shape,
         scaledShape = TechDraw::scaleShape(centeredShape,
                                            getScale());
     }
+
+    Base::Vector3d stdOrg(0.0,0.0,0.0);
+    gp_Ax2 viewAxis = dvp->getProjectionCS(stdOrg);
 
     if (!DrawUtil::fpCompare(Rotation.getValue(),0.0)) {
         scaledShape = TechDraw::rotateShape(scaledShape,
@@ -503,9 +517,15 @@ TopoDS_Shape DrawViewDetail::projectEdgesOntoFace(TopoDS_Shape edgeShape, TopoDS
         BRepTools::Write(edges, "DVDEdges.brep");            //debug
     }
 
-    return edges;
+    return TopoDS_Shape(std::move(edges));
 }
 
+//we don't want to paint detail highlights on top of detail views,
+//so tell the Gui that there are no details for this view
+std::vector<DrawViewDetail*> DrawViewDetail::getDetailRefs(void) const
+{
+    return std::vector<DrawViewDetail*>();
+}
 
 double DrawViewDetail::getFudgeRadius()
 {
@@ -517,8 +537,7 @@ bool DrawViewDetail::debugDetail(void) const
     Base::Reference<ParameterGrp> hGrp = App::GetApplication().GetUserParameter()
         .GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Mod/TechDraw/debug");
 
-    bool result = hGrp->GetBool("debugDetail",false);
-    return result;
+    return hGrp->GetBool("debugDetail",false);
 }
 
 void DrawViewDetail::unsetupObject()
@@ -526,7 +545,7 @@ void DrawViewDetail::unsetupObject()
 //    Base::Console().Message("DVD::unsetupObject()\n");
     App::DocumentObject* baseObj = BaseView.getValue();
     DrawView* base = dynamic_cast<DrawView*>(baseObj);
-    if (base != nullptr) {
+    if (base) {
         base->requestPaint();
     }
 }

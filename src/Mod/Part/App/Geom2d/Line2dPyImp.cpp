@@ -20,22 +20,19 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp.hxx>
-# include <gp_Lin2d.hxx>
-# include <Geom2d_Line.hxx>
 # include <GCE2d_MakeLine.hxx>
-# include <Precision.hxx>
+# include <Geom2d_Line.hxx>
+# include <gp_Lin2d.hxx>
 #endif
 
 #include <Base/GeometryPyCXX.h>
 
-#include <Mod/Part/App/OCCError.h>
-#include <Mod/Part/App/Geometry2d.h>
-#include <Mod/Part/App/Geom2d/Line2dPy.h>
-#include <Mod/Part/App/Geom2d/Line2dPy.cpp>
+#include "Geom2d/Line2dPy.h"
+#include "Geom2d/Line2dPy.cpp"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -219,7 +216,7 @@ void Line2dPy::setDirection(Py::Object arg)
 
 PyObject *Line2dPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int Line2dPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

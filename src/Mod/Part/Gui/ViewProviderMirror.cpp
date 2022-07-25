@@ -27,7 +27,6 @@
 # include <QAction>
 # include <QMenu>
 # include <QTimer>
-# include <Python.h>
 # include <Standard_math.hxx>
 # include <TopExp.hxx>
 # include <TopTools_IndexedMapOfShape.hxx>
@@ -207,7 +206,7 @@ void ViewProviderMirror::dragFinishCallback(void *, SoDragger *)
 
 void ViewProviderMirror::dragMotionCallback(void *data, SoDragger *drag)
 {
-    ViewProviderMirror* that = reinterpret_cast<ViewProviderMirror*>(data);
+    ViewProviderMirror* that = static_cast<ViewProviderMirror*>(data);
     const SbMatrix& mat = drag->getMotionMatrix();
     // the new axis of the plane
     SbRotation rot(mat);
@@ -534,7 +533,7 @@ bool ViewProviderOffset::setEdit(int ModNum)
         Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
         TaskOffset* offsetDlg = qobject_cast<TaskOffset*>(dlg);
         if (offsetDlg && offsetDlg->getObject() != this->getObject())
-            offsetDlg = 0; // another pad left open its task panel
+            offsetDlg = nullptr; // another pad left open its task panel
         if (dlg && !offsetDlg) {
             if (dlg->canClose())
                 Gui::Control().closeDialog();
@@ -618,7 +617,7 @@ bool ViewProviderThickness::setEdit(int ModNum)
         Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
         TaskThickness* thicknessDlg = qobject_cast<TaskThickness*>(dlg);
         if (thicknessDlg && thicknessDlg->getObject() != this->getObject())
-            thicknessDlg = 0; // another pad left open its task panel
+            thicknessDlg = nullptr; // another pad left open its task panel
         if (dlg && !thicknessDlg) {
             if (dlg->canClose())
                 Gui::Control().closeDialog();

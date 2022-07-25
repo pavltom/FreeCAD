@@ -48,7 +48,7 @@ PROPERTY_SOURCE(Surface::Extend, Part::Spline)
 
 Extend::Extend() : lockOnChangeMutex(false)
 {
-    ADD_PROPERTY(Face,(0));
+    ADD_PROPERTY(Face,(nullptr));
     Face.setScope(App::LinkScope::Global);
     ADD_PROPERTY(Tolerance, (0.1));
     Tolerance.setConstraints(&ToleranceRange);
@@ -143,11 +143,7 @@ App::DocumentObjectExecReturn *Extend::execute(void)
     approx.Init(approxPoints, ParType, DegMin, DegMax, Continuity, Tol3d);
 
     Handle(Geom_BSplineSurface) surface(approx.Surface());
-    BRepBuilderAPI_MakeFace mkFace(surface
-#if OCC_VERSION_HEX >= 0x060502
-      , Precision::Confusion()
-#endif
-    );
+    BRepBuilderAPI_MakeFace mkFace(surface, Precision::Confusion());
 
     Shape.setValue(mkFace.Face());
 

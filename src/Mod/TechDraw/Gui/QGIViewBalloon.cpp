@@ -183,7 +183,7 @@ void QGIBalloonLabel::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 void QGIBalloonLabel::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     QGIView *view = dynamic_cast<QGIView *> (parentItem());
-    assert(view != 0);
+    assert(view);
     Q_UNUSED(view);
 
     Q_EMIT hover(false);
@@ -348,6 +348,25 @@ QVariant QGIViewBalloon::itemChange(GraphicsItemChange change, const QVariant &v
     return QGIView::itemChange(change, value);
 }
 
+//QGIViewBalloon does not behave the same as other QGIView derived classes
+//and so mouse events need to be ignored.  Only the QGIBalloonLabel mouse events are relevant.
+void QGIViewBalloon::mousePressEvent(QGraphicsSceneMouseEvent * event)
+{
+//    Base::Console().Message("QGIVB::mousePressEvent() - %s\n",getViewName());
+    QGraphicsItem::mousePressEvent(event);
+}
+
+void QGIViewBalloon::mouseMoveEvent(QGraphicsSceneMouseEvent * event)
+{
+    QGraphicsItem::mouseMoveEvent(event);
+}
+
+void QGIViewBalloon::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
+{
+//    Base::Console().Message("QGIVB::mouseReleaseEvent() - %s\n",getViewName());
+    QGraphicsItem::mouseReleaseEvent(event);
+}
+
 //Set selection state for this and it's children
 void QGIViewBalloon::setGroupSelection(bool b)
 {
@@ -374,7 +393,7 @@ void QGIViewBalloon::hover(bool state)
 void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon *balloon)
 {
 //    Base::Console().Message("QGIVB::setViewPartFeature()\n");
-    if(balloon == 0)
+    if (!balloon)
         return;
 
     setViewFeature(static_cast<TechDraw::DrawView *>(balloon));
@@ -402,7 +421,6 @@ void QGIViewBalloon::setViewPartFeature(TechDraw::DrawViewBalloon *balloon)
     draw();
 }
 
-//from ViewProviderDrawingView::updateData (X or Y)
 void QGIViewBalloon::updateView(bool update)
 {
 //    Base::Console().Message("QGIVB::updateView()\n");
@@ -560,7 +578,6 @@ void QGIViewBalloon::placeBalloon(QPointF pos)
         return;
     }
 
-    
     QGIView* qgivParent = nullptr;
     QPointF viewPos;
     Gui::ViewProvider* objVp = QGIView::getViewProvider(balloonParent);

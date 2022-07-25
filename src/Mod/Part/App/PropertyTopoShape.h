@@ -20,16 +20,17 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef PART_PROPERTYTOPOSHAPE_H
 #define PART_PROPERTYTOPOSHAPE_H
 
-#include "TopoShape.h"
-#include <TopAbs_ShapeEnum.hxx>
-#include <App/DocumentObject.h>
-#include <App/PropertyGeo.h>
 #include <map>
 #include <vector>
+
+#include <App/PropertyGeo.h>
+
+#include "TopoShape.h"
+#include <TopAbs_ShapeEnum.hxx>
+
 
 namespace Part
 {
@@ -59,6 +60,10 @@ public:
 
     /** @name Modification */
     //@{
+    /// Set the placement of the geometry
+    void setTransform(const Base::Matrix4D& rclTrf);
+    /// Get the placement of the geometry
+    Base::Matrix4D getTransform() const;
     /// Transform the real shape data
     void transformGeometry(const Base::Matrix4D &rclMat);
     //@}
@@ -90,6 +95,11 @@ public:
 
     /// Get valid paths for this property; used by auto completer
     virtual void getPaths(std::vector<App::ObjectIdentifier> & paths) const;
+
+private:
+    void saveToFile(Base::Writer &writer) const;
+    void loadFromFile(Base::Reader &reader);
+    void loadFromStream(Base::Reader &reader);
 
 private:
     TopoShape _Shape;

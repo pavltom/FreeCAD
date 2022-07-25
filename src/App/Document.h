@@ -23,21 +23,12 @@
 #ifndef APP_DOCUMENT_H
 #define APP_DOCUMENT_H
 
-#include <CXX/Objects.hxx>
-#include <Base/Observer.h>
-#include <Base/Persistence.h>
-#include <Base/Type.h>
-
 #include "PropertyContainer.h"
-#include "PropertyStandard.h"
 #include "PropertyLinks.h"
+#include "PropertyStandard.h"
 
 #include <map>
 #include <vector>
-#include <stack>
-#include <functional>
-
-#include <boost_signals2.hpp>
 
 namespace Base {
     class Writer;
@@ -76,6 +67,7 @@ public:
         TempDoc = 9, // Mark as temporary document without prompt for save
         RestoreError = 10,
         LinkStampChanged = 11, // Indicates during restore time if any linked document's time stamp has changed
+        IgnoreErrorOnRecompute = 12, // Don't report errors if the recompute failed
     };
 
     /** @name Properties */
@@ -195,7 +187,7 @@ public:
     bool saveAs(const char* file);
     bool saveCopy(const char* file) const;
     /// Restore the document from the file in Property Path
-    void restore (const char *filename=0,
+    void restore (const char *filename=nullptr,
             bool delaySignal=false, const std::vector<std::string> &objNames={});
     bool afterRestore(bool checkPartial=false);
     bool afterRestore(const std::vector<App::DocumentObject *> &, bool checkPartial=false);
@@ -254,8 +246,8 @@ public:
      * @param viewType    override object's view provider name
      * @param isPartial   indicate if this object is meant to be partially loaded
      */
-    DocumentObject *addObject(const char* sType, const char* pObjectName=0,
-            bool isNew=true, const char *viewType=0, bool isPartial=false);
+    DocumentObject *addObject(const char* sType, const char* pObjectName=nullptr,
+            bool isNew=true, const char *viewType=nullptr, bool isPartial=false);
     /** Add an array of features of the given types and names.
      * Unicode names are set through the Label property.
      * @param sType       The type of created object
@@ -272,7 +264,7 @@ public:
      * \note The passed feature must not yet be added to a document, otherwise an exception
      * is raised.
      */
-    void addObject(DocumentObject*, const char* pObjectName=0);
+    void addObject(DocumentObject*, const char* pObjectName=nullptr);
 
 
     /** Copy objects from another document to this document
@@ -346,7 +338,7 @@ public:
      * all object in this document is checked for recompute
      */
     int recompute(const std::vector<App::DocumentObject*> &objs={},
-            bool force=false,bool *hasError=0, int options=0);
+            bool force=false,bool *hasError=nullptr, int options=0);
     /// Recompute only one feature
     bool recomputeFeature(DocumentObject* Feat,bool recursive=false);
     /// get the text of the error of a specified object
@@ -389,7 +381,7 @@ public:
      * to setup a potential transaction which will only be created if there is
      * actual changes.
      */
-    void openTransaction(const char* name=0);
+    void openTransaction(const char* name=nullptr);
     /// Rename the current transaction if the id matches
     void renameTransaction(const char *name, int id);
     /// Commit the Command transaction. Do nothing If there is no Command transaction open.
@@ -556,7 +548,7 @@ protected:
      * This function creates an actual transaction regardless of Application
      * AutoTransaction setting.
      */
-    int _openTransaction(const char* name=0, int id=0);
+    int _openTransaction(const char* name=nullptr, int id=0);
     /// Internally called by App::Application to commit the Command transaction.
     void _commitTransaction(bool notify=false);
     /// Internally called by App::Application to abort the running transaction.
@@ -569,8 +561,6 @@ private:
     std::list<Transaction*> mRedoTransactions;
     std::map<int,Transaction*> mRedoMap;
 
-    // pointer to the python class
-    Py::Object DocumentPythonObject;
     struct DocumentP* d;
 
     std::string oldLabel;

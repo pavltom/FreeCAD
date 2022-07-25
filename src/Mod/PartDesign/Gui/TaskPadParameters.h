@@ -20,16 +20,12 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_TASKVIEW_TaskPadParameters_H
 #define GUI_TASKVIEW_TaskPadParameters_H
 
-#include <Gui/TaskView/TaskView.h>
-#include <Gui/Selection.h>
-#include <Gui/TaskView/TaskDialog.h>
-
 #include "TaskExtrudeParameters.h"
 #include "ViewProviderPad.h"
+
 
 namespace App {
 class Property;
@@ -47,7 +43,7 @@ class TaskPadParameters : public TaskExtrudeParameters
     Q_OBJECT
 
 public:
-    TaskPadParameters(ViewProviderPad *PadView, QWidget *parent = 0, bool newObj=false);
+    TaskPadParameters(ViewProviderPad *PadView, QWidget *parent = nullptr, bool newObj=false);
     ~TaskPadParameters();
 
     virtual void apply() override;

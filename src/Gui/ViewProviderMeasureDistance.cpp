@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
@@ -31,29 +30,30 @@
 # include <Inventor/events/SoMouseButtonEvent.h>
 # include <Inventor/nodes/SoAnnotation.h>
 # include <Inventor/nodes/SoBaseColor.h>
+# include <Inventor/nodes/SoCoordinate3.h>
+# include <Inventor/nodes/SoDrawStyle.h>
 # include <Inventor/nodes/SoFontStyle.h>
+# include <Inventor/nodes/SoIndexedLineSet.h>
+# include <Inventor/nodes/SoMarkerSet.h>
 # include <Inventor/nodes/SoPickStyle.h>
 # include <Inventor/nodes/SoText2.h>
 # include <Inventor/nodes/SoTranslation.h>
-# include <Inventor/nodes/SoCoordinate3.h>
-# include <Inventor/nodes/SoIndexedLineSet.h>
-# include <Inventor/nodes/SoMarkerSet.h>
-# include <Inventor/nodes/SoDrawStyle.h>
 #endif
+
+#include <Inventor/MarkerBitmaps.h>
+
+#include <App/Document.h>
+#include <App/MeasureDistance.h>
+#include <Base/Console.h>
+#include <Base/Quantity.h>
 
 #include "ViewProviderMeasureDistance.h"
 #include "Application.h"
+#include <Command.h>
 #include "Document.h"
 #include "View3DInventorViewer.h"
 #include "ViewParams.h"
 
-#include <App/PropertyGeo.h>
-#include <App/PropertyStandard.h>
-#include <App/MeasureDistance.h>
-#include <Base/Console.h>
-#include <Base/Quantity.h>
-#include <Inventor/MarkerBitmaps.h>
-#include <Command.h>
 
 using namespace Gui;
 
@@ -315,8 +315,8 @@ ViewProviderPointMarker::~ViewProviderPointMarker()
 
 void ViewProviderMeasureDistance::measureDistanceCallback(void * ud, SoEventCallback * n)
 {
-    Gui::View3DInventorViewer* view  = reinterpret_cast<Gui::View3DInventorViewer*>(n->getUserData());
-    PointMarker *pm = reinterpret_cast<PointMarker*>(ud);
+    Gui::View3DInventorViewer* view  = static_cast<Gui::View3DInventorViewer*>(n->getUserData());
+    PointMarker *pm = static_cast<PointMarker*>(ud);
     const SoEvent* ev = n->getEvent();
     if (ev->isOfType(SoKeyboardEvent::getClassTypeId())) {
         const SoKeyboardEvent * ke = static_cast<const SoKeyboardEvent*>(ev);
@@ -337,7 +337,7 @@ void ViewProviderMeasureDistance::measureDistanceCallback(void * ud, SoEventCall
 
         if (mbe->getButton() == SoMouseButtonEvent::BUTTON1 && mbe->getState() == SoButtonEvent::DOWN) {
             const SoPickedPoint * point = n->getPickedPoint();
-            if (point == NULL) {
+            if (!point) {
                 Base::Console().Message("No point picked.\n");
                 return;
             }

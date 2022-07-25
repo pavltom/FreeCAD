@@ -25,11 +25,11 @@
 // Standard streambuf implementation following Nicolai Josuttis, "The 
 // Standard C++ Library".
 // ============================================================================
+
 #include "PreCompiled.h"
 
 #include "gzstream.h"
 #include <cassert>
-#include <string>
 #include <cstring>  // for memcpy
 
 
@@ -67,7 +67,7 @@ gzstreambuf* gzstreambuf::open( const char* name, int open_mode, int comp)
     *fmodeptr++ = 'b';
     *fmodeptr = '\0';
     file = gzopen( name, fmode);
-    if (file == nullptr)
+    if (!file)
         return (gzstreambuf*)nullptr;
     opened = 1;
     return this;

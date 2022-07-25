@@ -23,24 +23,24 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <TopoDS.hxx>
-# include <TopoDS_Face.hxx>
-# include <gp_Pln.hxx>
-# include <gp_Dir.hxx>
-# include <gp_Ax1.hxx>
 # include <BRepAdaptor_Curve.hxx>
 # include <BRepAdaptor_Surface.hxx>
+# include <gp_Dir.hxx>
+# include <gp_Pln.hxx>
+# include <Precision.hxx>
+# include <TopoDS.hxx>
+# include <TopoDS_Face.hxx>
 #endif
 
-#include "DatumPlane.h"
-#include "DatumLine.h"
 #include <App/OriginFeature.h>
 #include <Base/Axis.h>
-#include <Base/Exception.h>
 #include <Mod/Part/App/TopoShape.h>
 #include <Mod/Part/App/Part2DObject.h>
 
 #include "FeatureLinearPattern.h"
+#include "DatumLine.h"
+#include "DatumPlane.h"
+
 
 using namespace PartDesign;
 
@@ -53,7 +53,7 @@ const App::PropertyIntegerConstraint::Constraints LinearPattern::intOccurrences 
 
 LinearPattern::LinearPattern()
 {
-    ADD_PROPERTY_TYPE(Direction,(0),"LinearPattern",(App::PropertyType)(App::Prop_None),"Direction");
+    ADD_PROPERTY_TYPE(Direction,(nullptr),"LinearPattern",(App::PropertyType)(App::Prop_None),"Direction");
     ADD_PROPERTY(Reversed,(0));
     ADD_PROPERTY(Length,(100.0));
     ADD_PROPERTY(Occurrences,(3));
@@ -81,7 +81,7 @@ const std::list<gp_Trsf> LinearPattern::getTransformations(const std::vector<App
     bool reversed = Reversed.getValue();
 
     App::DocumentObject* refObject = Direction.getValue();
-    if (refObject == NULL)
+    if (!refObject)
         throw Base::ValueError("No direction reference specified");
 
     std::vector<std::string> subStrings = Direction.getSubValues();

@@ -21,10 +21,9 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
-#ifndef _PreComp_
-#endif
 
 #include "Placement.h"
+#include "Matrix.h"
 #include "Rotation.h"
 #include "DualQuaternion.h"
 
@@ -67,7 +66,7 @@ Placement Placement::fromDualQuaternion(DualQuat qq)
     return Placement(Vector3d(mvq.x.re,mvq.y.re, mvq.z.re), rot);
 }
 
-Base::Matrix4D Placement::toMatrix(void) const
+Base::Matrix4D Placement::toMatrix() const
 {
     Base::Matrix4D matrix;
     _rot.getValue(matrix);

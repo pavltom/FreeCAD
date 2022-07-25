@@ -1794,7 +1794,7 @@ std::list<AdaptiveOutput> Adaptive2d::Execute(const DPaths &stockPaths, const DP
 		if (opType == OperationType::otClearingOutside)
 		{
 			// add stock paths, with overshooting
-			for (auto p : stockOvershoot)
+			for (const auto& p : stockOvershoot)
 				inputPaths.push_back(p);
 		}
 		else if (opType == OperationType::otClearingInside)
@@ -2630,7 +2630,7 @@ void Adaptive2d::ProcessPolyNode(Paths boundPaths, Paths toolBoundPaths)
 
 	if (!forceInsideOut && FindEntryPointOutside(progressPaths, toolBoundPaths, boundPaths, cleared, entryPoint, toolPos, toolDir))
 	{
-		if (Orientation(engageBounds[0]) == false)
+		if (!Orientation(engageBounds[0]))
 			ReversePath(engageBounds[0]);
 		// add initial offset of cleared area to engage paths
 		Paths outsideEngage;
@@ -2639,7 +2639,7 @@ void Adaptive2d::ProcessPolyNode(Paths boundPaths, Paths toolBoundPaths)
 		clipof.Execute(outsideEngage, toolRadiusScaled - stepOverFactor * toolRadiusScaled);
 		CleanPolygons(outsideEngage);
 		ReversePaths(outsideEngage);
-		for (auto p : outsideEngage)
+		for (const auto& p : outsideEngage)
 			engageBounds.push_back(p);
 		outsideEntry = true;
 	}
@@ -2740,7 +2740,7 @@ void Adaptive2d::ProcessPolyNode(Paths boundPaths, Paths toolBoundPaths)
 
 		size_t clpPathIndex;
 		size_t clpSegmentIndex;
-		double clpParamter;
+		double clpParameter;
 		double passLength = 0;
 		double noCutDistance=0;
 		clearedBeforePass.SetClearedPaths(cleared.GetCleared());
@@ -2756,7 +2756,7 @@ void Adaptive2d::ProcessPolyNode(Paths boundPaths, Paths toolBoundPaths)
 			AverageDirection(gyro, toolDir);
 			Perf_DistanceToBoundary.Start();
 
-			double distanceToBoundary = sqrt(DistancePointToPathsSqrd(toolBoundPaths, toolPos, clp, clpPathIndex, clpSegmentIndex, clpParamter));
+			double distanceToBoundary = sqrt(DistancePointToPathsSqrd(toolBoundPaths, toolPos, clp, clpPathIndex, clpSegmentIndex, clpParameter));
 			DoublePoint boundaryDir = GetPathDirectionV(toolBoundPaths[clpPathIndex], clpSegmentIndex);
 			double distBoundaryPointToEngage = sqrt(DistanceSqrd(clp, engagePoint));
 
@@ -2989,7 +2989,7 @@ void Adaptive2d::ProcessPolyNode(Paths boundPaths, Paths toolBoundPaths)
 				Paths remaining;
 				for (const auto &p : cleared.GetCleared())
 				{
-					if (!p.empty() && IsPointWithinCutRegion(toolBoundPaths, p.front()) && DistancePointToPathsSqrd(boundPaths, p.front(), clp, clpPathIndex, clpSegmentIndex, clpParamter) > 4 * toolRadiusScaled * toolRadiusScaled)
+					if (!p.empty() && IsPointWithinCutRegion(toolBoundPaths, p.front()) && DistancePointToPathsSqrd(boundPaths, p.front(), clp, clpPathIndex, clpSegmentIndex, clpParameter) > 4 * toolRadiusScaled * toolRadiusScaled)
 					{
 						remaining.push_back(p);
 					}

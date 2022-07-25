@@ -163,7 +163,8 @@ Gui::View3DInventorViewer* MeshSelection::getViewer() const
         return ivViewer;
 
     Gui::Document* doc = Gui::Application::Instance->activeDocument();
-    if (!doc) return nullptr;
+    if (!doc)
+        return nullptr;
     Gui::MDIView* view = doc->getActiveView();
     if (view && view->getTypeId().isDerivedFrom(Gui::View3DInventor::getClassTypeId())) {
         Gui::View3DInventorViewer* viewer = static_cast<Gui::View3DInventor*>(view)->getViewer();
@@ -220,9 +221,8 @@ void MeshSelection::prepareFreehandSelection(bool add,SoEventCallbackCB *cb)
             QCursor custom(cursor, mask, CROSS_HOT_X, CROSS_HOT_Y);
             viewer->setComponentCursor(custom);
         };
-#if (QT_VERSION >= 0x050000)
+
         QObject::connect(viewer, &Gui::View3DInventorViewer::devicePixelRatioChanged, setComponentCursor);
-#endif
         setComponentCursor();
         this->addToSelection = add;
     }
@@ -453,8 +453,8 @@ void MeshSelection::setRemoveComponentOnClick(bool on)
 void MeshSelection::selectGLCallback(void * ud, SoEventCallback * n)
 {
     // When this callback function is invoked we must leave the edit mode
-    Gui::View3DInventorViewer* view  = reinterpret_cast<Gui::View3DInventorViewer*>(n->getUserData());
-    MeshSelection* self = reinterpret_cast<MeshSelection*>(ud);
+    Gui::View3DInventorViewer* view  = static_cast<Gui::View3DInventorViewer*>(n->getUserData());
+    MeshSelection* self = static_cast<MeshSelection*>(ud);
     self->stopInteractiveCallback(view);
     n->setHandled();
     std::vector<SbVec2f> polygon = view->getGLPolygon();
@@ -534,13 +534,13 @@ void MeshSelection::pickFaceCallback(void * ud, SoEventCallback * n)
     // handle only mouse button events
     if (n->getEvent()->isOfType(SoMouseButtonEvent::getClassTypeId())) {
         const SoMouseButtonEvent * mbe = static_cast<const SoMouseButtonEvent*>(n->getEvent());
-        Gui::View3DInventorViewer* view  = reinterpret_cast<Gui::View3DInventorViewer*>(n->getUserData());
+        Gui::View3DInventorViewer* view  = static_cast<Gui::View3DInventorViewer*>(n->getUserData());
 
         // Mark all incoming mouse button events as handled, especially, to deactivate the selection node
         n->getAction()->setHandled();
         if (mbe->getButton() == SoMouseButtonEvent::BUTTON1 && mbe->getState() == SoButtonEvent::DOWN) {
             const SoPickedPoint * point = n->getPickedPoint();
-            if (point == nullptr) {
+            if (!point) {
                 Base::Console().Message("No facet picked.\n");
                 return;
             }
@@ -553,7 +553,7 @@ void MeshSelection::pickFaceCallback(void * ud, SoEventCallback * n)
             if (!vp || !vp->getTypeId().isDerivedFrom(ViewProviderMesh::getClassTypeId()))
                 return;
             ViewProviderMesh* mesh = static_cast<ViewProviderMesh*>(vp);
-            MeshSelection* self = reinterpret_cast<MeshSelection*>(ud);
+            MeshSelection* self = static_cast<MeshSelection*>(ud);
             std::list<ViewProviderMesh*> views = self->getViewProviders();
             if (std::find(views.begin(), views.end(), mesh) == views.end())
                 return;

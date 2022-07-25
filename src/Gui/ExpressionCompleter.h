@@ -23,12 +23,10 @@
 #ifndef EXPRESSIONCOMPLETER_H
 #define EXPRESSIONCOMPLETER_H
 
-#include <QObject>
 #include <QCompleter>
 #include <QLineEdit>
+#include <QObject>
 #include <QPlainTextEdit>
-#include <set>
-#include <memory>
 #include <App/DocumentObserver.h>
 
 class QStandardItem;
@@ -85,7 +83,7 @@ private:
 class GuiExport ExpressionLineEdit : public QLineEdit {
     Q_OBJECT
 public:
-    ExpressionLineEdit(QWidget *parent = 0, bool noProperty=false,
+    ExpressionLineEdit(QWidget *parent = nullptr, bool noProperty=false,
             char checkPrefix=0, bool checkInList=true);
     void setDocumentObject(const App::DocumentObject *currentDocObj, bool checkInList=true);
     void setPrefix(char prefix);

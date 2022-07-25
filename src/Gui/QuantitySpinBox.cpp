@@ -27,34 +27,29 @@
 # include <QDebug>
 # include <QFocusEvent>
 # include <QFontMetrics>
-# include <QHBoxLayout>
-# include <QLabel>
 # include <QLineEdit>
-# include <QMouseEvent>
-# include <QPixmapCache>
 # include <QStyle>
 # include <QStyleOptionSpinBox>
-# include <QStylePainter>
 # include <QToolTip>
 #endif
 
-#include "QuantitySpinBox.h"
-#include "QuantitySpinBox_p.h"
-#include "DlgExpressionInput.h"
-#include "propertyeditor/PropertyItem.h"
-#include "BitmapFactory.h"
-#include "Tools.h"
-#include "Command.h"
-#include <Base/Tools.h>
-#include <Base/Exception.h>
-#include <Base/UnitsApi.h>
+#include <sstream>
+
 #include <App/Application.h>
 #include <App/Document.h>
 #include <App/DocumentObject.h>
 #include <App/ExpressionParser.h>
 #include <App/PropertyGeo.h>
-#include <sstream>
-#include <boost/math/special_functions/round.hpp>
+#include <Base/Exception.h>
+#include <Base/UnitsApi.h>
+#include <Base/Tools.h>
+
+#include "QuantitySpinBox.h"
+#include "QuantitySpinBox_p.h"
+#include "Command.h"
+#include "DlgExpressionInput.h"
+#include "Tools.h"
+
 
 using namespace Gui;
 using namespace App;
@@ -604,9 +599,9 @@ void QuantitySpinBox::updateFromCache(bool notify, bool updateUnit /* = true */)
         // signaling
         if (notify) {
             d->pendingEmit = false;
-            valueChanged(res);
-            valueChanged(res.getValue());
-            textChanged(text);
+            Q_EMIT valueChanged(res);
+            Q_EMIT valueChanged(res.getValue());
+            Q_EMIT textChanged(text);
         }
     }
 }
@@ -790,6 +785,23 @@ void QuantitySpinBox::stepBy(int steps)
     selectNumber();
 }
 
+QSize QuantitySpinBox::sizeForText(const QString& txt) const
+{
+    const QFontMetrics fm(fontMetrics());
+    int h = lineEdit()->sizeHint().height();
+    int w = QtTools::horizontalAdvance(fm, txt);
+
+    w += 2; // cursor blinking space
+    w += iconHeight;
+
+    QStyleOptionSpinBox opt;
+    initStyleOption(&opt);
+    QSize hint(w, h);
+    QSize size = style()->sizeFromContents(QStyle::CT_SpinBox, &opt, hint, this)
+                        .expandedTo(QApplication::globalStrut());
+    return size;
+}
+
 QSize QuantitySpinBox::sizeHint() const
 {
     Q_D(const QuantitySpinBox);
@@ -877,27 +889,6 @@ void QuantitySpinBox::closeEvent(QCloseEvent * event)
 
 bool QuantitySpinBox::event(QEvent * event)
 {
-    // issue #0004059: Tooltips for Gui::QuantitySpinBox not showing
-    // Here we must not try to show the tooltip of the icon label
-    // because it would override a custom tooltip set to this widget.
-    //
-    // We could also check if the text of this tooltip is empty but
-    // it will fail in cases where the widget is embedded into the
-    // property editor and the corresponding item has set a tooltip.
-    // Instead of showing the item's tooltip it will again show the
-    // tooltip of the icon label.
-#if 0
-    if (event->type() == QEvent::ToolTip) {
-        if (isBound() && getExpression() && lineEdit()->isReadOnly()) {
-            QHelpEvent * helpEvent = static_cast<QHelpEvent*>(event);
-
-            QToolTip::showText( helpEvent->globalPos(), Base::Tools::fromStdString(getExpression()->toString()), this);
-            event->accept();
-            return true;
-        }
-    }
-#endif
-
     return QAbstractSpinBox::event(event);
 }
 
@@ -944,7 +935,7 @@ void QuantitySpinBox::selectNumber()
     QChar g = locale().groupSeparator();
     QChar n = locale().negativeSign();
 
-    for (QString::iterator it = str.begin(); it != str.end(); ++it) {
+    for (QString::const_iterator it = str.cbegin(); it != str.cend(); ++it) {
         if (it->isDigit())
             i++;
         else if (*it == d)
@@ -990,7 +981,6 @@ Base::Quantity QuantitySpinBox::valueFromText(const QString &text) const
 QValidator::State QuantitySpinBox::validate(QString &text, int &pos) const
 {
     Q_D(const QuantitySpinBox);
-
     QValidator::State state;
     d->validateAndInterpret(text, pos, state);
     return state;

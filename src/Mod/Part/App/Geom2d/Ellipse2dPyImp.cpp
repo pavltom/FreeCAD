@@ -20,20 +20,19 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp_Elips2d.hxx>
-# include <Geom2d_Ellipse.hxx>
 # include <GCE2d_MakeEllipse.hxx>
+# include <Geom2d_Ellipse.hxx>
+# include <gp_Elips2d.hxx>
 #endif
 
 #include <Base/GeometryPyCXX.h>
 
-#include <Mod/Part/App/OCCError.h>
-#include <Mod/Part/App/Geometry2d.h>
-#include <Mod/Part/App/Geom2d/Ellipse2dPy.h>
-#include <Mod/Part/App/Geom2d/Ellipse2dPy.cpp>
+#include "Geom2d/Ellipse2dPy.h"
+#include "Geom2d/Ellipse2dPy.cpp"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -54,7 +53,7 @@ PyObject *Ellipse2dPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // 
 // constructor method
 int Ellipse2dPy::PyInit(PyObject* args, PyObject* kwds)
 {
-    char* keywords_n[] = {NULL};
+    char* keywords_n[] = {nullptr};
     if (PyArg_ParseTupleAndKeywords(args, kwds, "", keywords_n)) {
         Handle(Geom2d_Ellipse) ellipse = Handle(Geom2d_Ellipse)::DownCast(getGeom2dEllipsePtr()->handle());
         ellipse->SetMajorRadius(2.0);
@@ -62,7 +61,7 @@ int Ellipse2dPy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    char* keywords_e[] = {"Ellipse",NULL};
+    char* keywords_e[] = {"Ellipse",nullptr};
     PyErr_Clear();
     PyObject *pElips;
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!",keywords_e, &(Ellipse2dPy::Type), &pElips)) {
@@ -75,7 +74,7 @@ int Ellipse2dPy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    char* keywords_ssc[] = {"S1","S2","Center",NULL};
+    char* keywords_ssc[] = {"S1","S2","Center",nullptr};
     PyErr_Clear();
     PyObject *pV1, *pV2, *pV3;
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!", keywords_ssc,
@@ -98,7 +97,7 @@ int Ellipse2dPy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    char* keywords_cmm[] = {"Center","MajorRadius","MinorRadius",NULL};
+    char* keywords_cmm[] = {"Center","MajorRadius","MinorRadius",nullptr};
     PyErr_Clear();
     PyObject *pV;
     double major, minor;
@@ -172,7 +171,7 @@ Py::Object Ellipse2dPy::getFocus2(void) const
 
 PyObject *Ellipse2dPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int Ellipse2dPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

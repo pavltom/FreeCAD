@@ -21,18 +21,16 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
-#include <algorithm>
+
 #include <iomanip>
 #include <sstream>
 
-#include <QGlobalStatic>
 #include <QMainWindow>
-#include <QWidget>
 #include <FCConfig.h>
-#include <Base/Console.h>
+#include "Application.h"
 #include "GuiApplicationNativeEventAware.h"
 #include "SpaceballEvent.h"
-#include "Application.h"
+
 
 #if defined(_USE_3DCONNEXION_SDK) || defined(SPNAV_FOUND)
 #if defined(Q_OS_LINUX)
@@ -295,10 +293,10 @@ void Gui::GUIApplicationNativeEventAware::importSettings(std::vector<int>& motio
 
     for (i = 0; i < 6; ++i) {
         if (motionDataArray[i] != 0) {
-            if (enabled[i] == false)
+            if (!enabled[i])
                 motionDataArray[i] = 0;
             else {
-                if (reversed[i] == true)
+                if (reversed[i])
                     motionDataArray[i] = - motionDataArray[i];
                 motionDataArray[i] = (int)((float)(motionDataArray[i]) * sensitivity[i] * generalSensitivity);
             }

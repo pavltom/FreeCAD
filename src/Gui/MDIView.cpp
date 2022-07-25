@@ -20,31 +20,29 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
 # include <boost_signals2.hpp>
-# include <boost_bind_bind.hpp>
 # include <QApplication>
 # include <QRegExp>
 # include <QEvent>
 # include <QCloseEvent>
 # include <QMdiSubWindow>
 # include <QPrinter>
-# include <QPrintDialog>
 # include <QPrinterInfo>
-# include <iostream>
 #endif
 
+#include <Base/Interpreter.h>
+#include <App/Document.h>
 
 #include "MDIView.h"
 #include "MDIViewPy.h"
-#include "Command.h"
-#include "Document.h"
 #include "Application.h"
+#include "Document.h"
 #include "MainWindow.h"
 #include "ViewProviderDocumentObject.h"
+
 
 using namespace Gui;
 namespace bp = boost::placeholders;
@@ -119,7 +117,7 @@ void MDIView::deleteSelf()
     // detach from document
     if (_pcDocument)
         onClose();
-    _pcDocument = 0;
+    _pcDocument = nullptr;
 }
 
 PyObject* MDIView::getPyObject()
@@ -364,7 +362,7 @@ void MDIView::setCurrentViewMode(ViewMode mode)
                     if (qobject_cast<QMdiSubWindow*>(this->parentWidget()))
                         getMainWindow()->removeWindow(this,false);
                     setWindowFlags(windowFlags() | Qt::Window);
-                    setParent(0, Qt::Window | Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
+                    setParent(nullptr, Qt::Window | Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
                                  Qt::WindowMinMaxButtonsHint);
                     if (this->wstate & Qt::WindowMaximized)
                         showMaximized();
@@ -394,7 +392,7 @@ void MDIView::setCurrentViewMode(ViewMode mode)
                     if (qobject_cast<QMdiSubWindow*>(this->parentWidget()))
                         getMainWindow()->removeWindow(this,false);
                     setWindowFlags(windowFlags() | Qt::Window);
-                    setParent(0, Qt::Window);
+                    setParent(nullptr, Qt::Window);
                     showFullScreen();
                 }
                 else if (this->currentMode == TopLevel) {

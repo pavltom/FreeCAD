@@ -26,12 +26,11 @@
 
 #include <QComboBox>
 
+#include <Gui/DocumentObserver.h>
+#include <Gui/Selection.h>
+#include <Gui/TaskView/TaskView.h>
 #include <Mod/Part/App/Part2DObject.h>
 #include <Mod/PartDesign/Gui/EnumFlags.h>
-
-#include <Gui/TaskView/TaskView.h>
-#include <Gui/Selection.h>
-#include <Gui/DocumentObserver.h>
 
 #include "TaskFeatureParameters.h"
 #include "TaskTransformedMessages.h"
@@ -66,8 +65,8 @@ public:
      * will go out of sync, and crashes may result.
      */
     ComboLinks(QComboBox &combo);
-    ComboLinks() {_combo = 0; doc = 0;}
-    void setCombo(QComboBox &combo) {assert(_combo == 0); this->_combo = &combo; _combo->clear();}
+    ComboLinks() {_combo = nullptr; doc = nullptr;}
+    void setCombo(QComboBox &combo) {assert(!_combo); this->_combo = &combo; _combo->clear();}
 
     /**
      * @brief addLink adds an item to the combo. Doesn't check for duplicates.
@@ -101,7 +100,7 @@ public:
 
     QComboBox& combo(void) const {assert(_combo); return *_combo;}
 
-    ~ComboLinks() {_combo = 0; clear();}
+    ~ComboLinks() {_combo = nullptr; clear();}
 private:
     QComboBox* _combo;
     App::Document* doc;
@@ -124,7 +123,7 @@ class TaskTransformedParameters : public Gui::TaskView::TaskBox,
 
 public:
     /// Constructor for task with ViewProvider
-    TaskTransformedParameters(ViewProviderTransformed *TransformedView, QWidget *parent = 0);
+    TaskTransformedParameters(ViewProviderTransformed *TransformedView, QWidget *parent = nullptr);
     /// Constructor for task with parent task (MultiTransform mode)
     TaskTransformedParameters(TaskMultiTransformParameters *parentTask);
     virtual ~TaskTransformedParameters();
@@ -157,7 +156,7 @@ public:
         return transactionID;
     }
 
-protected Q_SLOTS:
+protected:
     /**
      * Returns the base transformation view provider
      * For stand alone features it will be view provider associated with this object
@@ -172,6 +171,7 @@ protected Q_SLOTS:
      */
     PartDesign::Transformed *getTopTransformedObject () const;
 
+protected Q_SLOTS:
     /// Connect the subTask OK button to the MultiTransform task
     virtual void onSubTaskButtonOK() {}
     void onButtonAddFeature(const bool checked);

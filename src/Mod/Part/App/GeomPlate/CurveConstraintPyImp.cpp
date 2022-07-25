@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <GeomAdaptor_Curve.hxx>
@@ -37,8 +36,7 @@
 #include "GeomPlate/CurveConstraintPy.cpp"
 #include "Geom2d/Curve2dPy.h"
 #include "GeometryCurvePy.h"
-#include "GeometrySurfacePy.h"
-#include "Geometry2d.h"
+
 
 using namespace Part;
 
@@ -411,7 +409,7 @@ Py::Float CurveConstraintPy::getLength(void) const
 
 PyObject *CurveConstraintPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int CurveConstraintPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

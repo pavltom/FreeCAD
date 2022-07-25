@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>425</width>
-    <height>598</height>
+    <width>660</width>
+    <height>930</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,55 +57,68 @@
           <number>6</number>
          </property>
          <item row="0" column="0">
-          <layout class="QHBoxLayout">
-           <property name="spacing">
-            <number>6</number>
+          <widget class="QLabel" name="TextLabel1_4">
+           <property name="text">
+            <string>Change language:</string>
            </property>
-           <property name="leftMargin">
-            <number>0</number>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QComboBox" name="Languages">
+           <property name="toolTip">
+            <string>Language of the application's user interface</string>
            </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QLabel" name="TextLabel1_4">
-             <property name="text">
-              <string>Change language:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="Languages">
-             <property name="toolTip">
-              <string>Language of the application's user interface</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          </widget>
          </item>
          <item row="1" column="0">
-          <widget class="Gui::PrefCheckBox" name="SubstituteDecimal">
-           <property name="toolTip">
-            <string>If enabled, numerical keypad decimal separator will be substituted with locale separator</string>
-           </property>
+          <widget class="QLabel" name="TextLabel1_5">
            <property name="text">
-            <string>Substitute decimal separator (needs restart)</string>
+            <string>Number format:</string>
            </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="Gui::PrefComboBox" name="UseLocaleFormatting">
            <property name="prefEntry" stdset="0">
-            <cstring>SubstituteDecimalSeparator</cstring>
+            <cstring>UseLocaleFormatting</cstring>
            </property>
            <property name="prefPath" stdset="0">
             <cstring>General</cstring>
            </property>
+           <item>
+            <property name="text">
+             <string>Operating system</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Selected language</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>C/POSIX</string>
+            </property>
+           </item>
           </widget>
          </item>
-        </layout>
+         <item row="1" column="2">
+           <widget class="Gui::PrefCheckBox" name="SubstituteDecimal">
+            <property name="toolTip">
+             <string>If enabled, numerical keypad decimal separator will be substituted with locale separator</string>
+            </property>
+            <property name="text">
+             <string>Substitute decimal separator (needs restart)</string>
+            </property>
+            <property name="prefEntry" stdset="0">
+             <cstring>SubstituteDecimalSeparator</cstring>
+            </property>
+            <property name="prefPath" stdset="0">
+             <cstring>General</cstring>
+            </property>
+           </widget>
+          </item>
+         </layout>
        </widget>
       </item>
       <item>
@@ -157,11 +170,11 @@
              <attribute name="horizontalHeaderCascadingSectionResizes">
               <bool>true</bool>
              </attribute>
-             <attribute name="horizontalHeaderMinimumSectionSize">
-              <number>30</number>
-             </attribute>
              <attribute name="horizontalHeaderDefaultSectionSize">
               <number>100</number>
+             </attribute>
+             <attribute name="horizontalHeaderMinimumSectionSize">
+              <number>30</number>
              </attribute>
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>true</bool>
@@ -169,11 +182,11 @@
              <attribute name="verticalHeaderVisible">
               <bool>false</bool>
              </attribute>
-             <attribute name="verticalHeaderMinimumSectionSize">
-              <number>16</number>
-             </attribute>
              <attribute name="verticalHeaderDefaultSectionSize">
               <number>24</number>
+             </attribute>
+             <attribute name="verticalHeaderMinimumSectionSize">
+              <number>16</number>
              </attribute>
              <column>
               <property name="text">
@@ -236,6 +249,13 @@
                </property>
                <property name="text">
                 <string>Manage...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="RevertToSavedConfig">
+               <property name="text">
+                <string>Revert...</string>
                </property>
               </widget>
              </item>
@@ -342,7 +362,7 @@
            <property name="bottomMargin">
             <number>0</number>
            </property>
-           <item row="0" column="0">
+           <item>
             <widget class="QCheckBox" name="tiledBackground">
              <property name="toolTip">
               <string>Background of the main window will consist of tiles of a special image.
@@ -353,7 +373,7 @@ See the FreeCAD Wiki for details about the image.</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
+           <item>
             <widget class="Gui::PrefCheckBox" name="EnableCursorBlinking">
              <property name="toolTip">
               <string>The text cursor will be blinking</string>
@@ -502,27 +522,6 @@ this according to your screen size or personal taste</string>
          <property name="spacing">
           <number>6</number>
          </property>
-         <item row="2" column="0">
-          <widget class="Gui::PrefCheckBox" name="SplashScreen">
-           <property name="toolTip">
-            <string>A Splash screen is a small loading window that is shown
-when FreeCAD is launching. If this option is checked, FreeCAD will
-display the splash screen</string>
-           </property>
-           <property name="text">
-            <string>Enable splash screen at start up</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-           <property name="prefEntry" stdset="0">
-            <cstring>ShowSplasher</cstring>
-           </property>
-           <property name="prefPath" stdset="0">
-            <cstring>General</cstring>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="0">
           <layout class="QGridLayout">
            <property name="leftMargin">
@@ -557,70 +556,28 @@ after FreeCAD launches</string>
            </item>
           </layout>
          </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="GroupBox11">
-        <property name="title">
-         <string>Python console</string>
-        </property>
-        <layout class="QGridLayout" name="_4">
-         <property name="leftMargin">
-          <number>11</number>
-         </property>
-         <property name="topMargin">
-          <number>11</number>
-         </property>
-         <property name="rightMargin">
-          <number>11</number>
-         </property>
-         <property name="bottomMargin">
-          <number>11</number>
-         </property>
-         <property name="spacing">
-          <number>6</number>
-         </property>
-         <item row="0" column="0">
-          <widget class="Gui::PrefCheckBox" name="PythonWordWrap">
+        <item row="2" column="0">
+          <widget class="Gui::PrefCheckBox" name="SplashScreen">
            <property name="toolTip">
-            <string>Words will be wrapped when they exceed available
-horizontal space in Python console</string>
+            <string>A Splash screen is a small loading window that is shown
+when FreeCAD is launching. If this option is checked, FreeCAD will
+display the splash screen</string>
            </property>
            <property name="text">
-            <string>Enable word wrap</string>
+            <string>Enable splash screen at start up</string>
            </property>
            <property name="checked">
             <bool>true</bool>
            </property>
            <property name="prefEntry" stdset="0">
-            <cstring>PythonWordWrap</cstring>
+            <cstring>ShowSplasher</cstring>
            </property>
            <property name="prefPath" stdset="0">
             <cstring>General</cstring>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="Gui::PrefCheckBox" name="PythonBlockCursor">
-           <property name="toolTip">
-            <string>The cursor shape will be a block</string>
-           </property>
-           <property name="text">
-            <string>Enable block cursor</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-           <property name="prefEntry" stdset="0">
-            <cstring>PythonBlockCursor</cstring>
-           </property>
-           <property name="prefPath" stdset="0">
-            <cstring>General</cstring>
-           </property>
-          </widget>
-         </item>
-        </layout>
+         </layout>
        </widget>
       </item>
      </layout>
@@ -640,14 +597,17 @@ horizontal space in Python console</string>
    <extends>QCheckBox</extends>
    <header>Gui/PrefWidgets.h</header>
   </customwidget>
+  <customwidget>
+   <class>Gui::PrefComboBox</class>
+   <extends>QComboBox</extends>
+   <header>Gui/PrefWidgets.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>Languages</tabstop>
   <tabstop>RecentFiles</tabstop>
   <tabstop>EnableCursorBlinking</tabstop>
   <tabstop>SplashScreen</tabstop>
-  <tabstop>PythonWordWrap</tabstop>
-  <tabstop>PythonBlockCursor</tabstop>
  </tabstops>
  <resources/>
  <connections/>

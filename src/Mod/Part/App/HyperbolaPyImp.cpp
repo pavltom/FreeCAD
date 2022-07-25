@@ -20,21 +20,19 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp_Hypr.hxx>
-# include <Geom_Hyperbola.hxx>
 # include <GC_MakeHyperbola.hxx>
+# include <Geom_Hyperbola.hxx>
 #endif
 
 #include <Base/GeometryPyCXX.h>
 #include <Base/VectorPy.h>
 
+#include "HyperbolaPy.h"
+#include "HyperbolaPy.cpp"
 #include "OCCError.h"
-#include "Geometry.h"
-#include <Mod/Part/App/HyperbolaPy.h>
-#include <Mod/Part/App/HyperbolaPy.cpp>
+
 
 using namespace Part;
 
@@ -55,7 +53,7 @@ PyObject *HyperbolaPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // 
 // constructor method
 int HyperbolaPy::PyInit(PyObject* args, PyObject* kwds)
 {
-    char* keywords_n[] = {NULL};
+    char* keywords_n[] = {nullptr};
     if (PyArg_ParseTupleAndKeywords(args, kwds, "", keywords_n)) {
         Handle(Geom_Hyperbola) hyperbola = Handle(Geom_Hyperbola)::DownCast(getGeomHyperbolaPtr()->handle());
         hyperbola->SetMajorRadius(2.0);
@@ -63,7 +61,7 @@ int HyperbolaPy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    char* keywords_e[] = {"Hyperbola",NULL};
+    char* keywords_e[] = {"Hyperbola",nullptr};
     PyErr_Clear();
     PyObject *pHypr;
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!",keywords_e, &(HyperbolaPy::Type), &pHypr)) {
@@ -76,7 +74,7 @@ int HyperbolaPy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    char* keywords_ssc[] = {"S1","S2","Center",NULL};
+    char* keywords_ssc[] = {"S1","S2","Center",nullptr};
     PyErr_Clear();
     PyObject *pV1, *pV2, *pV3;
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!", keywords_ssc,
@@ -99,7 +97,7 @@ int HyperbolaPy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    char* keywords_cmm[] = {"Center","MajorRadius","MinorRadius",NULL};
+    char* keywords_cmm[] = {"Center","MajorRadius","MinorRadius",nullptr};
     PyErr_Clear();
     PyObject *pV;
     double major, minor;
@@ -173,7 +171,7 @@ Py::Object HyperbolaPy::getFocus2(void) const
 
 PyObject *HyperbolaPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int HyperbolaPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

@@ -98,6 +98,15 @@ class ObjectDrilling(PathCircularHoleBase.ObjectOp):
             PathOp.FeatureBaseGeometry | PathOp.FeatureLocations | PathOp.FeatureCoolant
         )
 
+    def onDocumentRestored(self, obj):
+        if not hasattr(obj, "chipBreakEnabled"):
+            obj.addProperty(
+                "App::PropertyBool",
+                "chipBreakEnabled",
+                "Drill",
+                QT_TRANSLATE_NOOP("App::Property", "Use chipbreaking"),
+            )
+
     def initCircularHoleOperation(self, obj):
         """initCircularHoleOperation(obj) ... add drilling specific properties to obj."""
         obj.addProperty(
@@ -114,6 +123,12 @@ class ObjectDrilling(PathCircularHoleBase.ObjectOp):
             "PeckEnabled",
             "Drill",
             QT_TRANSLATE_NOOP("App::Property", "Enable pecking"),
+        )
+        obj.addProperty(
+            "App::PropertyBool",
+            "chipBreakEnabled",
+            "Drill",
+            QT_TRANSLATE_NOOP("App::Property", "Use chipbreaking"),
         )
         obj.addProperty(
             "App::PropertyFloat",
@@ -209,7 +224,9 @@ class ObjectDrilling(PathCircularHoleBase.ObjectOp):
 
             # move to hole location
 
-            command = Path.Command("G0", {"X": hole["x"], "Y": hole["y"]})
+            startPoint = edge.Vertexes[0].Point
+
+            command = Path.Command("G0", {"X": startPoint.x, "Y": startPoint.y})
             self.commandlist.append(command)
             machine.addCommand(command)
 
@@ -217,9 +234,9 @@ class ObjectDrilling(PathCircularHoleBase.ObjectOp):
             self.commandlist.append(command)
             machine.addCommand(command)
 
-            command = Path.Command("G1", {"Z": obj.StartDepth.Value})
-            self.commandlist.append(command)
-            machine.addCommand(command)
+            # command = Path.Command("G1", {"Z": obj.StartDepth.Value})
+            # self.commandlist.append(command)
+            # machine.addCommand(command)
 
             # Technical Debt:  We are assuming the edges are aligned.
             # This assumption should be corrected and the necessary rotations
@@ -229,9 +246,17 @@ class ObjectDrilling(PathCircularHoleBase.ObjectOp):
             dwelltime = obj.DwellTime if obj.DwellEnabled else 0.0
             peckdepth = obj.PeckDepth.Value if obj.PeckEnabled else 0.0
             repeat = 1  # technical debt:  Add a repeat property for user control
+            chipBreak = (obj.chipBreakEnabled and obj.PeckEnabled)
 
             try:
-                drillcommands = generator.generate(edge, dwelltime, peckdepth, repeat)
+                drillcommands = generator.generate(
+                    edge,
+                    dwelltime,
+                    peckdepth,
+                    repeat,
+                    obj.RetractHeight.Value,
+                    chipBreak=chipBreak
+                )
 
             except ValueError as e:  # any targets that fail the generator are ignored
                 PathLog.info(e)

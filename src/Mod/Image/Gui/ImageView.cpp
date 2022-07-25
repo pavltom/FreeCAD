@@ -17,19 +17,21 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
+# include <cmath>
 # include <QAction>
 # include <QApplication>
 # include <QMenu>
 # include <QMouseEvent>
-# include <QSlider>
 # include <QStatusBar>
 # include <QToolBar>
-# include <cmath>
 #endif
 
+#include <App/Application.h>
+#include <Base/Parameter.h>
+
 #include "ImageView.h"
-#include "../App/ImageBase.h"
 #include "XpmImages.h"
+
 
 using namespace ImageGui;
 
@@ -132,7 +134,7 @@ QSize ImageView::minimumSizeHint () const
 // Enable or disable the status bar
 void ImageView::enableStatusBar(bool Enable)
 {
-  if (Enable == true)
+  if (Enable)
   {
     // Create the default status bar for displaying messages and disable the gripper
     _statusBarEnabled = true;
@@ -326,11 +328,11 @@ int ImageView::pointImageTo(void* pSrcPixelData, unsigned long width, unsigned l
 // called when user presses X
 void ImageView::closeEvent(QCloseEvent *e)
 {
-    if (_ignoreCloseEvent == true)
+    if (_ignoreCloseEvent)
     {
         // ignore the close event
         e->ignore();
-        closeEventIgnored();	// and emit a signal that we ignored it
+        Q_EMIT closeEventIgnored();	// and emit a signal that we ignored it
     }
     else
     {
@@ -341,7 +343,7 @@ void ImageView::closeEvent(QCloseEvent *e)
 // Mouse press event
 void ImageView::mousePressEvent(QMouseEvent* cEvent)
 {
-   if (_mouseEventsEnabled == true)
+   if (_mouseEventsEnabled)
    {
       // Mouse event coordinates are relative to top-left of image view (including toolbar!)
       // Get current cursor position relative to top-left of image box
@@ -377,7 +379,7 @@ void ImageView::mousePressEvent(QMouseEvent* cEvent)
 
 void ImageView::mouseDoubleClickEvent(QMouseEvent* cEvent)
 {
-   if (_mouseEventsEnabled == true)
+   if (_mouseEventsEnabled)
    {
        // Mouse event coordinates are relative to top-left of image view (including toolbar!)
        // Get current cursor position relative to top-left of image box
@@ -411,7 +413,7 @@ void ImageView::mouseMoveEvent(QMouseEvent* cEvent)
    QPoint offset = _pGLImageBox->pos();
    int box_x = cEvent->x() - offset.x();
    int box_y = cEvent->y() - offset.y();
-   if (_mouseEventsEnabled == true)
+   if (_mouseEventsEnabled)
    {
        switch(_currMode)
        {
@@ -437,7 +439,7 @@ void ImageView::mouseMoveEvent(QMouseEvent* cEvent)
 // Mouse release event
 void ImageView::mouseReleaseEvent(QMouseEvent* cEvent)
 {
-   if (_mouseEventsEnabled == true)
+   if (_mouseEventsEnabled)
    {
        // Mouse event coordinates are relative to top-left of image view (including toolbar!)
        // Get current cursor position relative to top-left of image box
@@ -465,7 +467,7 @@ void ImageView::mouseReleaseEvent(QMouseEvent* cEvent)
 // Mouse wheel event
 void ImageView::wheelEvent(QWheelEvent * cEvent)
 {
-   if (_mouseEventsEnabled == true)
+   if (_mouseEventsEnabled)
    {
        // Mouse event coordinates are relative to top-left of image view (including toolbar!)
        // Get current cursor position relative to top-left of image box
@@ -480,11 +482,7 @@ void ImageView::wheelEvent(QWheelEvent * cEvent)
 #endif
 
        // Zoom around centrally displayed image point
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
        int numTicks = cEvent->angleDelta().y() / 120;
-#else
-       int numTicks = cEvent->delta() / 120;
-#endif
        if (_invertZoom)
            numTicks = -numTicks;
 
@@ -508,7 +506,7 @@ void ImageView::showEvent (QShowEvent *)
 // Update the status bar with the image parameters for the current mouse position
 void ImageView::updateStatusBar()
 {
-    if (_statusBarEnabled == true)
+    if (_statusBarEnabled)
     {
         // Create the text string to display in the status bar
         QString txt = createStatusBarText();

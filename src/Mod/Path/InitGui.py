@@ -61,6 +61,8 @@ class PathWorkbench(Workbench):
         # Add preferences pages - before loading PathGui to properly order pages of Path group
         from PathScripts import PathPreferencesPathJob, PathPreferencesPathDressup
 
+        translate = FreeCAD.Qt.translate
+
         FreeCADGui.addPreferencePage(PathPreferencesPathJob.JobPreferencesPage, "Path")
         FreeCADGui.addPreferencePage(
             PathPreferencesPathDressup.DressupPreferencesPage, "Path"
@@ -86,6 +88,8 @@ class PathWorkbench(Workbench):
         from PySide.QtCore import QT_TRANSLATE_NOOP
 
         import PathCommands
+        import subprocess
+        from packaging.version import Version, parse
 
         PathGuiInit.Startup()
 
@@ -141,7 +145,8 @@ class PathWorkbench(Workbench):
         FreeCADGui.addCommand(
             "Path_EngraveTools",
             PathCommandGroup(
-                engravecmdlist, QT_TRANSLATE_NOOP("Path_EngraveTools", "Engraving Operations")
+                engravecmdlist,
+                QT_TRANSLATE_NOOP("Path_EngraveTools", "Engraving Operations"),
             ),
         )
 
@@ -154,6 +159,17 @@ class PathWorkbench(Workbench):
             twodopcmdlist.append("Path_Slot")
 
         if PathPreferences.advancedOCLFeaturesEnabled():
+            try:
+                r = subprocess.run(
+                    ["camotics", "--version"], capture_output=True, text=True
+                ).stderr.strip()
+                v = parse(r)
+
+                if v >= Version("1.2.2"):
+                    toolcmdlist.append("Path_Camotics")
+            except (FileNotFoundError, ModuleNotFoundError):
+                pass
+
             try:
                 import ocl  # pylint: disable=unused-variable
                 from PathScripts import PathSurfaceGui
@@ -172,12 +188,8 @@ class PathWorkbench(Workbench):
                 if not PathPreferences.suppressOpenCamLibWarning():
                     FreeCAD.Console.PrintError("OpenCamLib is not working!\n")
 
-        self.appendToolbar(
-            QT_TRANSLATE_NOOP("Workbench", "Project Setup"), projcmdlist
-        )
-        self.appendToolbar(
-            QT_TRANSLATE_NOOP("Workbench", "Tool Commands"), toolcmdlist
-        )
+        self.appendToolbar(QT_TRANSLATE_NOOP("Workbench", "Project Setup"), projcmdlist)
+        self.appendToolbar(QT_TRANSLATE_NOOP("Workbench", "Tool Commands"), toolcmdlist)
         self.appendToolbar(
             QT_TRANSLATE_NOOP("Workbench", "New Operations"),
             twodopcmdlist + engravecmdgroup + threedcmdgroup,
@@ -252,11 +264,36 @@ class PathWorkbench(Workbench):
 
         # keep this one the last entry in the preferences
         import PathScripts.PathPreferencesAdvanced as PathPreferencesAdvanced
+        from PathScripts.PathPreferences import preferences
 
         FreeCADGui.addPreferencePage(
             PathPreferencesAdvanced.AdvancedPreferencesPage, "Path"
         )
         Log("Loading Path workbench... done\n")
+
+        # Warn user if current schema doesn't use minute for time in velocity
+        if not PathPreferences.suppressVelocity():
+            velString = FreeCAD.Units.Quantity(
+                1, FreeCAD.Units.Velocity
+            ).getUserPreferred()[2][3:]
+
+            if velString != "min":
+                current_schema = FreeCAD.Units.listSchemas(FreeCAD.Units.getSchema())
+
+                msg = translate(
+                    "Path",
+                    "The currently selected unit schema: \n     '{}'\n Does not use 'minutes' for velocity values. \n \nCNC machines require feed rate to be expressed in \nunit/minute. To ensure correct gcode: \nSelect a minute-based schema in preferences.\nFor example:\n    'Metric, Small Parts & CNC'\n    'US Customary'\n    'Imperial Decimal'",
+                ).format(current_schema)
+                header = translate("Path", "Warning")
+                msgbox = QtGui.QMessageBox(QtGui.QMessageBox.Warning, header, msg)
+
+                msgbox.addButton(translate("Path", "Ok"), QtGui.QMessageBox.AcceptRole)
+                msgbox.addButton(
+                    translate("Path", "Don't Show This Anymore"),
+                    QtGui.QMessageBox.ActionRole,
+                )
+                if msgbox.exec_() == 1:
+                    preferences().SetBool("WarningSuppressVelocity", True)
 
     def GetClassName(self):
         return "Gui::PythonWorkbench"

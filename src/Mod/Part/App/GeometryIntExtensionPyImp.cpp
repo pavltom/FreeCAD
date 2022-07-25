@@ -20,13 +20,11 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
-
-#include "GeometryDefaultExtension.h"
 
 #include "GeometryIntExtensionPy.h"
 #include "GeometryIntExtensionPy.cpp"
+
 
 using namespace Part;
 
@@ -97,7 +95,7 @@ void GeometryIntExtensionPy::setValue(Py::Long value)
 
 PyObject *GeometryIntExtensionPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int GeometryIntExtensionPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

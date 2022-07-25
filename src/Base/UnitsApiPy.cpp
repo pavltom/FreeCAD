@@ -28,8 +28,7 @@
 #endif
 
 #include <CXX/Objects.hxx>
-#include "Exception.h"
-/// Here the FreeCAD includes sorted by Base,App,Gui......
+
 #include "UnitsApi.h"
 #include "Quantity.h"
 #include "QuantityPy.h"
@@ -141,7 +140,7 @@ PyObject* UnitsApi::sSetSchema(PyObject * /*self*/, PyObject *args)
             PyErr_SetString(PyExc_ValueError, "invalid schema value");
             return nullptr;
         }
-        setSchema((UnitSystem)index);
+        setSchema(static_cast<UnitSystem>(index));
     }
     Py_Return;
 }

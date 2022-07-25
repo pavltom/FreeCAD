@@ -23,7 +23,6 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <QAbstractTextDocumentLayout>
 # include <QApplication>
 # include <QCheckBox>
 # include <QClipboard>
@@ -32,15 +31,12 @@
 # include <QVBoxLayout>
 # include <QLineEdit>
 # include <QMessageBox>
-# include <QPainter>
 # include <QPrinter>
 # include <QPrintDialog>
-# include <QScrollBar>
 # include <QPlainTextEdit>
 # include <QPrintPreviewDialog>
 # include <QSpacerItem>
 # include <QStyle>
-# include <QTextBlock>
 # include <QTextCodec>
 # include <QTextCursor>
 # include <QTextDocument>
@@ -51,16 +47,15 @@
 
 #include "EditorView.h"
 #include "Application.h"
-#include "BitmapFactory.h"
 #include "FileDialog.h"
 #include "Macro.h"
 #include "MainWindow.h"
-#include "PythonDebugger.h"
 #include "PythonEditor.h"
 
+#include <Base/Exception.h>
 #include <Base/Interpreter.h>
 #include <Base/Parameter.h>
-#include <Base/Exception.h>
+
 
 using namespace Gui;
 namespace Gui {
@@ -90,7 +85,7 @@ TYPESYSTEM_SOURCE_ABSTRACT(Gui::EditorView, Gui::MDIView)
  *  name 'name'.
  */
 EditorView::EditorView(QPlainTextEdit* editor, QWidget* parent)
-    : MDIView(0,parent,Qt::WindowFlags()), WindowParameter( "Editor" )
+    : MDIView(nullptr,parent,Qt::WindowFlags()), WindowParameter( "Editor" )
 {
     d = new EditorViewP;
     d->lock = false;
@@ -484,7 +479,7 @@ void EditorView::printPdf()
 void EditorView::setCurrentFileName(const QString &fileName)
 {
     d->fileName = fileName;
-    /*emit*/ changeFileName(d->fileName);
+    Q_EMIT changeFileName(d->fileName);
     d->textEdit->document()->setModified(false);
 
     QString name;
@@ -628,9 +623,12 @@ bool PythonEditorView::onMsg(const char* pMsg,const char** ppReturn)
  */
 bool PythonEditorView::onHasMsg(const char* pMsg) const
 {
-    if (strcmp(pMsg,"Run")==0)  return true;
-    if (strcmp(pMsg,"StartDebug")==0)  return true;
-    if (strcmp(pMsg,"ToggleBreakpoint")==0)  return true;
+    if (strcmp(pMsg,"Run")==0)
+        return true;
+    if (strcmp(pMsg,"StartDebug")==0)
+        return true;
+    if (strcmp(pMsg,"ToggleBreakpoint")==0)
+        return true;
     return EditorView::onHasMsg(pMsg);
 }
 
@@ -641,7 +639,7 @@ void PythonEditorView::executeScript()
 {
     // always save the macro when it is modified
     if (EditorView::onHasMsg("Save"))
-        EditorView::onMsg("Save", 0);
+        EditorView::onMsg("Save", nullptr);
     try {
         Application::Instance->macroManager()->run(Gui::MacroManager::File,fileName().toUtf8());
     }

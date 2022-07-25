@@ -43,7 +43,7 @@ PROPERTY_SOURCE(Surface::Sewing, Part::Feature)
 
 Sewing::Sewing()
 {
-    ADD_PROPERTY_TYPE(ShapeList,(0,""), "Sewing", App::Prop_None, "Input shapes");
+    ADD_PROPERTY_TYPE(ShapeList,(nullptr,""), "Sewing", App::Prop_None, "Input shapes");
     ADD_PROPERTY_TYPE(Tolerance,(Precision::Confusion()), "Sewing", App::Prop_None, "Sewing tolerance");
     ADD_PROPERTY_TYPE(SewingOption,(true), "Sewing", App::Prop_None, "Sewing option");
     ADD_PROPERTY_TYPE(DegenerateShape,(true), "Sewing", App::Prop_None, "Analysis of degenerated shapes");
@@ -86,7 +86,7 @@ App::DocumentObjectExecReturn *Sewing::execute(void)
                 Part::TopoShape ts = static_cast<Part::Feature*>(it->first)->Shape.getShape();
 
                 //we want only the subshape which is linked
-                for (auto jt: it->second) {
+                for (const auto& jt: it->second) {
                     TopoDS_Shape sub = ts.getSubShape(jt.c_str());
                     builder.Add(sub);
                 }

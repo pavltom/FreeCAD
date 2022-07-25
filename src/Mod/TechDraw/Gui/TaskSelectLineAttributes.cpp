@@ -26,14 +26,12 @@
 #include <cmath>
 #include <BRepBndLib.hxx>
 #include <Bnd_Box.hxx>
-
-#endif // #ifndef _PreComp_
-
-#include <BRepBuilderAPI_MakeEdge.hxx>
-
 #include <QButtonGroup>
 #include <QStatusBar>
 #include <QGraphicsScene>
+#endif // #ifndef _PreComp_
+
+#include <BRepBuilderAPI_MakeEdge.hxx>
 
 #include <Base/Console.h>
 #include <Base/Tools.h>
@@ -58,7 +56,6 @@
 
 #include "ui_TaskSelectLineAttributes.h"
 #include "TaskSelectLineAttributes.h"
-#include "DrawGuiStd.h"
 #include "MDIViewPage.h"
 #include "PreferencesGui.h"
 #include "QGVPage.h"
@@ -144,28 +141,20 @@ App::Color lineAttributes::getColorValue(void)
     switch (EdgeColor(color)) {
     case EdgeColor::black:
         return App::Color(0.0f, 0.0f, 0.0f);
-        break;
     case EdgeColor::grey:
         return App::Color(0.7f, 0.7f, 0.7f);
-        break;
     case EdgeColor::red:
         return App::Color(1.0f, 0.0f, 0.0f);
-        break;
     case EdgeColor::green:
         return App::Color(0.0f, 1.0f, 0.0f);
-        break;
     case EdgeColor::blue:
         return App::Color(0.0f, 0.0f, 1.0f);
-        break;
     case EdgeColor::magenta:
         return App::Color(1.0f, 0.0f, 1.0f);
-        break;
     case EdgeColor::cyan:
         return App::Color(0.0f, 1.0f, 1.0f);
-        break;
     case EdgeColor::yellow:
         return App::Color(1.0f, 1.0f, 0.0f);
-        break;
     default:
         return App::Color(0.0f, 0.0f, 0.0f);
     }
@@ -381,7 +370,7 @@ TaskDlgSelectLineAttributes::TaskDlgSelectLineAttributes(lineAttributes * ptActi
 {
     widget  = new TaskSelectLineAttributes(ptActiveAttributes);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("TechDraw_ExtensionSelectLineAttributes"),
-                                             widget->windowTitle(), true, 0);
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

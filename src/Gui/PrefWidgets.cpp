@@ -20,21 +20,19 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <QContextMenuEvent>
 # include <QMenu>
 #endif
 
+#include <cstring>
+
 #include <Base/Console.h>
-#include <Base/Exception.h>
 #include <Base/Tools.h>
-#include <App/Application.h>
 
 #include "PrefWidgets.h"
-#include "FileDialog.h"
-#include <cstring>
+
 
 using Base::Console;
 using namespace Gui;
@@ -59,6 +57,12 @@ PrefWidget::~PrefWidget()
 void PrefWidget::setEntryName( const QByteArray& name )
 {
   m_sPrefName = name;
+}
+
+/** Sets the preference name to \a name. */
+void PrefWidget::setPrefEntry(const QByteArray& name)
+{
+  setEntryName(name);
 }
 
 /** Returns the widget's preference name. */
@@ -87,6 +91,12 @@ void PrefWidget::setParamGrpPath( const QByteArray& path )
       getWindowParameter()->Attach(this);
     }
   }
+}
+
+/** Sets the preference path to \a path. */
+void PrefWidget::setPrefPath(const QByteArray& name)
+{
+  setParamGrpPath(name);
 }
 
 /** Returns the widget's preferences path. */
@@ -631,7 +641,7 @@ void PrefQuantitySpinBox::contextMenuEvent(QContextMenuEvent *event)
 
     // data structure to remember actions for values
     QStringList history = d->history.asStringList();
-    for (QStringList::const_iterator it = history.begin();it != history.end(); ++it) {
+    for (QStringList::const_iterator it = history.cbegin();it != history.cend(); ++it) {
         QAction* action = menu->addAction(*it);
         action->setProperty("history_value", *it);
     }

@@ -28,26 +28,16 @@
 # include <QTextStream>
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <Base/Console.h>
-#include <Base/Parameter.h>
-#include <Base/Exception.h>
-#include <Base/Sequencer.h>
 #include <App/Application.h>
-#include <App/Document.h>
 #include <App/DocumentObject.h>
-
-#include <Gui/Application.h>
-#include <Gui/BitmapFactory.h>
 #include <Gui/Control.h>
-#include <Gui/Command.h>
-#include <Gui/Document.h>
 #include <Gui/MainWindow.h>
 #include <Gui/Selection.h>
 
 #include "PreferencesGui.h"
 #include "TaskWeldingSymbol.h"
 #include "ViewProviderWeld.h"
+#include "QGIView.h"
 
 using namespace TechDrawGui;
 using namespace TechDraw;
@@ -122,25 +112,22 @@ std::vector<App::DocumentObject*> ViewProviderWeld::claimChildren(void) const
         }
       return temp;
     } catch (...) {
-        std::vector<App::DocumentObject*> tmp;
-        return tmp;
+        return std::vector<App::DocumentObject*>();
     }
 }
 
 bool ViewProviderWeld::setEdit(int ModNum)
 {
 //    Base::Console().Message("VPW::setEdit(%d)\n",ModNum);
-    if (ModNum == ViewProvider::Default ) {
-        if (Gui::Control().activeDialog())  {         //TaskPanel already open!
-            return false;
-        }
-        // clear the selection (convenience)
-        Gui::Selection().clearSelection();
-        Gui::Control().showDialog(new TaskDlgWeldingSymbol(getFeature()));
-        return true;
-    } else {
+    if (ModNum != ViewProvider::Default ) {
         return ViewProviderDrawingView::setEdit(ModNum);
     }
+    if (Gui::Control().activeDialog())  {         //TaskPanel already open!
+        return false;
+    }
+    // clear the selection (convenience)
+    Gui::Selection().clearSelection();
+    Gui::Control().showDialog(new TaskDlgWeldingSymbol(getFeature()));
     return true;
 }
 
@@ -198,9 +185,8 @@ bool ViewProviderWeld::onDelete(const std::vector<std::string> &)
             QMessageBox::Ok);
         return false;
     }
-    else {
-        return true;
-    }
+
+    return true;
 }
 
 bool ViewProviderWeld::canDelete(App::DocumentObject *obj) const

@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="Base" Version="10.0.0" InternalType="Library">
+  <VirtualDirectory Name="Base">
+    <File Name="Interpreter.h"/>
+    <File Name="UnitsApi.h"/>
+    <File Name="swigpyrun_1.3.25.h"/>
+    <File Name="TimeInfo.h"/>
+    <File Name="Observer.h"/>
+    <File Name="InputSource.cpp"/>
+    <File Name="Builder3D.cpp"/>
+    <File Name="DualNumber.h"/>
+    <File Name="UnitsSchemaCentimeters.h"/>
+    <File Name="Placement.cpp"/>
+    <File Name="Swap.cpp"/>
+    <File Name="Rotation.h"/>
+    <File Name="Builder3D.h"/>
+    <File Name="PyTools.h"/>
+    <File Name="Console.cpp"/>
+    <File Name="swigpyrun_1.3.38.h"/>
+    <File Name="StackWalker.h"/>
+    <File Name="ExceptionFactory.h"/>
+    <File Name="UnitsApiPy.cpp"/>
+    <File Name="Writer.h"/>
+    <File Name="Tools2D.cpp"/>
+    <File Name="FileTemplate.cpp"/>
+    <File Name="CoordinateSystemPyImp.cpp"/>
+    <File Name="BoundBoxPyImp.cpp"/>
+    <File Name="XMLTools.h"/>
+    <File Name="DualQuaternion.cpp"/>
+    <File Name="Console.h"/>
+    <File Name="FutureWatcherProgress.cpp"/>
+    <File Name="UnitsSchemaInternal.h"/>
+    <File Name="UnitsSchemaCentimeters.cpp"/>
+    <File Name="PyTools.c"/>
+    <File Name="Tools.h"/>
+    <File Name="swigpyrun_1.3.36.cpp"/>
+    <File Name="FileTemplate.h"/>
+    <File Name="Uuid.h"/>
+    <File Name="PyObjectBase.cpp"/>
+    <File Name="Persistence.h"/>
+    <File Name="Tools2D.h"/>
+    <File Name="UnitsSchemaMmMin.cpp"/>
+    <File Name="swigpyrun_1.3.40.h"/>
+    <File Name="swigpyrun_1.3.25.cpp"/>
+    <File Name="MemDebug.h"/>
+    <File Name="swigpyrun_1.3.38.cpp"/>
+    <File Name="Persistence.cpp"/>
+    <File Name="Debugger.h"/>
+    <File Name="FileInfo.h"/>
+    <File Name="UnitsApi.cpp"/>
+    <File Name="PyObjectBase.h"/>
+    <File Name="Matrix.h"/>
+    <File Name="FutureWatcherProgress.h"/>
+    <File Name="PyExport.h"/>
+    <File Name="Factory.cpp"/>
+    <File Name="Reader.h"/>
+    <File Name="GeometryPyCXX.h"/>
+    <File Name="swigpyrun_1.3.33.h"/>
+    <File Name="ViewProj.h"/>
+    <File Name="MatrixPyImp.cpp"/>
+    <File Name="UnitPyImp.cpp"/>
+    <File Name="Rotation.cpp"/>
+    <File Name="Parameter.h"/>
+    <File Name="PlacementPyImp.cpp"/>
+    <File Name="Axis.h"/>
+    <File Name="Unit.h"/>
+    <File Name="ExceptionFactory.cpp"/>
+    <File Name="TimeInfo.cpp"/>
+    <File Name="Unit.cpp"/>
+    <File Name="PreCompiled.h"/>
+    <File Name="Sequencer.cpp"/>
+    <File Name="Converter.h"/>
+    <File Name="BaseClass.h"/>
+    <File Name="MemDebug.cpp"/>
+    <File Name="gzstream.h"/>
+    <File Name="GeometryPyCXX.cpp"/>
+    <File Name="Sequencer.h"/>
+    <File Name="Base64.h"/>
+    <File Name="gzstream.cpp"/>
+    <File Name="QuantityParser.c"/>
+    <File Name="Quantity.h"/>
+    <File Name="Vector3D.h"/>
+    <File Name="QuantityPyImp.cpp"/>
+    <File Name="Debugger.cpp"/>
+    <File Name="VectorPyImp.cpp"/>
+    <File Name="Reader.cpp"/>
+    <File Name="QuantityLexer.c"/>
+    <File Name="UnitsSchema.h"/>
+    <File Name="CoordinateSystem.h"/>
+    <File Name="UnitsSchemaImperial1.h"/>
+    <File Name="DualQuaternion.h"/>
+    <File Name="Parameter.cpp"/>
+    <File Name="Uuid.cpp"/>
+    <File Name="UnitsSchemaMKS.cpp"/>
+    <File Name="PyExport.cpp"/>
+    <File Name="swigpyrun_1.3.36.h"/>
+    <File Name="Axis.cpp"/>
+    <File Name="Exception.cpp"/>
+    <File Name="Interpreter.cpp"/>
+    <File Name="Stream.h"/>
+    <File Name="Matrix.cpp"/>
+    <File Name="BaseClassPyImp.cpp"/>
+    <File Name="Exception.h"/>
+    <File Name="UnitsSchemaMKS.h"/>
+    <File Name="Handle.h"/>
+    <File Name="Swap.h"/>
+    <File Name="Type.h"/>
+    <File Name="Base64.cpp"/>
+    <File Name="Writer.cpp"/>
+    <File Name="fdstream.hpp"/>
+    <File Name="QuantityParser.h"/>
+    <File Name="Translate.h"/>
+    <File Name="Placement.h"/>
+    <File Name="BoundBox.h"/>
+    <File Name="StackWalker.cpp"/>
+    <File Name="swigpyrun_1.3.33.cpp"/>
+    <File Name="RotationPyImp.cpp"/>
+    <File Name="CoordinateSystem.cpp"/>
+    <File Name="Factory.h"/>
+    <File Name="ParameterPy.cpp"/>
+    <File Name="AxisPyImp.cpp"/>
+    <File Name="PreCompiled.cpp"/>
+    <File Name="Quantity.cpp"/>
+    <File Name="UnitsSchemaMmMin.h"/>
+    <File Name="XMLTools.cpp"/>
+    <File Name="Vector3D.cpp"/>
+    <File Name="FileInfo.cpp"/>
+    <File Name="UnitsSchemaFemMilliMeterNewton.cpp"/>
+    <File Name="UnitsSchemaImperial1.cpp"/>
+    <File Name="swigpyrun.cpp"/>
+    <File Name="ViewProj.cpp"/>
+    <File Name="PersistencePyImp.cpp"/>
+    <File Name="UnitsSchemaFemMilliMeterNewton.h"/>
+    <File Name="Handle.cpp"/>
+    <File Name="Stream.cpp"/>
+    <File Name="swigpyrun_1.3.40.cpp"/>
+    <File Name="UnitsSchemaInternal.cpp"/>
+    <File Name="BaseClass.cpp"/>
+    <File Name="UnitsSchema.cpp"/>
+    <File Name="Translate.cpp"/>
+    <File Name="Tools.cpp"/>
+    <File Name="TypePyImp.cpp"/>
+    <File Name="Type.cpp"/>
+    <File Name="InputSource.h"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Dynamic Library">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

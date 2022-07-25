@@ -21,23 +21,16 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
-#ifndef _PreComp_
-#endif
+#include <QListWidget>
 
 #include <App/Application.h>
-#include <Gui/FileDialog.h>
-
-#include "DrawGuiStd.h"
-#include "Rez.h"
-
 #include <Mod/TechDraw/Gui/ui_SymbolChooser.h>
 
 #include "SymbolChooser.h"
 
-using namespace Gui;
-using namespace TechDraw;
-using namespace TechDrawGui;
 
+using namespace Gui;
+using namespace TechDrawGui;
 
 SymbolChooser::SymbolChooser(QWidget *parent,
                              QString startDir,
@@ -54,6 +47,10 @@ SymbolChooser::SymbolChooser(QWidget *parent,
             this, SLOT(onItemClicked(QListWidgetItem*)));
 
     setUiPrimary();
+}
+
+SymbolChooser::~SymbolChooser()
+{
 }
 
 void SymbolChooser::setUiPrimary()

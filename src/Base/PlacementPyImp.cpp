@@ -23,7 +23,6 @@
 
 #include "PreCompiled.h"
 
-#include "Placement.h"
 #include "GeometryPyCXX.h"
 
 // inclusion of the generated files (generated out of PlacementPy.xml)
@@ -41,7 +40,7 @@ using namespace Base;
 std::string PlacementPy::representation() const
 {
     double A,B,C;
-    PlacementPy::PointerType ptr = reinterpret_cast<PlacementPy::PointerType>(_pcTwinPointer);
+    PlacementPy::PointerType ptr = getPlacementPtr();
     std::stringstream str;
     ptr->getRotation().getYawPitchRoll(A,B,C);
 
@@ -115,7 +114,7 @@ int PlacementPy::PyInit(PyObject* args, PyObject* /*kwd*/)
         return 0;
     }
 
-    PyErr_SetString(Base::BaseExceptionFreeCADError, "empty parameter list, matrix or placement expected");
+    PyErr_SetString(PyExc_TypeError, "empty parameter list, matrix or placement expected");
     return -1;
 }
 
@@ -168,7 +167,7 @@ PyObject* PlacementPy::rotate(PyObject *args) {
     PyObject *obj1, *obj2;
     double angle;
     if (!PyArg_ParseTuple(args, "OOd", &obj1, &obj2, &angle))
-        return NULL;
+        return nullptr;
 
     try {
         Py::Sequence p1(obj1), p2(obj2);
@@ -183,7 +182,7 @@ PyObject* PlacementPy::rotate(PyObject *args) {
         Py_Return;
     }
     catch (const Py::Exception&) {
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -235,7 +234,7 @@ PyObject* PlacementPy::pow(PyObject* args)
     PyObject* shorten = Py_True;
     if (!PyArg_ParseTuple(args, "d|O!", &t, &(PyBool_Type), &shorten))
         return nullptr;
-    Base::Placement ret = getPlacementPtr()->pow(t, PyObject_IsTrue(shorten));
+    Base::Placement ret = getPlacementPtr()->pow(t, Base::asBoolean(shorten));
     return new PlacementPy(new Placement(ret));
 }
 
@@ -248,7 +247,7 @@ PyObject* PlacementPy::sclerp(PyObject* args)
     if (!PyArg_ParseTuple(args, "O!d|O!", &(PlacementPy::Type), &pyplm2, &t, &(PyBool_Type), &shorten))
         return nullptr;
     Base::Placement plm2 = static_cast<Base::PlacementPy*>(pyplm2)->value();
-    Base::Placement ret = Base::Placement::sclerp(*getPlacementPtr(), plm2, t, PyObject_IsTrue(shorten));
+    Base::Placement ret = Base::Placement::sclerp(*getPlacementPtr(), plm2, t, Base::asBoolean(shorten));
     return new PlacementPy(new Placement(ret));
 }
 
@@ -290,16 +289,16 @@ void PlacementPy::setRotation(Py::Object arg)
 {
     Py::Rotation rot;
     if (rot.accepts(arg.ptr())) {
-        getPlacementPtr()->setRotation((Base::Rotation)Py::Rotation(arg));
+        getPlacementPtr()->setRotation(static_cast<Base::Rotation>(Py::Rotation(arg)));
         return;
     }
     Py::Tuple tuple;
     if (tuple.accepts(arg.ptr())) {
         tuple = arg;
-        getPlacementPtr()->setRotation(Base::Rotation((double)Py::Float(tuple[0]),
-                                                      (double)Py::Float(tuple[1]),
-                                                      (double)Py::Float(tuple[2]),
-                                                      (double)Py::Float(tuple[3])
+        getPlacementPtr()->setRotation(Base::Rotation(static_cast<double>(Py::Float(tuple[0])),
+                                                      static_cast<double>(Py::Float(tuple[1])),
+                                                      static_cast<double>(Py::Float(tuple[2])),
+                                                      static_cast<double>(Py::Float(tuple[3]))
                                                      ));
         return;
     }

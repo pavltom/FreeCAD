@@ -21,18 +21,17 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef DRAWINGGUI_VIEWPROVIDERDIMENSION_H
 #define DRAWINGGUI_VIEWPROVIDERDIMENSION_H
 
 #include <App/PropertyUnits.h>
 
-#include "ViewProviderDrawingView.h"
 #include <Mod/TechDraw/App/DrawViewDimension.h>
+
+#include "ViewProviderDrawingView.h"
 
 
 namespace TechDrawGui {
-
 
 class TechDrawGuiExport ViewProviderDimension : public ViewProviderDrawingView
 {
@@ -64,6 +63,9 @@ public:
     App::PropertyEnumeration RenderingExtent;
 
     App::PropertyBool        FlipArrowheads;
+
+    App::PropertyFloat GapFactorISO;
+    App::PropertyFloat GapFactorASME;
 
     virtual void attach(App::DocumentObject *);
     virtual void setDisplayMode(const char* ModeName);

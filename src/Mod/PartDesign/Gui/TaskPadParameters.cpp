@@ -24,18 +24,12 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <sstream>
-# include <QRegExp>
-# include <QTextStream>
 # include <Precision.hxx>
 #endif
 
+#include <Mod/PartDesign/App/FeaturePad.h>
 #include "ui_TaskPadPocketParameters.h"
 #include "TaskPadParameters.h"
-#include <Gui/Command.h>
-#include <Gui/ViewProvider.h>
-#include <Mod/PartDesign/App/FeaturePad.h>
-#include <Mod/Sketcher/App/SketchObject.h>
 
 using namespace PartDesignGui;
 using namespace Gui;
@@ -110,6 +104,10 @@ void TaskPadParameters::onModeChanged(int index)
         break;
     case Modes::ToFace:
         pcPad->Type.setValue("UpToFace");
+        if (ui->lineFaceName->text().isEmpty()) {
+            ui->buttonFace->setChecked(true);
+            handleLineFaceNameClick(); // sets placeholder text
+        }
         break;
     case Modes::TwoDimensions:
         pcPad->Type.setValue("TwoLengths");

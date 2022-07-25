@@ -20,17 +20,12 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <cfloat>
-# include <QAction>
-# include <QMenu>
+# include <Inventor/SoPickedPoint.h>
+# include <Inventor/actions/SoRayPickAction.h>
 # include <Inventor/actions/SoSearchAction.h>
-# include <Inventor/draggers/SoDragger.h>
-# include <Inventor/draggers/SoCenterballDragger.h>
-# include <Inventor/manips/SoCenterballManip.h>
 # include <Inventor/nodes/SoBaseColor.h>
 # include <Inventor/nodes/SoCamera.h>
 # include <Inventor/nodes/SoDrawStyle.h>
@@ -39,49 +34,34 @@
 # include <Inventor/nodes/SoSeparator.h>
 # include <Inventor/nodes/SoSwitch.h>
 # include <Inventor/nodes/SoDirectionalLight.h>
-# include <Inventor/nodes/SoPickStyle.h>
-# include <Inventor/sensors/SoNodeSensor.h>
-# include <Inventor/SoPickedPoint.h>
-# include <Inventor/actions/SoRayPickAction.h>
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
+#include <Inventor/nodes/SoResetTransform.h>
+
+#include <App/GeoFeature.h>
+#include <App/PropertyGeo.h>
+
 #include "ViewProviderGeometryObject.h"
-#include "View3DInventorViewer.h"
-#include "SoFCSelection.h"
-#include "SoFCBoundingBox.h"
 #include "Application.h"
 #include "Document.h"
-#include "Window.h"
+#include "SoFCBoundingBox.h"
+#include "SoFCSelection.h"
+#include "View3DInventorViewer.h"
 
-#include <Base/Console.h>
-#include <Base/Placement.h>
-#include <App/PropertyGeo.h>
-#include <App/GeoFeature.h>
-#include <Inventor/draggers/SoCenterballDragger.h>
-#include <Inventor/nodes/SoResetTransform.h>
-#if (COIN_MAJOR_VERSION > 2)
-#include <Inventor/nodes/SoDepthBuffer.h>
-#endif
-#include "SoFCUnifiedSelection.h"
-#include "SoFCCSysDragger.h"
-#include "Control.h"
-#include "TaskCSysDragger.h"
-#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace Gui;
 
 PROPERTY_SOURCE(Gui::ViewProviderGeometryObject, Gui::ViewProviderDragger)
 
-const App::PropertyIntegerConstraint::Constraints intPercent = {0,100,1};
+const App::PropertyIntegerConstraint::Constraints intPercent = {0, 100, 1};
 
 ViewProviderGeometryObject::ViewProviderGeometryObject()
-    : pcBoundSwitch(0)
-    , pcBoundColor(0)
+    : pcBoundSwitch(nullptr)
+    , pcBoundColor(nullptr)
 {
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
     bool randomColor = hGrp->GetBool("RandomColor", false);
-    float r,g,b;
+    float r, g, b;
 
     if (randomColor){
         float fMax = (float)RAND_MAX;
@@ -90,18 +70,20 @@ ViewProviderGeometryObject::ViewProviderGeometryObject()
         b = (float)rand()/fMax;
     }
     else {
-        unsigned long shcol = hGrp->GetUnsigned("DefaultShapeColor",3435973887UL); // light gray (204,204,204)
+        unsigned long shcol = hGrp->GetUnsigned("DefaultShapeColor", 3435973887UL); // light gray (204,204,204)
         r = ((shcol >> 24) & 0xff) / 255.0;
         g = ((shcol >> 16) & 0xff) / 255.0;
         b = ((shcol >> 8) & 0xff) / 255.0;
     }
+
+    int initialTransparency = hGrp->GetInt("DefaultShapeTransparency", 0); 
 
     static const char *dogroup = "Display Options";
     static const char *sgroup = "Selection";
     static const char *osgroup = "Object Style";
 
     ADD_PROPERTY_TYPE(ShapeColor, (r, g, b), osgroup, App::Prop_None, "Set shape color");
-    ADD_PROPERTY_TYPE(Transparency, (0), osgroup, App::Prop_None, "Set object transparency");
+    ADD_PROPERTY_TYPE(Transparency, (initialTransparency), osgroup, App::Prop_None, "Set object transparency");
     Transparency.setConstraints(&intPercent);
     App::Material mat(App::Material::DEFAULT);
     ADD_PROPERTY_TYPE(ShapeMaterial,(mat), osgroup, App::Prop_None, "Shape material");
@@ -112,9 +94,9 @@ ViewProviderGeometryObject::ViewProviderGeometryObject()
     Selectable.setValue(enableSel);
 
     pcShapeMaterial = new SoMaterial;
+    pcShapeMaterial->diffuseColor.setValue(r, g, b);
+    pcShapeMaterial->transparency = float(initialTransparency);
     pcShapeMaterial->ref();
-    //ShapeMaterial.touch(); materials are rarely used, so better to initialize with default shape color
-    ShapeColor.touch();
 
     pcBoundingBox = new Gui::SoFCBoundingBox;
     pcBoundingBox->ref();
@@ -142,16 +124,16 @@ void ViewProviderGeometryObject::onChanged(const App::Property* prop)
         setSelectable(Sel);
     }
     else if (prop == &ShapeColor) {
-        const App::Color& c = ShapeColor.getValue();
-        pcShapeMaterial->diffuseColor.setValue(c.r,c.g,c.b);
+        const App::Color &c = ShapeColor.getValue();
+        pcShapeMaterial->diffuseColor.setValue(c.r, c.g, c.b);
         if (c != ShapeMaterial.getValue().diffuseColor)
-        ShapeMaterial.setDiffuseColor(c);
+            ShapeMaterial.setDiffuseColor(c);
     }
     else if (prop == &Transparency) {
-        const App::Material& Mat = ShapeMaterial.getValue();
-        long value = (long)(100*Mat.transparency);
+        const App::Material &Mat = ShapeMaterial.getValue();
+        long value = (long)(100 * Mat.transparency);
         if (value != Transparency.getValue()) {
-            float trans = Transparency.getValue()/100.0f;
+            float trans = Transparency.getValue() / 100.0f;
             pcShapeMaterial->transparency = trans;
             ShapeMaterial.setTransparency(trans);
         }
@@ -159,17 +141,17 @@ void ViewProviderGeometryObject::onChanged(const App::Property* prop)
     else if (prop == &ShapeMaterial) {
         if (getObject() && getObject()->testStatus(App::ObjectStatus::TouchOnColorChange))
             getObject()->touch(true);
-        const App::Material& Mat = ShapeMaterial.getValue();
-        long value = (long)(100*Mat.transparency);
+        const App::Material &Mat = ShapeMaterial.getValue();
+        long value = (long)(100 * Mat.transparency);
         if (value != Transparency.getValue())
-        Transparency.setValue(value);
-        const App::Color& color = Mat.diffuseColor;
+            Transparency.setValue(value);
+        const App::Color &color = Mat.diffuseColor;
         if (color != ShapeColor.getValue())
-        ShapeColor.setValue(Mat.diffuseColor);
-        pcShapeMaterial->ambientColor.setValue(Mat.ambientColor.r,Mat.ambientColor.g,Mat.ambientColor.b);
-        pcShapeMaterial->diffuseColor.setValue(Mat.diffuseColor.r,Mat.diffuseColor.g,Mat.diffuseColor.b);
-        pcShapeMaterial->specularColor.setValue(Mat.specularColor.r,Mat.specularColor.g,Mat.specularColor.b);
-        pcShapeMaterial->emissiveColor.setValue(Mat.emissiveColor.r,Mat.emissiveColor.g,Mat.emissiveColor.b);
+            ShapeColor.setValue(Mat.diffuseColor);
+        pcShapeMaterial->ambientColor.setValue(Mat.ambientColor.r, Mat.ambientColor.g, Mat.ambientColor.b);
+        pcShapeMaterial->diffuseColor.setValue(Mat.diffuseColor.r, Mat.diffuseColor.g, Mat.diffuseColor.b);
+        pcShapeMaterial->specularColor.setValue(Mat.specularColor.r, Mat.specularColor.g, Mat.specularColor.b);
+        pcShapeMaterial->emissiveColor.setValue(Mat.emissiveColor.r, Mat.emissiveColor.g, Mat.emissiveColor.b);
         pcShapeMaterial->shininess.setValue(Mat.shininess);
         pcShapeMaterial->transparency.setValue(Mat.transparency);
     }
@@ -213,7 +195,7 @@ SoPickedPointList ViewProviderGeometryObject::getPickedPoints(const SbVec2s& pos
     root->ref();
     root->addChild(viewer.getHeadlight());
     root->addChild(viewer.getSoRenderManager()->getCamera());
-    root->addChild(const_cast<ViewProviderGeometryObject*>(this)->getRoot());
+    root->addChild(getRoot());
 
     SoRayPickAction rp(viewer.getSoRenderManager()->getViewportRegion());
     rp.setPickAll(pickAll);
@@ -232,7 +214,7 @@ SoPickedPoint* ViewProviderGeometryObject::getPickedPoint(const SbVec2s& pos, co
     root->ref();
     root->addChild(viewer.getHeadlight());
     root->addChild(viewer.getSoRenderManager()->getCamera());
-    root->addChild(const_cast<ViewProviderGeometryObject*>(this)->getRoot());
+    root->addChild(getRoot());
 
     SoRayPickAction rp(viewer.getSoRenderManager()->getViewportRegion());
     rp.setPoint(pos);
@@ -243,7 +225,7 @@ SoPickedPoint* ViewProviderGeometryObject::getPickedPoint(const SbVec2s& pos, co
     // returns a copy of the point
     SoPickedPoint* pick = rp.getPickedPoint();
     //return (pick ? pick->copy() : 0); // needs the same instance of CRT under MS Windows
-    return (pick ? new SoPickedPoint(*pick) : 0);
+    return (pick ? new SoPickedPoint(*pick) : nullptr);
 }
 
 unsigned long ViewProviderGeometryObject::getBoundColor() const

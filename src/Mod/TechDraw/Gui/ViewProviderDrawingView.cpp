@@ -21,39 +21,27 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
 #include <boost_signals2.hpp>
 #include <boost/signals2/connection.hpp>
-#include <boost_bind_bind.hpp>
-
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <Base/Console.h>
-#include <Base/Parameter.h>
-#include <Base/Exception.h>
-#include <Base/Sequencer.h>
-#include <App/Application.h>
-#include <App/Document.h>
 #include <App/DocumentObject.h>
-
 #include <Gui/Application.h>
 #include <Gui/Control.h>
 #include <Gui/Document.h>
-#include <Gui/ViewProvider.h>
 
-#include <Mod/TechDraw/App/DrawViewClip.h>
 #include <Mod/TechDraw/App/DrawPage.h>
 #include <Mod/TechDraw/App/DrawView.h>
 
-#include "ViewProviderPage.h"
-#include "QGIView.h"
-#include "QGVPage.h"
-#include "MDIViewPage.h"
 #include "ViewProviderDrawingView.h"
+#include "MDIViewPage.h"
+#include "QGIView.h"
+#include "QGSPage.h"
+#include "QGVPage.h"
+#include "ViewProviderPage.h"
 
 using namespace TechDrawGui;
 namespace bp = boost::placeholders;
@@ -85,7 +73,7 @@ void ViewProviderDrawingView::attach(App::DocumentObject *pcFeat)
 
     auto bnd = boost::bind(&ViewProviderDrawingView::onGuiRepaint, this, bp::_1);
     auto feature = getViewObject();
-    if (feature != nullptr) {
+    if (feature) {
         connectGuiRepaint = feature->signalGuiPaint.connect(bnd);
         //TODO: would be good to start the QGIV creation process here, but no guarantee we actually have
         //      MDIVP or QGVP yet.
@@ -94,12 +82,6 @@ void ViewProviderDrawingView::attach(App::DocumentObject *pcFeat)
     } else {
         Base::Console().Warning("VPDV::attach has no Feature!\n");
     }
-//    TechDraw::DrawView* view = static_cast<TechDraw::DrawView*>(pcFeat);
-//    TechDraw::DrawPage* page = view->findParentPage();
-//    TechDraw::DrawPage* page = feature->findParentPage();
-//    Base::Console().Message("VPDV::attach(%X) - parent: %X\n", 
-//            pcFeat, page);
-//            pcFeat->getNameInDocument(), page->getNameInDocument());
 }
 
 void ViewProviderDrawingView::setDisplayMode(const char* ModeName)
@@ -168,7 +150,7 @@ void ViewProviderDrawingView::hide(void)
             //      in FC Tree hiding does not change selection state.
             //      block/unblock selection protects against crash in Gui::SelectionSingleton::setVisible
             MDIViewPage* mdi = getMDIViewPage();
-            if (mdi != nullptr) {                  //if there is no mdivp, there is nothing to hide!
+            if (mdi) {                  //if there is no mdivp, there is nothing to hide!
                 mdi->blockSceneSelection(true);
                 qView->hide();
                 ViewProviderDocumentObject::hide();
@@ -185,14 +167,14 @@ QGIView* ViewProviderDrawingView::getQView(void)
         TechDraw::DrawView* dv = getViewObject();
         if (dv) {
             Gui::Document* guiDoc = Gui::Application::Instance->getDocument(getViewObject()->getDocument());
-            if (guiDoc != nullptr) {
+            if (guiDoc) {
                 Gui::ViewProvider* vp = guiDoc->getViewProvider(getViewObject()->findParentPage());
                 ViewProviderPage* dvp = dynamic_cast<ViewProviderPage*>(vp);
                 if (dvp) {
                     if (dvp->getMDIViewPage()) {
-                        if (dvp->getMDIViewPage()->getQGVPage()) {
+                        if (dvp->getMDIViewPage()->getQGSPage()) {
                             qView = dynamic_cast<QGIView *>(dvp->getMDIViewPage()->
-                                                   getQGVPage()->findQViewForDocObj(getViewObject()));
+                                                   getQGSPage()->findQViewForDocObj(getViewObject()));
                         }
                     }
                 }
@@ -226,12 +208,12 @@ void ViewProviderDrawingView::finishRestoring()
 
 void ViewProviderDrawingView::updateData(const App::Property* prop)
 {
-    if (prop == &(getViewObject()->Rotation) ||
-        prop == &(getViewObject()->X)  ||
-        prop == &(getViewObject()->Y) ) {
+    //only move the view on X,Y change
+    if (prop == &(getViewObject()->X)  ||
+        prop == &(getViewObject()->Y) ){
         QGIView* qgiv = getQView();
         if (qgiv) {
-            qgiv->updateView(true);
+            qgiv->QGIView::updateView(true);
         }
     }
 
@@ -252,7 +234,7 @@ MDIViewPage* ViewProviderDrawingView::getMDIViewPage() const
 {
     MDIViewPage* result = nullptr;
     Gui::Document* guiDoc = Gui::Application::Instance->getDocument(getViewObject()->getDocument());
-    if (guiDoc != nullptr) {
+    if (guiDoc) {
         Gui::ViewProvider* vp = guiDoc->getViewProvider(getViewObject()->findParentPage());
         ViewProviderPage* dvp = dynamic_cast<ViewProviderPage*>(vp);
         if (dvp) {
@@ -269,8 +251,35 @@ Gui::MDIView *ViewProviderDrawingView::getMDIView() const
 
 void ViewProviderDrawingView::onGuiRepaint(const TechDraw::DrawView* dv) 
 {
-//   Base::Console().Message("VPDV::onGuiRepaint(%s)\n", dv->getNameInDocument());
-    if (dv == getViewObject()) {
+//    Base::Console().Message("VPDV::onGuiRepaint(%s) - this: %x\n", dv->getNameInDocument(), this);
+    std::vector<TechDraw::DrawPage*> pages = getViewObject()->findAllParentPages();
+    if (pages.size() > 1) {
+        Gui::Document* guiDoc = Gui::Application::Instance->getDocument(getViewObject()->getDocument());
+        if (!guiDoc)
+            return;
+        for (auto& p : pages) {
+            std::vector<App::DocumentObject*> views = p->Views.getValues();
+            for (auto& v: views) {
+                if (v == getViewObject()) {
+                    //view v belongs to this page p
+                    Gui::ViewProvider* vp = guiDoc->getViewProvider(p);
+                    ViewProviderPage* vpPage = dynamic_cast<ViewProviderPage*>(vp);
+                    if (vpPage) {
+                        if (vpPage->getMDIViewPage()) {
+                            if (vpPage->getMDIViewPage()->getQGSPage()) {
+                                QGIView* qView = dynamic_cast<QGIView *>(vpPage->getMDIViewPage()->
+                                                           getQGSPage()->findQViewForDocObj(v));
+                                if (qView) {
+                                    qView->updateView(true);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else if (dv == getViewObject()) {
+        //original logic for 1 view on 1 page
         if (!dv->isRemoving() &&
             !dv->isRestoring()) {
             QGIView* qgiv = getQView();
@@ -283,7 +292,7 @@ void ViewProviderDrawingView::onGuiRepaint(const TechDraw::DrawView* dv)
                 //     via the parent DrawPage since the DP is created before any views.
 //                Base::Console().Message("VPDV::onGuiRepaint - no QGIV for: %s\n",dv->getNameInDocument());
                 MDIViewPage* page = getMDIViewPage();
-                if (page != nullptr) {
+                if (page) {
                     page->addView(dv);
                 }
             }

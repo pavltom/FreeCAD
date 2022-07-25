@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef FEM_ViewProviderAnalysis_H
 #define FEM_ViewProviderAnalysis_H
 
@@ -28,6 +27,7 @@
 #include <Gui/ViewProviderPythonFeature.h>
 #include <Mod/Fem/FemGlobal.h>
 #include <QCoreApplication>
+
 
 namespace FemGui
 {
@@ -47,13 +47,15 @@ public:
     virtual bool doubleClicked(void);
 
     virtual std::vector<App::DocumentObject*> claimChildren(void)const;
+
+    // handling when object is deleted
+    virtual bool onDelete(const std::vector<std::string>&);
     /// Asks the view provider if the given object can be deleted.
     virtual bool canDelete(App::DocumentObject* obj) const;
 
     //virtual std::vector<App::DocumentObject*> claimChildren3D(void)const;
     void setupContextMenu(QMenu*, QObject*, const char*);
 
-    virtual bool onDelete(const std::vector<std::string> &);
     /// A list of all possible display modes
     virtual std::vector<std::string> getDisplayModes(void) const;
     // shows solid in the tree

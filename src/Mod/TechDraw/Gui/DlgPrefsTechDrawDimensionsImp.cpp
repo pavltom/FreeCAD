@@ -29,6 +29,7 @@
 
 #include <Base/Parameter.h>
 #include <Base/Console.h>
+#include <Base/Tools.h>
 
 #include "DrawGuiUtil.h"
 #include "PreferencesGui.h"
@@ -67,6 +68,9 @@ void DlgPrefsTechDrawDimensionsImp::saveSettings()
     ui->leDiameter->onSave();
     ui->pcbArrow->onSave();
     ui->plsb_ArrowSize->onSave();
+    ui->leFormatSpec->onSave();
+    ui->pdsbGapISO->onSave();
+    ui->pdsbGapASME->onSave();
 }
 
 void DlgPrefsTechDrawDimensionsImp::loadSettings()
@@ -92,6 +96,12 @@ void DlgPrefsTechDrawDimensionsImp::loadSettings()
 
     DrawGuiUtil::loadArrowBox(ui->pcbArrow);
     ui->pcbArrow->setCurrentIndex(prefArrowStyle());
+
+    ui->leFormatSpec->setText(Base::Tools::fromStdString(Preferences::formatSpec()));
+    ui->leFormatSpec->onRestore();
+
+    ui->pdsbGapISO->onRestore();
+    ui->pdsbGapASME->onRestore();
 }
 
 /**

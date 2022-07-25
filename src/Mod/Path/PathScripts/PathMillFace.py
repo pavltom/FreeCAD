@@ -151,13 +151,13 @@ class ObjectFace(PathPocketBase.ObjectPocket):
     def areaOpShapes(self, obj):
         """areaOpShapes(obj) ... return top face"""
         # Facing is done either against base objects
+        self.removalshapes = []
         holeShape = None
 
         PathLog.debug("depthparams: {}".format([i for i in self.depthparams]))
 
         if obj.Base:
             PathLog.debug("obj.Base: {}".format(obj.Base))
-            self.removalshapes = []
             faces = []
             holes = []
             holeEnvs = []
@@ -281,7 +281,7 @@ class ObjectFace(PathPocketBase.ObjectPocket):
                     partshape=planeshape, depthparams=self.depthparams
                 )
         elif obj.BoundaryShape == "Face Region":
-            baseShape = oneBase[0].Shape
+            baseShape = planeshape  # oneBase[0].Shape
             psZMin = planeshape.BoundBox.ZMin
             ofst = 0.0
             if obj.ClearEdges:

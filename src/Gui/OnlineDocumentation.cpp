@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <QApplication>
@@ -30,18 +29,12 @@
 # include <QTcpSocket>
 #endif
 
-#include <sstream>
-#include <CXX/Objects.hxx>
-#include <zipios++/zipfile.h>
 #include <Base/Interpreter.h>
-#include <Base/Stream.h>
-#include <Base/Console.h>
 #include <Base/Exception.h>
-#include <App/Application.h>
 
-#include "MainWindow.h"
-#include "BitmapFactory.h"
 #include "OnlineDocumentation.h"
+#include "MainWindow.h"
+
 
 using namespace Gui;
 
@@ -245,7 +238,7 @@ QByteArray PythonOnlineHelp::fileNotFound() const
     QString header = QString::fromLatin1("content-type: %1\r\n").arg(contentType);
 
     QString http(QLatin1String("HTTP/1.1 %1 %2\r\n%3\r\n"));
-    QString httpResponseHeader = http.arg(404).arg(QLatin1String("File not found")).arg(header);
+    QString httpResponseHeader = http.arg(404).arg(QString::fromLatin1("File not found"), header);
 
     QByteArray res = httpResponseHeader.toLatin1();
     return res;
@@ -274,7 +267,7 @@ QByteArray PythonOnlineHelp::loadFailed(const QString& error) const
     QString header = QString::fromLatin1("content-type: %1\r\n").arg(contentType);
 
     QString http(QLatin1String("HTTP/1.1 %1 %2\r\n%3\r\n"));
-    QString httpResponseHeader = http.arg(404).arg(QLatin1String("File not found")).arg(header);
+    QString httpResponseHeader = http.arg(404).arg(QString::fromLatin1("File not found"), header);
 
     QByteArray res = httpResponseHeader.toLatin1();
     return res;
@@ -361,7 +354,7 @@ void HttpServer::discardClient()
 /* TRANSLATOR Gui::StdCmdPythonHelp */
 
 StdCmdPythonHelp::StdCmdPythonHelp()
-  : Command("Std_PythonHelp"), server(0)
+  : Command("Std_PythonHelp"), server(nullptr)
 {
     sGroup        = "Tools";
     sMenuText     = QT_TR_NOOP("Automatic python modules documentation");

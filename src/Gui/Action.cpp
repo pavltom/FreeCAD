@@ -24,24 +24,23 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <boost_signals2.hpp>
-# include <boost_bind_bind.hpp>
-# include <QAbstractItemView>
 # include <QActionEvent>
 # include <QApplication>
-# include <QDesktopWidget>
 # include <QEvent>
+# include <QMenu>
 # include <QMessageBox>
+# include <QScreen>
 # include <QTimer>
 # include <QToolBar>
 # include <QToolButton>
 #endif
 
-#include <QScreen>
-
+#include <Base/Exception.h>
+#include <Base/Interpreter.h>
 #include <Base/Tools.h>
+#include <App/Document.h>
+
 #include "Action.h"
-#include "Application.h"
 #include "BitmapFactory.h"
 #include "Command.h"
 #include "DlgUndoRedo.h"
@@ -55,10 +54,7 @@
 #include "WhatsThis.h"
 #include "Widgets.h"
 #include "Workbench.h"
-#include "WorkbenchManager.h"
 
-#include <Base/Exception.h>
-#include <App/Application.h>
 
 using namespace Gui;
 using namespace Gui::Dialog;
@@ -227,7 +223,7 @@ void Action::setMenuRole(QAction::MenuRole menuRole)
  * to the command object.
  */
 ActionGroup::ActionGroup ( Command* pcCmd,QObject * parent)
-  : Action(pcCmd, parent), _group(0), _dropDown(false),_external(false),_toggle(false),_isMode(false)
+  : Action(pcCmd, parent), _group(nullptr), _dropDown(false),_external(false),_toggle(false),_isMode(false)
 {
     _group = new QActionGroup(this);
     connect(_group, SIGNAL(triggered(QAction*)), this, SLOT(onActivated (QAction*)));
@@ -258,7 +254,7 @@ void ActionGroup::addTo(QWidget *w)
         }
         else if (w->inherits("QToolBar")) {
             w->addAction(_action);
-            QToolButton* tb = w->findChildren<QToolButton*>().last();
+            QToolButton* tb = w->findChildren<QToolButton*>().constLast();
             tb->setPopupMode(QToolButton::MenuButtonPopup);
             tb->setObjectName(QString::fromLatin1("qt_toolbutton_menubutton"));
             QList<QAction*> acts = _group->actions();
@@ -333,10 +329,13 @@ int ActionGroup::checkedAction() const
 
 void ActionGroup::setCheckedAction(int i)
 {
-    QAction* a = _group->actions()[i];
+    auto acts = _group->actions();
+    QAction* a = acts.at(i);
     a->setChecked(true);
     this->setIcon(a->icon());
-    if (!this->_isMode) this->setToolTip(a->toolTip());
+
+    if (!this->_isMode)
+        this->setToolTip(a->toolTip());
     this->setProperty("defaultAction", QVariant(i));
 }
 
@@ -360,23 +359,6 @@ void ActionGroup::onActivated (QAction* a)
 {
     int index = _group->actions().indexOf(a);
 
-    // Calling QToolButton::setIcon() etc. has no effect if it has QAction set.
-    // We have to change the QAction icon instead
-#if 0
-    QList<QWidget*> widgets = a->associatedWidgets();
-    for (QList<QWidget*>::iterator it = widgets.begin(); it != widgets.end(); ++it) {
-        QMenu* menu = qobject_cast<QMenu*>(*it);
-        if (menu) {
-            QToolButton* button = qobject_cast<QToolButton*>(menu->parent());
-            if (button) {
-                button->setIcon(a->icon());
-                button->setText(a->text());
-                button->setToolTip(a->toolTip());
-                this->setProperty("defaultAction", QVariant(index));
-            }
-        }
-    }
-#endif
     this->setIcon(a->icon());
     if (!this->_isMode) this->setToolTip(a->toolTip());
     this->setProperty("defaultAction", QVariant(index));
@@ -485,7 +467,7 @@ void WorkbenchComboBox::onActivated(int i)
 {
     // Send the event to the workbench group to delay the destruction of the emitting widget.
     int index = itemData(i).toInt();
-    WorkbenchActionEvent* ev = new WorkbenchActionEvent(this->actions()[index]);
+    WorkbenchActionEvent* ev = new WorkbenchActionEvent(this->actions().at(index));
     QApplication::postEvent(this->group, ev);
     // TODO: Test if we can use this instead
     //QTimer::singleShot(20, this->actions()[i], SLOT(trigger()));
@@ -921,15 +903,26 @@ void RecentMacrosAction::setFiles(const QStringList& files)
     int numRecentFiles = std::min<int>(recentFiles.count(), files.count());
     for (int index = 0; index < numRecentFiles; index++) {
         QFileInfo fi(files[index]);
-        QString accel = QString::fromStdString(shortcut_modifiers);
-        accel.append(QString::number(index+1,10)).toStdString();
         recentFiles[index]->setText(QString::fromLatin1("%1 %2").arg(index+1).arg(fi.baseName()));
-        recentFiles[index]->setStatusTip(tr("Run macro %1 (Shift+click to edit) shortcut: %2").arg(files[index]).arg(accel));
         recentFiles[index]->setToolTip(files[index]); // set the full name that we need later for saving
         recentFiles[index]->setData(QVariant(index));
+        QString accel(tr("none"));
         if (index < shortcut_count){
-            recentFiles[index]->setShortcut(accel);
+            auto accel_tmp = QString::fromStdString(shortcut_modifiers);
+            accel_tmp.append(QString::number(index+1,10)).toStdString();
+            auto check = Application::Instance->commandManager().checkAcceleratorForConflicts(qPrintable(accel_tmp));
+            if (check) {
+                recentFiles[index]->setShortcut(QKeySequence());
+                auto msg = QStringLiteral("Recent macros : keyboard shortcut %1 disabled because conflicting with %2")
+                                                            .arg(accel_tmp, QLatin1String(check->getName()));
+                Base::Console().Warning("%s\n", qPrintable(msg));
+            }
+            else {
+                accel = accel_tmp;
+                recentFiles[index]->setShortcut(accel);
+            }
         }
+        recentFiles[index]->setStatusTip(tr("Run macro %1 (Shift+click to edit) keyboard shortcut: %2").arg(files[index], accel));
         recentFiles[index]->setVisible(true);
     }
 
@@ -1015,23 +1008,17 @@ void RecentMacrosAction::resizeList(int size)
 /** Loads all recent files from the preferences. */
 void RecentMacrosAction::restore()
 {
-    ParameterGrp::handle hGrp = App::GetApplication().GetUserParameter().GetGroup("BaseApp")->GetGroup("Preferences");
-    if (hGrp->HasGroup("RecentMacros")) {
-        hGrp = hGrp->GetGroup("RecentMacros");
-        // we want at least 20 items but we do only show the number of files
-        // that is defined in user parameters
-        this->visibleItems = hGrp->GetInt("RecentMacros", this->visibleItems);
-        this->shortcut_count = hGrp->GetInt("ShortcutCount", 3); // number of shortcuts
-        this->shortcut_modifiers = hGrp->GetASCII("ShortcutModifiers","Ctrl+Shift+");
-    }
+    ParameterGrp::handle hGrp = App::GetApplication().GetUserParameter().GetGroup("BaseApp")
+                                ->GetGroup("Preferences")->GetGroup("RecentMacros");
 
-    int count = std::max<int>(this->maximumItems, this->visibleItems);
-    for (int i=_group->actions().size(); i<count; i++)
+    for (int i=_group->actions().size(); i<this->maximumItems; i++)
         _group->addAction(QLatin1String(""))->setVisible(false);
+    resizeList(hGrp->GetInt("RecentMacros"));
+
     std::vector<std::string> MRU = hGrp->GetASCIIs("MRU");
     QStringList files;
-    for (std::vector<std::string>::iterator it = MRU.begin(); it!=MRU.end();++it)
-        files.append(QString::fromUtf8(it->c_str()));
+    for (auto& filename: MRU)
+        files.append(QString::fromUtf8(filename.c_str()));
     setFiles(files);
 }
 
@@ -1168,7 +1155,7 @@ void RedoAction::setVisible ( bool b )
 // --------------------------------------------------------------------
 
 DockWidgetAction::DockWidgetAction ( Command* pcCmd, QObject * parent )
-  : Action(pcCmd, parent), _menu(0)
+  : Action(pcCmd, parent), _menu(nullptr)
 {
 }
 
@@ -1191,7 +1178,7 @@ void DockWidgetAction::addTo ( QWidget * w )
 // --------------------------------------------------------------------
 
 ToolBarAction::ToolBarAction ( Command* pcCmd, QObject * parent )
-  : Action(pcCmd, parent), _menu(0)
+  : Action(pcCmd, parent), _menu(nullptr)
 {
 }
 
@@ -1214,7 +1201,7 @@ void ToolBarAction::addTo ( QWidget * w )
 // --------------------------------------------------------------------
 
 WindowAction::WindowAction ( Command* pcCmd, QObject * parent )
-  : ActionGroup(pcCmd, parent), _menu(0)
+  : ActionGroup(pcCmd, parent), _menu(nullptr)
 {
 }
 

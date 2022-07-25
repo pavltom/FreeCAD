@@ -20,13 +20,11 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
-
-#include "GeometryDefaultExtension.h"
 
 #include "GeometryBoolExtensionPy.h"
 #include "GeometryBoolExtensionPy.cpp"
+
 
 using namespace Part;
 
@@ -64,14 +62,14 @@ int GeometryBoolExtensionPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     PyErr_Clear();
     PyObject* val;
     if (PyArg_ParseTuple(args, "O!", &PyBool_Type, &val)) {
-        this->getGeometryBoolExtensionPtr()->setValue(PyObject_IsTrue(val) ? true : false);
+        this->getGeometryBoolExtensionPtr()->setValue(Base::asBoolean(val));
         return 0;
     }
 
     PyErr_Clear();
     char * pystr;
     if (PyArg_ParseTuple(args, "O!s", &PyBool_Type, &val, &pystr)) {
-        this->getGeometryBoolExtensionPtr()->setValue(PyObject_IsTrue(val) ? true : false);
+        this->getGeometryBoolExtensionPtr()->setValue(Base::asBoolean(val));
         this->getGeometryBoolExtensionPtr()->setName(pystr);
         return 0;
     }
@@ -95,7 +93,7 @@ void GeometryBoolExtensionPy::setValue(Py::Boolean value)
 
 PyObject *GeometryBoolExtensionPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int GeometryBoolExtensionPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

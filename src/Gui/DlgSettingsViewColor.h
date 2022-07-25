@@ -41,7 +41,7 @@ class DlgSettingsViewColor : public PreferencePage
   Q_OBJECT
 
 public:
-  DlgSettingsViewColor(QWidget* parent = 0);
+  DlgSettingsViewColor(QWidget* parent = nullptr);
   ~DlgSettingsViewColor();
 
   void saveSettings();
@@ -49,6 +49,9 @@ public:
 
 protected:
   void changeEvent(QEvent *e);
+
+protected Q_SLOTS:
+  void onSwitchGradientColorsPressed();
 
 private:
   std::unique_ptr<Ui_DlgSettingsViewColor> ui;

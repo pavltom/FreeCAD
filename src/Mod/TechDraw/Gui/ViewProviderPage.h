@@ -21,14 +21,17 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef DRAWINGGUI_VIEWPROVIDERPAGE_H
 #define DRAWINGGUI_VIEWPROVIDERPAGE_H
 
-#include <QPointer>
-#include <Gui/ViewProviderDocumentObject.h>
+#include <Mod/TechDraw/TechDrawGlobal.h>
 
 #include <boost_signals2.hpp> 
+#include <QPointer>
+
+#include <App/PropertyUnits.h>
+#include <Gui/ViewProviderDocumentObject.h>
+
 
 namespace TechDraw{
     class DrawPage;
@@ -38,6 +41,7 @@ namespace TechDrawGui {
 
 class MDIViewPage;
 class QGVPage;
+class QGSPage;
 
 class TechDrawGuiExport ViewProviderPage : public Gui::ViewProviderDocumentObject
 {
@@ -50,6 +54,8 @@ public:
     virtual ~ViewProviderPage();
 
     App::PropertyBool  ShowFrames;
+    App::PropertyBool  ShowGrid;
+    App::PropertyDistance GridSpacing;
 
     virtual void attach(App::DocumentObject *) override;
     virtual void setDisplayMode(const char* ModeName) override;
@@ -92,8 +98,11 @@ public:
     void toggleFrameState(void);
     void setTemplateMarkers(bool state);
     QGVPage *getGraphicsView() { return m_graphicsView; }
+    QGSPage* getGraphicsScene() { return m_graphicsScene; }
     void setGraphicsView(QGVPage* gv);
+    void setGraphicsScene(QGSPage* gs);
     virtual bool canDelete(App::DocumentObject* obj) const override;
+    void  setGrid(void);
 
 protected:
     bool setEdit(int ModNum) override;
@@ -103,6 +112,7 @@ private:
     bool m_docReady;
     std::string m_pageName;
     QGVPage* m_graphicsView;
+    QGSPage* m_graphicsScene;
 };
 
 } // namespace TechDrawGui

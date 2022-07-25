@@ -20,17 +20,19 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef WEBGUI_BROWSERVIEW_H
 #define WEBGUI_BROWSERVIEW_H
 
 
 #include <Gui/MDIView.h>
 #include <Gui/Window.h>
+#include <Mod/Web/WebGlobal.h>
 #include <QLineEdit>
+#include <QPointer>
 
 #if defined(QTWEBENGINE)
 #include <QWebEngineView>
+
 namespace WebGui {
 class WebEngineUrlRequestInterceptor;
 }
@@ -54,7 +56,7 @@ class WebGuiExport WebView : public QWebView
     Q_OBJECT
 
 public:
-    WebView(QWidget *parent = 0);
+    WebView(QWidget *parent = nullptr);
 
 protected:
     void mousePressEvent(QMouseEvent *event);
@@ -123,9 +125,10 @@ protected Q_SLOTS:
     void onViewSource(const QUrl &url);
     void onOpenLinkInExternalBrowser(const QUrl& url);
     void onOpenLinkInNewWindow(const QUrl&);
+    void onUpdateBrowserActions();
 
 private:
-    WebView* view;
+    QPointer<WebView> view;
     bool isLoading;
     UrlWidget *urlWgt;
 #ifdef QTWEBENGINE

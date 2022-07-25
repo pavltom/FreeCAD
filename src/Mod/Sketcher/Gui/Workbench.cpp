@@ -35,6 +35,8 @@ using namespace SketcherGui;
 
 #if 0 // needed for Qt's lupdate utility
     qApp->translate("CommandGroup", "Sketcher");
+    qApp->translate("Workbench","P&rofiles");
+    qApp->translate("Workbench","S&ketch");
     qApp->translate("Workbench", "Sketcher");
     qApp->translate("Workbench", "Sketcher geometries");
     qApp->translate("Workbench", "Sketcher constraints");
@@ -356,8 +358,6 @@ template <>
 inline void SketcherAddWorkbenchTools<Gui::MenuItem>(Gui::MenuItem& consaccel)
 {
     consaccel   << "Sketcher_SelectElementsWithDoFs"
-                << "Sketcher_CloseShape"
-                << "Sketcher_ConnectLines"
                 << "Sketcher_SelectConstraints"
                 << "Sketcher_SelectElementsAssociatedWithConstraints"
                 << "Sketcher_SelectRedundantConstraints"
@@ -383,8 +383,6 @@ template <>
 inline void SketcherAddWorkbenchTools<Gui::ToolBarItem>(Gui::ToolBarItem& consaccel)
 {
     consaccel   << "Sketcher_SelectElementsWithDoFs"
-                << "Sketcher_CloseShape"
-                << "Sketcher_ConnectLines"
                 << "Sketcher_SelectConstraints"
                 << "Sketcher_SelectElementsAssociatedWithConstraints"
                 << "Sketcher_SelectRedundantConstraints"
@@ -408,7 +406,7 @@ inline void SketcherAddWorkbenchBSplines<Gui::MenuItem>(Gui::MenuItem& bspline)
             << "Sketcher_BSplineComb"
             << "Sketcher_BSplineKnotMultiplicity"
             << "Sketcher_BSplinePoleWeight"
-            << "Sketcher_BSplineConvertToNURB"
+            << "Sketcher_BSplineConvertToNURBS"
             << "Sketcher_BSplineIncreaseDegree"
             << "Sketcher_BSplineDecreaseDegree"
             << "Sketcher_BSplineIncreaseKnotMultiplicity"
@@ -420,7 +418,7 @@ template <>
 inline void SketcherAddWorkbenchBSplines<Gui::ToolBarItem>(Gui::ToolBarItem& bspline)
 {
     bspline << "Sketcher_CompBSplineShowHideGeometryInformation"
-            << "Sketcher_BSplineConvertToNURB"
+            << "Sketcher_BSplineConvertToNURBS"
             << "Sketcher_BSplineIncreaseDegree"
             << "Sketcher_BSplineDecreaseDegree"
             << "Sketcher_CompModifyKnotMultiplicity"

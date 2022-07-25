@@ -20,13 +20,16 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef PART_EXTRUSIONHELPER_H
 #define PART_EXTRUSIONHELPER_H
 
 #include <list>
+#include <vector>
 #include <gp_Dir.hxx>
 #include <TopoDS_Shape.hxx>
+
+#include <Mod/Part/PartGlobal.h>
+
 
 namespace Part
 {
@@ -63,7 +66,6 @@ public:
     static void createTaperedPrismOffset(TopoDS_Wire sourceWire,
                                          const gp_Vec& translation,
                                          double offset,
-                                         int numEdges,
                                          bool isSecond,
                                          TopoDS_Wire& result);
 };

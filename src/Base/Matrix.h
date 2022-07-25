@@ -24,10 +24,6 @@
 #ifndef BASE_MATRIX_H
 #define BASE_MATRIX_H
 
-#include <cassert>
-#include <cfloat>
-#include <cmath>
-#include <cstdio>
 #include <string>
 
 #include "Vector3D.h"
@@ -35,7 +31,16 @@
 #include <FCGlobal.h>
 #endif
 
+
 namespace Base {
+
+enum class ScaleType {
+    Other = -1,
+    NoScaling = 0,
+    NonUniformRight = 1,
+    NonUniformLeft = 2,
+    Uniform = 3
+};
 
 /**
  * The Matrix4D class.
@@ -112,6 +117,8 @@ public:
   inline void setTrace(const Vector3d&);
   /// Compute the determinant of the matrix
   double determinant() const;
+  /// Compute the determinant of the 3x3 sub-matrix
+  double determinant3() const;
   /// Analyse the transformation
   std::string analyse() const;
   /// Outer product (Dyadic product)
@@ -162,8 +169,8 @@ public:
   { scale(Vector3f(scalexyz, scalexyz, scalexyz)); }
   void scale        (double scalexyz)
   { scale(Vector3d(scalexyz, scalexyz, scalexyz)); }
-  /// Check for scaling factor, 0: not scale, 1: uniform scale, or else -1
-  int hasScale(double tol=0.0) const;
+  /// Check for scaling factor
+  ScaleType hasScale(double tol=0.0) const;
   /// Rotate around the X axis (in transformed space) for the given value in radians
   void rotX         (double fAngle);
   /// Rotate around the Y axis (in transformed space) for the given value in radians

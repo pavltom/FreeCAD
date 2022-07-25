@@ -12,14 +12,13 @@ include_directories(
     ${OCC_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIR}
     ${PYTHON_INCLUDE_DIRS}
-    ${XercesC_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 link_directories(${OCC_LIBRARY_DIR})
 
 set(Import_LIBS
     Part
-    #Assembly
     ${OCC_OCAF_LIBRARIES}
     ${OCC_OCAF_DEBUG_LIBRARIES}
 )
@@ -41,10 +40,10 @@ SET(Import_SRCS
     StepShapePyImp.cpp
     PreCompiled.cpp
     PreCompiled.h
-    ImpExpDxf.cpp
-    ImpExpDxf.h
-    dxf.cpp
-    dxf.h
+    dxf/ImpExpDxf.cpp
+    dxf/ImpExpDxf.h
+    dxf/dxf.cpp
+    dxf/dxf.h
 )
 
 SET(SCL_Resources

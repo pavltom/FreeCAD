@@ -20,54 +20,36 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <cfloat>
-# include <BRepLib.hxx>
-# include <BRepPrimAPI_MakeCone.hxx>
-# include <BRepPrimAPI_MakeCylinder.hxx>
-# include <BRepPrimAPI_MakePrism.hxx>
-# include <BRepPrimAPI_MakeRevol.hxx>
-# include <BRepPrimAPI_MakeSphere.hxx>
-# include <BRepPrim_Cylinder.hxx>
-# include <BRepPrim_Wedge.hxx>
+# include <BRepBuilderAPI_GTransform.hxx>
 # include <BRepBuilderAPI_MakeEdge.hxx>
 # include <BRepBuilderAPI_MakeFace.hxx>
 # include <BRepBuilderAPI_MakeVertex.hxx>
-# include <BRepBuilderAPI_MakeWire.hxx>
 # include <BRepBuilderAPI_MakeSolid.hxx>
 # include <BRepBuilderAPI_MakePolygon.hxx>
-# include <BRepBuilderAPI_GTransform.hxx>
-# include <BRepProj_Projection.hxx>
-# include <gp_Circ.hxx>
+# include <BRepPrim_Cylinder.hxx>
+# include <BRepPrim_Wedge.hxx>
+# include <BRepPrimAPI_MakeCone.hxx>
+# include <BRepPrimAPI_MakeCylinder.hxx>
+# include <BRepPrimAPI_MakeSphere.hxx>
+# include <Geom_Plane.hxx>
 # include <gp_Elips.hxx>
 # include <gp_GTrsf.hxx>
-# include <GCE2d_MakeSegment.hxx>
-# include <Geom_Plane.hxx>
-# include <Geom_ConicalSurface.hxx>
-# include <Geom_CylindricalSurface.hxx>
-# include <Geom2d_Line.hxx>
-# include <Geom2d_TrimmedCurve.hxx>
-# include <Geom_Plane.hxx>
-# include <Geom_CylindricalSurface.hxx>
-# include <Geom2d_Line.hxx>
-# include <Geom2d_TrimmedCurve.hxx>
 # include <Precision.hxx>
 # include <Standard_Real.hxx>
-# include <TopoDS.hxx>
-# include <TopoDS_Solid.hxx>
-# include <TopoDS_Vertex.hxx>
 # include <Standard_Version.hxx>
+# include <TopoDS.hxx>
+# include <TopoDS_Vertex.hxx>
 #endif
 
-#include "PrimitiveFeature.h"
-#include <Mod/Part/App/PartFeaturePy.h>
 #include <App/FeaturePythonPyImp.h>
-#include <Base/Console.h>
-#include <Base/Exception.h>
 #include <Base/Reader.h>
 #include <Base/Tools.h>
+
+#include "PrimitiveFeature.h"
+#include "PartFeaturePy.h"
 
 #ifndef M_PI
 #define M_PI       3.14159265358979323846
@@ -75,11 +57,11 @@
 
 
 namespace Part {
-    const App::PropertyQuantityConstraint::Constraints apexRange   = {-90.0,90.0,0.1};
-    const App::PropertyQuantityConstraint::Constraints torusRangeV = {-180.0,180.0,1.0};
-    const App::PropertyQuantityConstraint::Constraints angleRangeU = {0.0,360.0,1.0};
-    const App::PropertyQuantityConstraint::Constraints angleRangeV = {-90.0,90.0,1.0};
-    const App::PropertyQuantityConstraint::Constraints quantityRange  = {0.0,FLT_MAX,0.1};
+    const App::PropertyQuantityConstraint::Constraints apexRange = {-90.0, 90.0, 0.1};
+    const App::PropertyQuantityConstraint::Constraints torusRangeV = {-180.0, 180.0, 1.0};
+    const App::PropertyQuantityConstraint::Constraints angleRangeU = {0.0, 360.0, 1.0};
+    const App::PropertyQuantityConstraint::Constraints angleRangeV = {-90.0, 90.0, 1.0};
+    const App::PropertyQuantityConstraint::Constraints quantityRange = {0.0, FLT_MAX, 0.1};
 }
 
 using namespace Part;
@@ -324,13 +306,9 @@ App::DocumentObjectExecReturn *Plane::execute(void)
     gp_Pnt pnt(0.0,0.0,0.0);
     gp_Dir dir(0.0,0.0,1.0);
     Handle(Geom_Plane) aPlane = new Geom_Plane(pnt, dir);
-    BRepBuilderAPI_MakeFace mkFace(aPlane, 0.0, L, 0.0, W
-#if OCC_VERSION_HEX >= 0x060502
-      , Precision::Confusion()
-#endif
-    );
+    BRepBuilderAPI_MakeFace mkFace(aPlane, 0.0, L, 0.0, W, Precision::Confusion());
 
-    const char *error=0;
+    const char *error=nullptr;
     switch (mkFace.Error())
     {
     case BRepBuilderAPI_FaceDone:
@@ -346,11 +324,6 @@ App::DocumentObjectExecReturn *Plane::execute(void)
     case BRepBuilderAPI_ParametersOutOfRange:
         error = "parameters out of range";
         break;
-#if OCC_VERSION_HEX < 0x060500
-    case BRepBuilderAPI_SurfaceNotC2:
-        error = "surface not C2";
-        break;
-#endif
     default:
         error = "unknown error";
         break;
@@ -760,8 +733,8 @@ App::DocumentObjectExecReturn *Torus::execute(void)
 
 PROPERTY_SOURCE(Part::Helix, Part::Primitive)
 
-const char* Part::Helix::LocalCSEnums[]= {"Right-handed","Left-handed",NULL};
-const char* Part::Helix::StyleEnums  []= {"Old style","New style",NULL};
+const char* Part::Helix::LocalCSEnums[]= {"Right-handed","Left-handed",nullptr};
+const char* Part::Helix::StyleEnums  []= {"Old style","New style",nullptr};
 
 Helix::Helix(void)
 {
@@ -771,7 +744,7 @@ Helix::Helix(void)
     Height.setConstraints(&quantityRange);
     ADD_PROPERTY_TYPE(Radius,(1.0),"Helix",App::Prop_None,"The radius of the helix");
     Radius.setConstraints(&quantityRange);
-    ADD_PROPERTY_TYPE(SegmentLength,(1.0),"Helix",App::Prop_None,"The number of turns per helix subdivision");
+    ADD_PROPERTY_TYPE(SegmentLength,(0.0),"Helix",App::Prop_None,"The number of turns per helix subdivision");
     SegmentLength.setConstraints(&quantityRange);
     ADD_PROPERTY_TYPE(Angle,(0.0),"Helix",App::Prop_None,"If angle is != 0 a conical otherwise a cylindircal surface is used");
     Angle.setConstraints(&apexRange);
@@ -1009,10 +982,10 @@ Ellipse::Ellipse()
 {
     ADD_PROPERTY(MajorRadius,(4.0f));
     ADD_PROPERTY(MinorRadius,(4.0f));
-    ADD_PROPERTY(Angle0,(0.0f));
-    Angle0.setConstraints(&angleRange);
-    ADD_PROPERTY(Angle1,(360.0f));
+    ADD_PROPERTY(Angle1,(0.0f));
     Angle1.setConstraints(&angleRange);
+    ADD_PROPERTY(Angle2,(360.0f));
+    Angle2.setConstraints(&angleRange);
 }
 
 Ellipse::~Ellipse()
@@ -1021,8 +994,8 @@ Ellipse::~Ellipse()
 
 short Ellipse::mustExecute() const
 {
-    if (Angle0.isTouched() ||
-        Angle1.isTouched() ||
+    if (Angle1.isTouched() ||
+        Angle2.isTouched() ||
         MajorRadius.isTouched() ||
         MinorRadius.isTouched())
         return 1;
@@ -1040,8 +1013,8 @@ App::DocumentObjectExecReturn *Ellipse::execute(void)
     ellipse.SetMajorRadius(this->MajorRadius.getValue());
     ellipse.SetMinorRadius(this->MinorRadius.getValue());
 
-    BRepBuilderAPI_MakeEdge clMakeEdge(ellipse, Base::toRadians<double>(this->Angle0.getValue()),
-                                                Base::toRadians<double>(this->Angle1.getValue()));
+    BRepBuilderAPI_MakeEdge clMakeEdge(ellipse, Base::toRadians<double>(this->Angle1.getValue()),
+                                                Base::toRadians<double>(this->Angle2.getValue()));
     const TopoDS_Edge& edge = clMakeEdge.Edge();
     this->Shape.setValue(edge);
 
@@ -1051,7 +1024,7 @@ App::DocumentObjectExecReturn *Ellipse::execute(void)
 void Ellipse::onChanged(const App::Property* prop)
 {
     if (!isRestoring()) {
-        if (prop == &MajorRadius || prop == &MinorRadius || prop == &Angle0 || prop == &Angle1){
+        if (prop == &MajorRadius || prop == &MinorRadius || prop == &Angle1 || prop == &Angle2){
             try {
                 App::DocumentObjectExecReturn *ret = recompute();
                 delete ret;
@@ -1061,4 +1034,29 @@ void Ellipse::onChanged(const App::Property* prop)
         }
     }
     Part::Primitive::onChanged(prop);
+}
+
+void Ellipse::Restore(Base::XMLReader &reader)
+{
+    Base::ObjectStatusLocker<App::Property::Status, App::Property> lock(App::Property::User1, &Angle2, false);
+    Primitive::Restore(reader);
+
+    if (Angle2.testStatus(App::Property::User1)) {
+        double tmp = Angle1.getValue();
+        Angle1.setValue(Angle2.getValue());
+        Angle2.setValue(tmp);
+    }
+}
+
+void Ellipse::handleChangedPropertyName(Base::XMLReader &reader, const char * TypeName, const char *PropName)
+{
+    Base::Type type = Base::Type::fromName(TypeName);
+    if (Angle2.getTypeId() == type && strcmp(PropName, "Angle0") == 0) {
+        Angle2.Restore(reader);
+        // set the flag to swap Angle1/Angle2 afterwards
+        Angle2.setStatus(App::Property::User1, true);
+    }
+    else {
+        Primitive::handleChangedPropertyName(reader, TypeName, PropName);
+    }
 }

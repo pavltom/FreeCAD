@@ -32,6 +32,7 @@
 
 
 #include <App/Application.h>
+#include <App/Document.h>
 #include <Base/Writer.h>
 #include <Base/Reader.h>
 #include <Base/Exception.h>
@@ -63,7 +64,7 @@ using namespace TechDraw;
 const char* DrawView::ScaleTypeEnums[]= {"Page",
                                          "Automatic",
                                          "Custom",
-                                         NULL};
+                                         nullptr};
 App::PropertyFloatConstraint::Constraints DrawView::scaleRange = {Precision::Confusion(),
                                                                   std::numeric_limits<double>::max(),
                                                                   (0.1)}; // increment by 0.1
@@ -76,8 +77,8 @@ DrawView::DrawView(void):
     mouseMove(false)
 {
     static const char *group = "Base";
-    ADD_PROPERTY_TYPE(X, (0.0), group, (App::PropertyType)(App::Prop_Output | App::Prop_NoRecompute), "X position");
-    ADD_PROPERTY_TYPE(Y, (0.0), group, (App::PropertyType)(App::Prop_Output | App::Prop_NoRecompute), "Y position");
+    ADD_PROPERTY_TYPE(X, (0.0), group, (App::PropertyType)(App::Prop_Output), "X position");
+    ADD_PROPERTY_TYPE(Y, (0.0), group, (App::PropertyType)(App::Prop_Output), "Y position");
     ADD_PROPERTY_TYPE(LockPosition, (false), group, App::Prop_Output, "Lock View position to parent Page or Group");
     ADD_PROPERTY_TYPE(Rotation, (0.0), group, App::Prop_Output, "Rotation in degrees counterclockwise");
 
@@ -87,47 +88,33 @@ DrawView::DrawView(void):
     Scale.setConstraints(&scaleRange);
 
     ADD_PROPERTY_TYPE(Caption, (""), group, App::Prop_Output, "Short text about the view");
+
+    setScaleAttribute();
 }
 
 DrawView::~DrawView()
 {
 }
 
-App::DocumentObjectExecReturn *DrawView::recompute(void)
-{
-    try {
-        return App::DocumentObject::recompute();
-    }
-    catch (Standard_Failure& e) {
-        App::DocumentObjectExecReturn* ret = new App::DocumentObjectExecReturn(e.GetMessageString());
-        if (ret->Why.empty())
-            ret->Why = "Unknown OCC exception";
-        return ret;
-    }
-}
-
 App::DocumentObjectExecReturn *DrawView::execute(void)
 {
 //    Base::Console().Message("DV::execute() - %s touched: %d\n", getNameInDocument(), isTouched());
-    if (findParentPage() == nullptr) {
+    if (!findParentPage()) {
         return App::DocumentObject::execute();
     }
     handleXYLock();
-    requestPaint();
-    //documentobject::execute doesn't do anything useful for us.
-    //documentObject::recompute causes an infinite loop.
     //should not be necessary to purgeTouched here, but it prevents a superfluous feature recompute
     purgeTouched();                           //this should not be necessary!
-    return App::DocumentObject::StdReturn;
+    requestPaint();
+    return App::DocumentObject::execute();
 }
 
 void DrawView::checkScale(void)
 {
     TechDraw::DrawPage *page = findParentPage();
-    if(page &&
-       keepUpdated()) {
+    if(page) {
         if (ScaleType.isValue("Page")) {
-            if(std::abs(page->Scale.getValue() - getScale()) > FLT_EPSILON) {
+            if(std::abs(page->Scale.getValue() - Scale.getValue()) > FLT_EPSILON) {
                 Scale.setValue(page->Scale.getValue());
                 Scale.purgeTouched();
             }
@@ -138,17 +125,16 @@ void DrawView::checkScale(void)
 void DrawView::onChanged(const App::Property* prop)
 {
 //Coding note: calling execute, recompute or recomputeFeature inside an onChanged
-//method can create infinite loops.  In general don't do this!  There may be 
-//situations where it is OK, but careful analysis is a must. 
+//method can create infinite loops if the called method changes a property.  In general
+//don't do this!  There are situations where it is OK, but careful analysis is a must.
     if (!isRestoring()) {
         if (prop == &ScaleType) {
             auto page = findParentPage();
             if (ScaleType.isValue("Page")) {
                 Scale.setStatus(App::Property::ReadOnly,true);
-                if (page != nullptr) {
+                if (page) {
                     if(std::abs(page->Scale.getValue() - getScale()) > FLT_EPSILON) {
                        Scale.setValue(page->Scale.getValue());
-                       Scale.purgeTouched();
                     }
                 }
             } else if ( ScaleType.isValue("Custom") ) {
@@ -160,7 +146,6 @@ void DrawView::onChanged(const App::Property* prop)
                     double newScale = autoScale(page->getPageWidth(),page->getPageHeight());
                     if(std::abs(newScale - getScale()) > FLT_EPSILON) {           //stops onChanged/execute loop
                         Scale.setValue(newScale);
-                        Scale.purgeTouched();
                     }
                 }
             }
@@ -173,8 +158,7 @@ void DrawView::onChanged(const App::Property* prop)
             requestPaint();
         } else if ((prop == &X) ||
             (prop == &Y)) {
-            X.purgeTouched();
-            Y.purgeTouched();
+            //X,Y changes are only interesting to DPGI and Gui side
         }
     }
     App::DocumentObject::onChanged(prop);
@@ -237,8 +221,34 @@ QRectF DrawView::getRect() const
 void DrawView::onDocumentRestored()
 {
     handleXYLock();
+    setScaleAttribute();
+    validateScale();
     DrawView::execute();
 }
+
+//in versions before 0.20 Scale and ScaleType were mishandled.
+//In order to not introduce unintended drawing changes in later
+//versions, ScaleType Page must be modified if view Scale does
+//not match Page Scale
+void DrawView::validateScale()
+{
+    if (ScaleType.isValue("Custom")) {
+        //nothing to do here
+        return;
+    }
+    DrawPage* page = findParentPage();
+    if (page) {
+        if (ScaleType.isValue("Page")) {
+            double pageScale = page->Scale.getValue();
+            double myScale = Scale.getValue();
+            if (!DrawUtil::fpCompare(pageScale, myScale)) {
+                ScaleType.setValue("Custom");
+                ScaleType.purgeTouched();
+            }
+        }
+    }
+}
+
 /**
  * @brief DrawView::countParentPages
  * Fixes a crash in TechDraw when user creates duplicate page without dependencies
@@ -267,8 +277,8 @@ int DrawView::countParentPages() const
 DrawPage* DrawView::findParentPage() const
 {
     // Get Feature Page
-    DrawPage *page = 0;
-    DrawViewCollection *collection = 0;
+    DrawPage *page = nullptr;
+    DrawViewCollection *collection = nullptr;
     std::vector<App::DocumentObject*> parent = getInList();
     for (std::vector<App::DocumentObject*>::iterator it = parent.begin(); it != parent.end(); ++it) {
         if ((*it)->getTypeId().isDerivedFrom(DrawPage::getClassTypeId())) {
@@ -292,8 +302,8 @@ std::vector<DrawPage*> DrawView::findAllParentPages() const
 {
     // Get Feature Page
     std::vector<DrawPage*> result;
-    DrawPage *page = 0;
-    DrawViewCollection *collection = 0;
+    DrawPage *page = nullptr;
+    DrawViewCollection *collection = nullptr;
     std::vector<App::DocumentObject*> parent = getInList();
     for (std::vector<App::DocumentObject*>::iterator it = parent.begin(); it != parent.end(); ++it) {
         if ((*it)->getTypeId().isDerivedFrom(DrawPage::getClassTypeId())) {
@@ -375,7 +385,6 @@ bool DrawView::checkFit(void) const
 }
 
 //!check if View is too big for page
-//should check if unscaled rect is too big for page
 bool DrawView::checkFit(TechDraw::DrawPage* p) const
 {
     bool result = true;
@@ -383,12 +392,12 @@ bool DrawView::checkFit(TechDraw::DrawPage* p) const
 
     double width = 0.0;
     double height = 0.0;
-    QRectF viewBox = getRect();    //rect is scaled
+    QRectF viewBox = getRect();         //rect is scaled
     if (!viewBox.isValid()) {
         result = true;
     } else {
-        width = viewBox.width() / getScale();        //unscaled rect w x h
-        height = viewBox.height() / getScale(); 
+        width = viewBox.width();        //scaled rect w x h
+        height = viewBox.height();
         width *= fudge;
         height *= fudge;
         if ( (width > p->getPageWidth()) ||
@@ -404,15 +413,26 @@ void DrawView::setPosition(double x, double y, bool force)
 //    Base::Console().Message("DV::setPosition(%.3f,%.3f) - \n",x,y,getNameInDocument());
     if ( (!isLocked()) ||
          (force) ) {
-        X.setValue(x);
-        Y.setValue(y);
+        double currX = X.getValue();
+        double currY = X.getValue();
+        if (!DrawUtil::fpCompare(currX, x, 0.001)) {    // 0.001mm tolerance
+            X.setValue(x);
+        }
+        if (!DrawUtil::fpCompare(currY, y, 0.001)) {
+            Y.setValue(y);
+        }
     }
 }
 
-//TODO: getScale is no longer needed and could revert to Scale.getValue
 double DrawView::getScale(void) const
 {
     auto result = Scale.getValue();
+    if (ScaleType.isValue("Page")) {
+        auto page = findParentPage();
+        if (page) {
+            result = page->Scale.getValue();
+        }
+    }
     if (!(result > 0.0)) {
         result = 1.0;
         Base::Console().Log("DrawView - %s - bad scale found (%.3f) using 1.0\n",getNameInDocument(),Scale.getValue());
@@ -461,7 +481,7 @@ void DrawView::handleChangedPropertyType(
         if (strcmp(glink.getTypeId().getName(), TypeName) == 0) {            //property in file is plg
             glink.setContainer(this);
             glink.Restore(reader);
-            if (glink.getValue() != nullptr) {
+            if (glink.getValue()) {
                 static_cast<App::PropertyLinkList*>(prop)->setScope(App::LinkScope::Global);
                 static_cast<App::PropertyLinkList*>(prop)->setValue(glink.getValue());
             }
@@ -469,7 +489,7 @@ void DrawView::handleChangedPropertyType(
         else if (strcmp(link.getTypeId().getName(), TypeName) == 0) {            //property in file is pl
             link.setContainer(this);
             link.Restore(reader);
-            if (link.getValue() != nullptr) {
+            if (link.getValue()) {
                 static_cast<App::PropertyLinkList*>(prop)->setScope(App::LinkScope::Global);
                 static_cast<App::PropertyLinkList*>(prop)->setValue(link.getValue());
             }
@@ -516,26 +536,21 @@ bool DrawView::keepUpdated(void)
 //    Base::Console().Message("DV::keepUpdated() - %s\n", getNameInDocument());
     bool result = false;
 
-    bool pageUpdate = false;
-    bool force = false;
     TechDraw::DrawPage *page = findParentPage();
     if(page) {
-        pageUpdate = page->KeepUpdated.getValue();
-        force = page->forceRedraw();
-    }
-
-    if (DrawPage::GlobalUpdateDrawings() &&
-        pageUpdate)  {
-        result = true;
-    } else if (!DrawPage::GlobalUpdateDrawings() &&
-                DrawPage::AllowPageOverride()    &&
-                pageUpdate) {
-        result = true;
-    }
-    if (force) {         //when do we turn this off??
-        result = true;
+        result = page->canUpdate() || page->forceRedraw();
     }
     return result;
+}
+
+void DrawView::setScaleAttribute()
+{
+    if (ScaleType.isValue("Page") ||
+        ScaleType.isValue("Automatic")) {
+        Scale.setStatus(App::Property::ReadOnly,true);
+    } else {
+        Scale.setStatus(App::Property::ReadOnly, false);
+    }
 }
 
 int DrawView::prefScaleType(void)
@@ -551,6 +566,12 @@ double DrawView::prefScale(void)
     Base::Reference<ParameterGrp> hGrp = App::GetApplication().GetUserParameter()
           .GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Mod/TechDraw/General");
     double result = hGrp->GetFloat("DefaultViewScale", 1.0); 
+    if (ScaleType.isValue("Page")) {
+        auto page = findParentPage();
+        if (page) {
+            result = page->Scale.getValue();
+        }
+    }
     return result;
 }
 

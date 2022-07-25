@@ -59,21 +59,20 @@
 # include <cmath>
 # include <string>
 # include <vector>
-# include <boost_bind_bind.hpp>
-//# include <QtGlobal>
 #endif
 
 #include <App/Application.h>
 #include <App/Document.h>
+#include <App/Expression.h>
 #include <App/FeaturePythonPyImp.h>
+#include <App/ObjectIdentifier.h>
+#include <App/OriginFeature.h>
 #include <App/Part.h>
 #include <Base/Writer.h>
 #include <Base/Reader.h>
 #include <Base/Tools.h>
 #include <Base/Console.h>
 #include <Base/Vector3D.h>
-
-#include <App/OriginFeature.h>
 
 #include <Mod/Part/App/Geometry.h>
 #include <Mod/Part/App/DatumFeature.h>
@@ -102,9 +101,9 @@ PROPERTY_SOURCE(Sketcher::SketchObject, Part::Part2DObject)
 
 SketchObject::SketchObject()
 {
-    ADD_PROPERTY_TYPE(Geometry,        (0)  ,"Sketch",(App::PropertyType)(App::Prop_None),"Sketch geometry");
-    ADD_PROPERTY_TYPE(Constraints,     (0)  ,"Sketch",(App::PropertyType)(App::Prop_None),"Sketch constraints");
-    ADD_PROPERTY_TYPE(ExternalGeometry,(0,0),"Sketch",(App::PropertyType)(App::Prop_None),"Sketch external geometry");
+    ADD_PROPERTY_TYPE(Geometry,        (nullptr)  ,"Sketch",(App::PropertyType)(App::Prop_None),"Sketch geometry");
+    ADD_PROPERTY_TYPE(Constraints,     (nullptr)  ,"Sketch",(App::PropertyType)(App::Prop_None),"Sketch constraints");
+    ADD_PROPERTY_TYPE(ExternalGeometry,(nullptr,nullptr),"Sketch",(App::PropertyType)(App::Prop_None),"Sketch external geometry");
     ADD_PROPERTY_TYPE(FullyConstrained, (false),"Sketch",(App::PropertyType)(App::Prop_Output|App::Prop_ReadOnly |App::Prop_Hidden),"Sketch is fully constrained");
 
     Geometry.setOrderRelevant(true);
@@ -428,15 +427,15 @@ int SketchObject::toggleDriving(int ConstrId)
 
     bool extorconstructionpoint1 =  (vals[ConstrId]->First == GeoEnum::GeoUndef) ||
                                     (vals[ConstrId]->First < 0)                     ||
-                                    (geof1 && geof1->isGeoType(Part::GeomPoint::getClassTypeId()) && geof1->getConstruction() == true);
+                                    (geof1 && geof1->isGeoType(Part::GeomPoint::getClassTypeId()) && geof1->getConstruction());
     bool extorconstructionpoint2 =  (vals[ConstrId]->Second == GeoEnum::GeoUndef)||
                                     (vals[ConstrId]->Second < 0)                    ||
-                                    (geof2 && geof2->isGeoType(Part::GeomPoint::getClassTypeId()) && geof2->getConstruction() == true);
+                                    (geof2 && geof2->isGeoType(Part::GeomPoint::getClassTypeId()) && geof2->getConstruction());
     bool extorconstructionpoint3 =  (vals[ConstrId]->Third == GeoEnum::GeoUndef) ||
                                     (vals[ConstrId]->Third < 0)                     ||
-                                    (geof3 && geof3->isGeoType(Part::GeomPoint::getClassTypeId()) && geof3->getConstruction() == true);
+                                    (geof3 && geof3->isGeoType(Part::GeomPoint::getClassTypeId()) && geof3->getConstruction());
 
-    if (extorconstructionpoint1 && extorconstructionpoint2 && extorconstructionpoint3 && vals[ConstrId]->isDriving==false)
+    if (extorconstructionpoint1 && extorconstructionpoint2 && extorconstructionpoint3 && !vals[ConstrId]->isDriving)
         return -4;
 
     // copy the list
@@ -466,7 +465,7 @@ int SketchObject::testDrivingChange(int ConstrId, bool isdriving)
     if (!vals[ConstrId]->isDimensional())
         return -2;
 
-    if (!(vals[ConstrId]->First>=0 || vals[ConstrId]->Second>=0 || vals[ConstrId]->Third>=0) && isdriving==true)
+    if (!(vals[ConstrId]->First>=0 || vals[ConstrId]->Second>=0 || vals[ConstrId]->Third>=0) && isdriving)
         return -3; // a constraint that does not have at least one element as not-external-geometry can never be driving.
 
     return 0;
@@ -693,6 +692,24 @@ int SketchObject::setUpSketch()
 
     if(lastHasRedundancies || lastDoF < 0 || lastHasConflict || lastHasMalformedConstraints || lastHasPartialRedundancies)
         Constraints.touch();
+
+    return lastDoF;
+}
+
+int SketchObject::diagnoseAdditionalConstraints(std::vector<Sketcher::Constraint *> additionalconstraints)
+{
+    auto objectconstraints = Constraints.getValues();
+
+    std::vector<Sketcher::Constraint *> allconstraints;
+    allconstraints.reserve(objectconstraints.size()+additionalconstraints.size());
+
+    std::copy(objectconstraints.begin(), objectconstraints.end(), back_inserter(allconstraints));
+    std::copy(additionalconstraints.begin(), additionalconstraints.end(), back_inserter(allconstraints));
+
+    lastDoF = solvedSketch.setUpSketch(getCompleteGeometry(), allconstraints,
+                                       getExternalGeometryCount());
+
+    retrieveSolverDiagnostics();
 
     return lastDoF;
 
@@ -1806,7 +1823,8 @@ int SketchObject::fillet(int GeoId1, int GeoId2,
         int filletId;
         std::unique_ptr<Part::GeomArcOfCircle> arc(
             Part::createFilletGeometry(lineSeg1, lineSeg2, filletCenter, radius));
-        if (!arc) return -1;
+        if (!arc)
+            return -1;
 
         // calculate intersection and distances before we invalidate lineSeg1 and lineSeg2
         if (!find2DLinesIntersection(lineSeg1, lineSeg2, intersection)) {
@@ -2679,8 +2697,6 @@ int SketchObject::trim(int GeoId, const Base::Vector3d& point)
             firstParam = bsp->getFirstParameter();
             lastParam = bsp->getLastParameter();
         }
-        else
-            return -1;
 
         double pointParam, point1Param, point2Param;
         if(!getIntersectionParameters(geo, point, pointParam, point1, point1Param, point2, point2Param))
@@ -3012,7 +3028,7 @@ int SketchObject::split(int GeoId, const Base::Vector3d &point)
     std::vector<Constraint *> newConstraints;
 
     Base::Vector3d startPoint, endPoint, splitPoint;
-    double radius, startAngle, endAngle, splitAngle;
+    double radius, startAngle, endAngle, splitAngle=0.0;
     unsigned int longestPart = 0;
 
 
@@ -3327,7 +3343,7 @@ bool SketchObject::isExternalAllowed(App::Document *pDoc, App::DocumentObject *p
     App::Part* part_this = App::Part::getPartOfObject(this);
     App::Part* part_obj = App::Part::getPartOfObject(pObj);
     if (part_this == part_obj){ //either in the same part, or in the root of document
-        if (body_this == NULL) {
+        if (!body_this) {
             return true;
         } else if (body_this == body_obj) {
             return true;
@@ -3386,7 +3402,7 @@ bool SketchObject::isCarbonCopyAllowed(App::Document *pDoc, App::DocumentObject 
     App::Part* part_this = App::Part::getPartOfObject(this);
     App::Part* part_obj = App::Part::getPartOfObject(pObj);
     if (part_this == part_obj){ //either in the same part, or in the root of document
-        if (body_this != NULL) {
+        if (body_this) {
             if (body_this != body_obj) {
                 if (!this->allowOtherBody) {
                     if (rsn)
@@ -5206,12 +5222,10 @@ int SketchObject::exposeInternalGeometry(int GeoId)
                 else {
                     controlpointgeoids[0] = currentgeoid+incrgeo+1;
                 }
-
                 incrgeo++;
             }
         }
 
-        #if OCC_VERSION_HEX >= 0x060900
         index=0;
 
         for(it=knotgeoids.begin(), itb=knotpoints.begin(); it!=knotgeoids.end() && itb!=knotpoints.end(); ++it, ++itb, index++) {
@@ -5241,21 +5255,8 @@ int SketchObject::exposeInternalGeometry(int GeoId)
                 incrgeo++;
             }
         }
-        #endif
 
         Q_UNUSED(isfirstweightconstrained);
-        // constraint the first weight to allow for seamless weight modification and proper visualization
-        /*if(!isfirstweightconstrained) {
-
-            Sketcher::Constraint *newConstr = new Sketcher::Constraint();
-            newConstr->Type = Sketcher::Radius;
-            newConstr->First = controlpointgeoids[0];
-            newConstr->FirstPos = Sketcher::PointPos::none;
-            newConstr->setValue( round(distance_p0_p1/6)); // 1/6 is just an estimation for acceptable general visualization
-
-            icon.push_back(newConstr);
-
-        }*/
 
         this->addGeometry(igeo,true);
         this->addConstraints(icon);
@@ -5752,10 +5753,6 @@ bool SketchObject::modifyBSplineKnotMultiplicity(int GeoId, int knotIndex, int m
 {
     Base::StateLocker lock(managedoperation, true); // no need to check input data validity as this is an sketchobject managed operation.
 
-    #if OCC_VERSION_HEX < 0x060900
-        THROWMT(Base::NotImplementedError, QT_TRANSLATE_NOOP("Exceptions", "This version of OCE/OCC does not support knot operation. You need 6.9.0 or higher."))
-    #endif
-
     if (GeoId < 0 || GeoId > getHighestCurveIndex())
         THROWMT(Base::ValueError,QT_TRANSLATE_NOOP("Exceptions", "BSpline Geometry Index (GeoID) is out of bounds."))
 
@@ -5929,10 +5926,6 @@ bool SketchObject::insertBSplineKnot(int GeoId, double param, int multiplicity)
 {
     Base::StateLocker lock(managedoperation, true); // TODO: Check if this is still valid: no need to check input data validity as this is an sketchobject managed operation.
 
-    #if OCC_VERSION_HEX < 0x060900
-        THROWMT(Base::NotImplementedError, QT_TRANSLATE_NOOP("Exceptions", "This version of OCE/OCC does not support knot operation. You need 6.9.0 or higher."))
-    #endif
-
     // handling unacceptable cases
     if (GeoId < 0 || GeoId > getHighestCurveIndex())
         THROWMT(Base::ValueError,QT_TRANSLATE_NOOP("Exceptions", "BSpline Geometry Index (GeoID) is out of bounds."));
@@ -6066,6 +6059,13 @@ bool SketchObject::insertBSplineKnot(int GeoId, double param, int multiplicity)
     // Trigger update now
     // Update geometry indices and rebuild vertexindex now via onChanged, so that ViewProvider::UpdateData is triggered.
     if (!delGeoId.empty()) {
+        // NOTE: There have been a couple of instances when knot insertion has
+        // led to a segmentation fault: see https://forum.freecadweb.org/viewtopic.php?f=19&t=64962&sid=10272db50a635c633260517b14ecad37.
+        // If a segfault happens again and a `Geometry.touch()` here fixes it,
+        // it is possible that `delGeometriesExclusiveList` is causing an update
+        // in constraint GUI features during an intermediate step.
+        // See 247a9f0876a00e08c25b07d1f8802479d8623e87 for suggestions.
+        // Geometry.touch();
         delGeometriesExclusiveList(delGeoId);
     }
     else {
@@ -6629,11 +6629,7 @@ void SketchObject::rebuildExternalGeometry(void)
     gp_Trsf mov;
     mov.SetValues(invMat[0][0],invMat[0][1],invMat[0][2],invMat[0][3],
                   invMat[1][0],invMat[1][1],invMat[1][2],invMat[1][3],
-                  invMat[2][0],invMat[2][1],invMat[2][2],invMat[2][3]
-#if OCC_VERSION_HEX < 0x060800
-                  , 0.00001, 0.00001
-#endif
-                  ); //precision was removed in OCCT CR0025194
+                  invMat[2][0],invMat[2][1],invMat[2][2],invMat[2][3]);
 
     gp_Ax3 sketchAx3(gp_Pnt(Pos.x,Pos.y,Pos.z),
                      gp_Dir(dN.x,dN.y,dN.z),
@@ -7675,7 +7671,7 @@ std::string SketchObject::validateExpression(const App::ObjectIdentifier &path, 
 {
     const App::Property * prop = path.getProperty();
 
-    assert(expr != 0);
+    assert(expr);
 
     if (!prop)
         return "Property not found";
@@ -7689,10 +7685,10 @@ std::string SketchObject::validateExpression(const App::ObjectIdentifier &path, 
 
     auto deps = expr->getDeps();
     auto it = deps.find(this);
-    if(it!=deps.end()) {
+    if (it!=deps.end()) {
         auto it2 = it->second.find("Constraints");
-        if(it2 != it->second.end()) {
-            for(auto &oid : it2->second) {
+        if (it2 != it->second.end()) {
+            for (auto &oid : it2->second) {
                 const Constraint * constraint = Constraints.getConstraint(oid);
 
                 if (!constraint->isDriving)
@@ -7714,7 +7710,7 @@ double SketchObject::calculateAngleViaPoint(int GeoId1, int GeoId2, double px, d
     const Part::Geometry *p1=this->getGeometry(GeoId1);
     const Part::Geometry *p2=this->getGeometry(GeoId2);
 
-    if(p1!=0 && p2!=0) {
+    if (p1 && p2) {
         int i1 = sk.addGeometry(this->getGeometry(GeoId1));
         int i2 = sk.addGeometry(this->getGeometry(GeoId2));
 
@@ -7722,32 +7718,6 @@ double SketchObject::calculateAngleViaPoint(int GeoId1, int GeoId2, double px, d
     }
     else
         throw Base::ValueError("Null geometry in calculateAngleViaPoint");
-
-/*
-    // OCC-based calculation. It is faster, but it was removed due to problems
-    // with reversed geometry (clockwise arcs). More info in "Sketch: how to
-    // handle reversed external arcs?" forum thread
-    // http://forum.freecadweb.org/viewtopic.php?f=10&t=9130&sid=1b994fa1236db5ac2371eeb9a53de23f
-
-    const Part::GeomCurve &g1 = *(dynamic_cast<const Part::GeomCurve*>(this->getGeometry(GeoId1)));
-    const Part::GeomCurve &g2 = *(dynamic_cast<const Part::GeomCurve*>(this->getGeometry(GeoId2)));
-    Base::Vector3d p(px, py, 0.0);
-
-    double u1 = 0.0;
-    double u2 = 0.0;
-    if (! g1.closestParameterToBasicCurve(p, u1) ) throw Base::ValueError("SketchObject::calculateAngleViaPoint: closestParameter(curve1) failed!");
-    if (! g2.closestParameterToBasicCurve(p, u2) ) throw Base::ValueError("SketchObject::calculateAngleViaPoint: closestParameter(curve2) failed!");
-
-    gp_Dir tan1, tan2;
-    if (! g1.tangent(u1,tan1) ) throw Base::ValueError("SketchObject::calculateAngleViaPoint: tangent1 failed!");
-    if (! g2.tangent(u2,tan2) ) throw Base::ValueError("SketchObject::calculateAngleViaPoint: tangent2 failed!");
-
-    assert(abs(tan1.Z())<0.0001);
-    assert(abs(tan2.Z())<0.0001);
-
-    double ang = atan2(-tan2.X()*tan1.Y()+tan2.Y()*tan1.X(), tan2.X()*tan1.X() + tan2.Y()*tan1.Y());
-    return ang;
-*/
 }
 
 void SketchObject::constraintsRenamed(const std::map<App::ObjectIdentifier, App::ObjectIdentifier> &renamed)
@@ -7988,6 +7958,7 @@ bool SketchObject::getInternalTypeState(const Constraint * cstr, Sketcher::Inter
 
         switch(cstr->AlignmentType){
             case Undef:
+            case NumInternalAlignmentType:
                 internaltypestate = InternalType::None;
                 break;
             case EllipseMajorDiameter:
@@ -8202,7 +8173,7 @@ bool SketchObject::constraintHasExpression(int constrid) const
 
     App::PropertyExpressionEngine::ExpressionInfo expr_info = this->getExpression(spath);
 
-    return (expr_info.expression != 0);
+    return (expr_info.expression != nullptr);
 }
 
 
@@ -8223,7 +8194,7 @@ int SketchObject::port_reversedExternalArcs(bool justAnalyze)
 
     for(std::size_t ic = 0; ic<newVals.size(); ic++){//ic = index of constraint
         bool affected=false;
-        Constraint *constNew = 0;
+        Constraint *constNew = nullptr;
         for(int ig=1; ig<=3; ig++){//cycle through constraint.first, second, third
             int geoId = 0;
             Sketcher::PointPos posId = PointPos::none;

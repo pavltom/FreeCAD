@@ -20,16 +20,12 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_TASKVIEW_TaskHelixParameters_H
 #define GUI_TASKVIEW_TaskHelixParameters_H
 
-#include <Gui/TaskView/TaskView.h>
-#include <Gui/Selection.h>
-#include <Gui/TaskView/TaskDialog.h>
-
 #include "TaskSketchBasedParameters.h"
 #include "ViewProviderHelix.h"
+
 
 namespace App {
 class Property;
@@ -49,7 +45,7 @@ class TaskHelixParameters : public TaskSketchBasedParameters
     Q_OBJECT
 
 public:
-    TaskHelixParameters(ViewProviderHelix* HelixView, QWidget* parent = 0);
+    TaskHelixParameters(ViewProviderHelix* HelixView, QWidget* parent = nullptr);
     ~TaskHelixParameters();
 
     virtual void apply() override;

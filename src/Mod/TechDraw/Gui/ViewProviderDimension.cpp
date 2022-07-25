@@ -26,22 +26,14 @@
 
 #ifndef _PreComp_
 # include <QAction>
+# include <QColor>
 # include <QMenu>
 #endif
 
-#include <QColor>
-
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <Base/Console.h>
 #include <Base/Parameter.h>
-#include <Base/Exception.h>
-#include <Base/Sequencer.h>
 #include <App/Application.h>
-#include <App/Document.h>
 #include <App/DocumentObject.h>
-#include <App/Material.h>
 #include <Gui/ActionFunction.h>
-#include <Gui/Command.h>
 #include <Gui/Control.h>
 
 #include <Mod/TechDraw/App/LineGroup.h>
@@ -56,10 +48,10 @@ using namespace TechDrawGui;
 using namespace TechDraw;
 
 const char *ViewProviderDimension::StandardAndStyleEnums[]=
-    { "ISO Oriented", "ISO Referencing", "ASME Inlined", "ASME Referencing", NULL };
+    { "ISO Oriented", "ISO Referencing", "ASME Inlined", "ASME Referencing", nullptr };
 
 const char *ViewProviderDimension::RenderingExtentEnums[]=
-    { "None", "Minimal", "Confined", "Reduced", "Normal", "Expanded", NULL };
+    { "None", "Minimal", "Confined", "Reduced", "Normal", "Expanded", nullptr };
 
 PROPERTY_SOURCE(TechDrawGui::ViewProviderDimension, TechDrawGui::ViewProviderDrawingView)
 
@@ -89,6 +81,10 @@ ViewProviderDimension::ViewProviderDimension()
     RenderingExtent.setEnums(RenderingExtentEnums);
     ADD_PROPERTY_TYPE(FlipArrowheads, (false), group, App::Prop_None,
                                           "Reverses usual direction of dimension line terminators");
+    ADD_PROPERTY_TYPE(GapFactorISO, (Preferences::GapISO()), group, App::Prop_None,
+                      "Adjusts the gap between dimension point and extension line");
+    ADD_PROPERTY_TYPE(GapFactorASME, (Preferences::GapASME()), group, App::Prop_None,
+                      "Adjusts the gap between dimension point and extension line");
 }
 
 ViewProviderDimension::~ViewProviderDimension()
@@ -130,27 +126,24 @@ void ViewProviderDimension::setupContextMenu(QMenu* menu, QObject* receiver, con
     Gui::ActionFunction* func = new Gui::ActionFunction(menu);
     QAction* act = menu->addAction(QObject::tr("Edit %1").arg(QString::fromUtf8(getObject()->Label.getValue())));
     act->setData(QVariant((int)ViewProvider::Default));
-    func->trigger(act, boost::bind(&ViewProviderDimension::startDefaultEditMode, this));
+    func->trigger(act, std::bind(&ViewProviderDimension::startDefaultEditMode, this));
 
     ViewProviderDrawingView::setupContextMenu(menu, receiver, member);
 }
 
 bool ViewProviderDimension::setEdit(int ModNum)
 {
-    if (ModNum == ViewProvider::Default) {
-        if (Gui::Control().activeDialog()) { // if TaskPanel already open
-            return false;
-        }
-        // clear the selection (convenience)
-        Gui::Selection().clearSelection();
-        auto qgivDimension(dynamic_cast<QGIViewDimension*>(getQView()));
-        if (qgivDimension) {
-            Gui::Control().showDialog(new TaskDlgDimension(qgivDimension, this));
-        }
-        return true;
-    }
-    else {
+    if (ModNum != ViewProvider::Default) {
         return ViewProviderDrawingView::setEdit(ModNum);
+    }
+    if (Gui::Control().activeDialog()) { // if TaskPanel already open
+        return false;
+    }
+    // clear the selection (convenience)
+    Gui::Selection().clearSelection();
+    auto qgivDimension(dynamic_cast<QGIViewDimension*>(getQView()));
+    if (qgivDimension) {
+        Gui::Control().showDialog(new TaskDlgDimension(qgivDimension, this));
     }
     return true;
 }
@@ -182,7 +175,19 @@ void ViewProviderDimension::updateData(const App::Property* p)
             sPixmap = "TechDraw_3PtAngleDimension";
         }
     }
-    ViewProviderDrawingView::updateData(p);
+
+    //Dimension handles X,Y updates differently that other QGIView
+    //call QGIViewDimension::updateView
+    if (p == &(getViewObject()->X)  ||
+        p == &(getViewObject()->Y) ){
+        QGIView* qgiv = getQView();
+        if (qgiv) {
+            qgiv->updateView(true);
+        }
+    }
+
+    //Skip QGIView X,Y processing - do not call ViewProviderDrawingView
+    Gui::ViewProviderDocumentObject::updateData(p);
 }
 
 void ViewProviderDimension::onChanged(const App::Property* p)
@@ -192,8 +197,9 @@ void ViewProviderDimension::onChanged(const App::Property* p)
         (p == &LineWidth) ||
         (p == &StandardAndStyle) ||
         (p == &RenderingExtent) ||
-        (p == &FlipArrowheads))
-    {
+        (p == &FlipArrowheads) ||
+        (p == &GapFactorASME) ||
+        (p == &GapFactorISO))  {
         QGIView* qgiv = getQView();
         if (qgiv) {
             qgiv->updateView(true);
@@ -203,7 +209,7 @@ void ViewProviderDimension::onChanged(const App::Property* p)
         QGIView* qgiv = getQView();
         if (qgiv) {
             QGIViewDimension* qgivd = dynamic_cast<QGIViewDimension*>(qgiv);
-            if (qgivd != nullptr) {
+            if (qgivd) {
                 qgivd->setNormalColorAll();
             }
         }

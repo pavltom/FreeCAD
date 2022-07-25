@@ -58,7 +58,6 @@
 
 #include <Mod/TechDraw/Gui/ui_TaskCosmeticLine.h>
 
-#include "DrawGuiStd.h"
 #include "PreferencesGui.h"
 #include "QGVPage.h"
 #include "QGIView.h"
@@ -87,7 +86,7 @@ TaskCosmeticLine::TaskCosmeticLine(TechDraw::DrawViewPart* partFeat,
     //existence of partFeat is checked in calling command
 
     m_ce = m_partFeat->getCosmeticEdgeBySelection(m_edgeName);
-    if (m_ce == nullptr) {
+    if (!m_ce) {
         Base::Console().Error("TaskCosmeticLine - bad parameters.  Can not proceed.\n");
         return;
     }
@@ -118,7 +117,7 @@ TaskCosmeticLine::TaskCosmeticLine(TechDraw::DrawViewPart* partFeat,
 
 TaskCosmeticLine::~TaskCosmeticLine()
 {
-    if (m_saveCE != nullptr) {
+    if (m_saveCE) {
         delete m_saveCE;
     }
 }
@@ -290,8 +289,8 @@ TaskDlgCosmeticLine::TaskDlgCosmeticLine(TechDraw::DrawViewPart* partFeat,
     : TaskDialog()
 {
     widget  = new TaskCosmeticLine(partFeat, points, is3d);
-    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/techdraw-line2points"),
-                                             widget->windowTitle(), true, 0);
+    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_Line2Points"),
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }
@@ -301,8 +300,8 @@ TaskDlgCosmeticLine::TaskDlgCosmeticLine(TechDraw::DrawViewPart* partFeat,
     : TaskDialog()
 {
     widget  = new TaskCosmeticLine(partFeat, edgeName);
-    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/techdraw-line2points"),
-                                             widget->windowTitle(), true, 0);
+    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_Line2Points"),
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

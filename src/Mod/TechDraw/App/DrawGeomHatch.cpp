@@ -70,6 +70,7 @@
 
 #include "HatchLine.h"
 #include "DrawUtil.h"
+#include "Preferences.h"
 #include "Geometry.h"
 #include "DrawPage.h"
 #include "DrawViewPart.h"
@@ -94,7 +95,7 @@ DrawGeomHatch::DrawGeomHatch(void)
 {
     static const char *vgroup = "GeomHatch";
 
-    ADD_PROPERTY_TYPE(Source,(0),vgroup,(App::PropertyType)(App::Prop_None),"The View + Face to be crosshatched");
+    ADD_PROPERTY_TYPE(Source,(nullptr),vgroup,(App::PropertyType)(App::Prop_None),"The View + Face to be crosshatched");
     Source.setScope(App::LinkScope::Global);
     ADD_PROPERTY_TYPE(FilePattern ,(prefGeomHatchFile()),vgroup,App::Prop_None,"The crosshatch pattern file for this area");
     ADD_PROPERTY_TYPE(PatIncluded, (""), vgroup,App::Prop_None,
@@ -122,11 +123,14 @@ void DrawGeomHatch::onChanged(const App::Property* prop)
             DrawGeomHatch::execute();
         }
         App::Document* doc = getDocument();
-        if ((prop == &FilePattern) &&
-            (doc != nullptr) ) {
+        if ((prop == &FilePattern) && doc) {
             if (!FilePattern.isEmpty()) {
                 replacePatIncluded(FilePattern.getValue());
+                DrawGeomHatch::execute();         //remake the line sets
             }
+        }
+        if ((prop == &NamePattern) && doc) {
+            DrawGeomHatch::execute();            //remake the line sets
         }
     } else {
         if ((prop == &FilePattern) ||                //make sure right pattern gets loaded at start up
@@ -144,7 +148,8 @@ short DrawGeomHatch::mustExecute() const
     if (!isRestoring()) {
         result  =  (Source.isTouched()  ||
                     FilePattern.isTouched() ||
-                    NamePattern.isTouched() );
+                    NamePattern.isTouched() ||
+                    ScalePattern.isTouched());
     }
 
     if (result) {
@@ -159,7 +164,7 @@ App::DocumentObjectExecReturn *DrawGeomHatch::execute(void)
 //    Base::Console().Message("DGH::execute()\n");
     makeLineSets();
     DrawViewPart* parent = getSourceView();
-    if (parent != nullptr) {
+    if (parent) {
         parent->requestPaint();
     }
     return App::DocumentObject::StdReturn;
@@ -171,18 +176,13 @@ void DrawGeomHatch::makeLineSets(void)
 //    Base::Console().Message("DGH::makeLineSets()\n");
     if ((!PatIncluded.isEmpty())  &&
         (!NamePattern.isEmpty())) {
-        if ((m_saveFile != PatIncluded.getValue()) ||
-            (m_saveName != NamePattern.getValue()))  {
-            m_saveFile = PatIncluded.getValue();
-            m_saveName = NamePattern.getValue();
-            std::vector<PATLineSpec> specs = getDecodedSpecsFromFile();
-            m_lineSets.clear();
-            for (auto& hl: specs) {
-                //hl.dump("hl from file");
-                LineSet ls;
-                ls.setPATLineSpec(hl);
-                m_lineSets.push_back(ls);
-            }
+        std::vector<PATLineSpec> specs = getDecodedSpecsFromFile();
+        m_lineSets.clear();
+        for (auto& hl: specs) {
+            //hl.dump("hl from file");
+            LineSet ls;
+            ls.setPATLineSpec(hl);
+            m_lineSets.push_back(ls);
         }
     }
 }
@@ -285,7 +285,7 @@ std::vector<LineSet> DrawGeomHatch::getTrimmedLines(DrawViewPart* source,
     TopoDS_Face face = f;
 
     Bnd_Box bBox;
-    BRepBndLib::Add(face, bBox);
+    BRepBndLib::AddOptimal(face, bBox);
     bBox.SetGap(0.0);
 
     for (auto& ls: lineSets) {
@@ -312,7 +312,7 @@ std::vector<LineSet> DrawGeomHatch::getTrimmedLines(DrawViewPart* source,
         //save the boundingBox of hatch pattern
         Bnd_Box overlayBox;
         overlayBox.SetGap(0.0);
-        BRepBndLib::Add(common, overlayBox);
+        BRepBndLib::AddOptimal(common, overlayBox);
         ls.setBBox(overlayBox);
 
         //get resulting edges
@@ -332,7 +332,7 @@ std::vector<LineSet> DrawGeomHatch::getTrimmedLines(DrawViewPart* source,
         int i = 0;
         for (auto& e: resultEdges) {
             TechDraw::BaseGeomPtr base = BaseGeom::baseFactory(e);
-            if (base == nullptr) {
+            if (!base) {
                 Base::Console().Log("FAIL - DGH::getTrimmedLines - baseFactory failed for edge: %d\n",i);
                 throw Base::ValueError("DGH::getTrimmedLines - baseFactory failed");
             }
@@ -471,7 +471,7 @@ std::vector<LineSet> DrawGeomHatch::getFaceOverlay(int fdx)
     TopoDS_Face face = extractFace(source,fdx);
 
     Bnd_Box bBox;
-    BRepBndLib::Add(face, bBox);
+    BRepBndLib::AddOptimal(face, bBox);
     bBox.SetGap(0.0);
 
     for (auto& ls: m_lineSets) {
@@ -481,7 +481,7 @@ std::vector<LineSet> DrawGeomHatch::getFaceOverlay(int fdx)
         int i = 0;
         for (auto& e: candidates) {
             TechDraw::BaseGeomPtr base = BaseGeom::baseFactory(e);
-            if (base == nullptr) {
+            if (!base) {
                 Base::Console().Log("FAIL - DGH::getFaceOverlay - baseFactory failed for edge: %d\n",i);
                 throw Base::ValueError("DGH::getFaceOverlay - baseFactory failed");
             }
@@ -606,7 +606,7 @@ void DrawGeomHatch::unsetupObject(void)
 //    Base::Console().Message("DGH::unsetupObject() - status: %lu  removing: %d \n", getStatus(), isRemoving());
     App::DocumentObject* source = Source.getValue();
     DrawView* dv = dynamic_cast<DrawView*>(source);
-    if (dv != nullptr) {
+    if (dv) {
         dv->requestPaint();
     }
     App::DocumentObject::unsetupObject();
@@ -614,19 +614,7 @@ void DrawGeomHatch::unsetupObject(void)
 
 std::string DrawGeomHatch::prefGeomHatchFile(void)
 {
-    Base::Reference<ParameterGrp> hGrp = App::GetApplication().GetUserParameter()
-        .GetGroup("BaseApp")->GetGroup("Preferences")->GetGroup("Mod/TechDraw/PAT");
-
-    std::string defaultDir = App::Application::getResourceDir() + "Mod/TechDraw/PAT/";
-    std::string defaultFileName = defaultDir + "FCPAT.pat";
-    std::string prefHatchFile = hGrp->GetASCII("FilePattern", defaultFileName.c_str());
-    std::string result = prefHatchFile;
-    Base::FileInfo fi(result);
-    if (!fi.isReadable()) {
-        result = defaultFileName;
-        Base::Console().Warning("Pat Hatch File: %s is not readable\n", prefHatchFile.c_str());
-    }
-    return result;
+    return Preferences::patFile();
 }
 
 std::string DrawGeomHatch::prefGeomHatchName()

@@ -20,74 +20,56 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <QAbstractTextDocumentLayout>
 # include <QApplication>
-# include <QClipboard>
-# include <QDateTime>
-# include <QHBoxLayout>
-# include <QMessageBox>
-# include <QNetworkRequest>
-# include <QPainter>
-# include <QPrinter>
-# include <QPrintDialog>
-# include <QScrollBar>
-# include <QMouseEvent>
-# include <QStatusBar>
-# include <QTextBlock>
-# include <QTextCodec>
-# include <QTextStream>
-# include <QTimer>
-# include <QFileInfo>
 # include <QDesktopServices>
-# include <QMenu>
-# include <QDesktopWidget>
-# include <QSignalMapper>
-# include <QPointer>
-# include <QDir>
+# include <QFileInfo>
+# include <QLatin1String>
 # include <QLineEdit>
+# include <QMenu>
+# include <QMessageBox>
+# include <QMouseEvent>
+# include <QNetworkRequest>
+# include <QRegExp>
+# include <QScreen>
+# include <QSignalMapper>
+# include <QStatusBar>
 #endif
 
-
 #if defined(QTWEBENGINE)
-# include <QWebEnginePage>
-# include <QWebEngineView>
-# include <QWebEngineSettings>
-# include <QWebEngineProfile>
 # include <QWebEngineContextMenuData>
-# include <QWebEngineUrlRequestInterceptor>
+# include <QWebEnginePage>
+# include <QWebEngineProfile>
+# include <QWebEngineSettings>
 # include <QWebEngineUrlRequestInfo>
+# include <QWebEngineUrlRequestInterceptor>
+# include <QWebEngineView>
 #elif defined(QTWEBKIT)
 # include <QWebFrame>
-# include <QWebView>
-# include <QWebSettings>
 # include <QNetworkAccessManager>
+# include <QWebSettings>
+# include <QWebView>
 using QWebEngineView = QWebView;
 using QWebEnginePage = QWebPage;
 #endif
 
-#include <QScreen>
-
-#include <QLatin1String>
-#include <QRegExp>
-#include "BrowserView.h"
-#include "CookieJar.h"
-#include <Gui/Application.h>
-#include <Gui/MainWindow.h>
-#include <Gui/MDIViewPy.h>
-#include <Gui/ProgressBar.h>
-#include <Gui/Command.h>
-#include <Gui/OnlineDocumentation.h>
-#include <Gui/DownloadManager.h>
-#include <Gui/TextDocumentEditorView.h>
-
+#include <App/Document.h>
 #include <Base/Parameter.h>
 #include <Base/Exception.h>
 #include <Base/Tools.h>
-#include <CXX/Extensions.hxx>
+#include <Gui/Application.h>
+#include <Gui/Command.h>
+#include <Gui/DownloadManager.h>
+#include <Gui/MainWindow.h>
+#include <Gui/MDIViewPy.h>
+#include <Gui/ProgressBar.h>
+#include <Gui/TextDocumentEditorView.h>
+
+#include "BrowserView.h"
+#include "CookieJar.h"
+
 
 using namespace WebGui;
 using namespace Gui;
@@ -249,7 +231,7 @@ Py::Object BrowserViewPy::getattr(const char * attr)
     if (name == "__dict__" || name == "__class__") {
         Py::Dict dict_self(BaseType::getattr("__dict__"));
         Py::Dict dict_base(base.getattr("__dict__"));
-        for (auto it : dict_base) {
+        for (const auto& it : dict_base) {
             dict_self.setItem(it.first, it.second);
         }
         return dict_self;
@@ -423,10 +405,10 @@ void WebView::triggerContextMenuAction(int id)
 
     switch (id) {
     case WebAction::OpenLink:
-        openLinkInExternalBrowser(url);
+        Q_EMIT openLinkInExternalBrowser(url);
         break;
     case WebAction::OpenLinkInNewWindow:
-        openLinkInNewWindow(url);
+        Q_EMIT openLinkInNewWindow(url);
         break;
     case WebAction::ViewSource:
         Q_EMIT viewSource(url);
@@ -447,7 +429,7 @@ TYPESYSTEM_SOURCE_ABSTRACT(WebGui::BrowserView, Gui::MDIView)
  *  name 'name'.
  */
 BrowserView::BrowserView(QWidget* parent)
-    : MDIView(0,parent,Qt::WindowFlags()),
+    : MDIView(nullptr,parent,Qt::WindowFlags()),
       WindowParameter( "Browser" ),
       isLoading(false)
 {
@@ -529,6 +511,10 @@ BrowserView::BrowserView(QWidget* parent)
             this, SLOT(onOpenLinkInExternalBrowser(const QUrl &)));
     connect(view, SIGNAL(openLinkInNewWindow(const QUrl &)),
             this, SLOT(onOpenLinkInNewWindow(const QUrl &)));
+    connect(view, SIGNAL(loadStarted()),
+            this, SLOT(onUpdateBrowserActions()));
+    connect(view, SIGNAL(loadFinished(bool)),
+            this, SLOT(onUpdateBrowserActions()));
 }
 
 /** Destroys the object and frees any allocated resources */
@@ -547,8 +533,7 @@ void BrowserView::urlFilter(const QUrl & url)
     //QString username = url.userName();
 
     // path handling
-    QString path     = url.path();
-    QFileInfo fi(path);
+    QString path = url.path();
     QUrl exturl(url);
 
     // query
@@ -781,7 +766,10 @@ void BrowserView::onLoadFinished(bool ok)
     QProgressBar* bar = SequencerBar::instance()->getProgressBar();
     bar->setValue(100);
     bar->hide();
-    getMainWindow()->showMessage(QString());
+    Gui::MainWindow* win = Gui::getMainWindow();
+    if (win) {
+        win->showMessage(QString());
+    }
     isLoading = false;
 }
 
@@ -798,6 +786,18 @@ void BrowserView::onOpenLinkInNewWindow(const QUrl& url)
     view->load(url);
     Gui::getMainWindow()->addWindow(view);
     Gui::getMainWindow()->setActiveWindow(this);
+}
+
+void BrowserView::onUpdateBrowserActions()
+{
+    CommandManager& mgr = Application::Instance->commandManager();
+    std::vector<const char*> cmds = {"Web_BrowserBack", "Web_BrowserNext", "Web_BrowserRefresh", "Web_BrowserStop",
+                                     "Web_BrowserZoomIn", "Web_BrowserZoomOut", "Web_BrowserSetURL"};
+    for (const auto& it : cmds) {
+        Gui::Command* cmd = mgr.getCommandByName(it);
+        if (cmd)
+            cmd->testActive();
+    }
 }
 
 void BrowserView::OnChange(Base::Subject<const char*> &rCaller,const char* rcReason)
@@ -852,11 +852,16 @@ bool BrowserView::onHasMsg(const char* pMsg) const
         return view->page()->action(QWebEnginePage::Back)->isEnabled();
     if (strcmp(pMsg,"Next")==0)
         return view->page()->action(QWebEnginePage::Forward)->isEnabled();
-    if (strcmp(pMsg,"Refresh")==0) return !isLoading;
-    if (strcmp(pMsg,"Stop")==0) return isLoading;
-    if (strcmp(pMsg,"ZoomIn")==0) return true;
-    if (strcmp(pMsg,"ZoomOut")==0) return true;
-    if (strcmp(pMsg,"SetURL")==0) return true;
+    if (strcmp(pMsg,"Refresh")==0)
+        return !isLoading;
+    if (strcmp(pMsg,"Stop")==0)
+        return isLoading;
+    if (strcmp(pMsg,"ZoomIn")==0)
+        return true;
+    if (strcmp(pMsg,"ZoomOut")==0)
+        return true;
+    if (strcmp(pMsg,"SetURL")==0)
+        return true;
 
     return false;
 }

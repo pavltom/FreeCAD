@@ -110,12 +110,12 @@ PyObject* ExternalGeometryExtensionPy::testFlag(PyObject *args)
             return new_reference_to(Py::Boolean(this->getExternalGeometryExtensionPtr()->testFlag(flagtype)));
 
         PyErr_SetString(PyExc_TypeError, "Flag string does not exist.");
-        return NULL;
+        return nullptr;
 
     }
 
     PyErr_SetString(PyExc_TypeError, "No flag string provided.");
-    return NULL;
+    return nullptr;
 }
 
 PyObject* ExternalGeometryExtensionPy::setFlag(PyObject *args)
@@ -128,12 +128,12 @@ PyObject* ExternalGeometryExtensionPy::setFlag(PyObject *args)
 
         if(getExternalGeometryExtensionPtr()->getFlagsFromName(flag, flagtype)) {
 
-            this->getExternalGeometryExtensionPtr()->setFlag(flagtype,PyObject_IsTrue(bflag) ? true : false);
+            this->getExternalGeometryExtensionPtr()->setFlag(flagtype, Base::asBoolean(bflag));
             Py_Return;
         }
 
         PyErr_SetString(PyExc_TypeError, "Flag string does not exist.");
-        return NULL;
+        return nullptr;
     }
 
     PyErr_SetString(PyExc_TypeError, "No flag string provided.");
@@ -153,7 +153,7 @@ void ExternalGeometryExtensionPy::setRef(Py::String value)
 
 PyObject *ExternalGeometryExtensionPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ExternalGeometryExtensionPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

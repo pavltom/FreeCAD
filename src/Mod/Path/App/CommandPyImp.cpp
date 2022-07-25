@@ -71,9 +71,9 @@ PyObject *CommandPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // Py
 // constructor method
 int CommandPy::PyInit(PyObject* args, PyObject* kwd)
 {
-    PyObject *parameters = NULL;
+    PyObject *parameters = nullptr;
     char *name = "";
-    static char *kwlist[] = {"name", "parameters", NULL};
+    static char *kwlist[] = {"name", "parameters", nullptr};
     if ( PyArg_ParseTupleAndKeywords(args, kwd, "|sO!", kwlist, &name, &PyDict_Type, &parameters) ) {
         std::string sname(name);
         boost::to_upper(sname);
@@ -204,7 +204,7 @@ PyObject* CommandPy::toGCode(PyObject *args)
 
 PyObject* CommandPy::setFromGCode(PyObject *args)
 {
-    char *pstr=0;
+    char *pstr=nullptr;
     if (PyArg_ParseTuple(args, "s", &pstr)) {
         std::string gcode(pstr);
         try {
@@ -231,8 +231,7 @@ Py::Object CommandPy::getPlacement(void) const
 
 void CommandPy::setPlacement(Py::Object arg)
 {
-    union PyType_Object pyType = {&(Base::PlacementPy::Type)};
-    Py::Type PlacementType(pyType.o);
+    Py::Type PlacementType(Base::getTypeAsObject(&(Base::PlacementPy::Type)));
     if(arg.isType(PlacementType)) {
         getCommandPtr()->setFromPlacement( *static_cast<Base::PlacementPy*>((*arg))->getPlacementPtr() );
         parameters_copy_dict.clear();
@@ -267,7 +266,7 @@ PyObject *CommandPy::getCustomAttributes(const char* attr) const
             return Py_None;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 int CommandPy::setCustomAttributes(const char* attr, PyObject* obj)

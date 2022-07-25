@@ -59,7 +59,7 @@ class TaskPanelOpPage(PathOpGui.TaskPanelPage):
           FeatureFacing  ... used for face milling operation
           FeatureOutline ... used for pocket-shape operation
         Must be overwritten by subclasses"""
-        pass  # pylint: disable=unnecessary-pass
+        pass
 
     def getForm(self):
         """getForm() ... returns UI, adapted to the results from pocketFeatures()"""
@@ -95,21 +95,6 @@ class TaskPanelOpPage(PathOpGui.TaskPanelPage):
 
         return form
 
-    def populateCombobox(self, form, enumTups, comboBoxesPropertyMap):
-        """fillComboboxes(form, comboBoxesPropertyMap) ... populate comboboxes with translated enumerations
-        ** comboBoxesPropertyMap will be unnecessary if UI files use strict combobox naming protocol.
-        Args:
-            form = UI form
-            enumTups = list of (translated_text, data_string) tuples
-            comboBoxesPropertyMap = list of (translated_text, data_string) tuples
-        """
-        # Load appropriate enumerations in each combobox
-        for cb, prop in comboBoxesPropertyMap:
-            box = getattr(form, cb)  # Get the combobox
-            box.clear()  # clear the combobox
-            for text, data in enumTups[prop]:  #  load enumerations
-                box.addItem(text, data)
-
     def updateMinTravel(self, obj, setModel=True):
         if obj.UseStartPoint:
             self.form.minTravel.setEnabled(True)
@@ -121,7 +106,7 @@ class TaskPanelOpPage(PathOpGui.TaskPanelPage):
             obj.MinTravel = self.form.minTravel.isChecked()
 
     def updateZigZagAngle(self, obj, setModel=True):
-        if obj.OffsetPattern in ["Offset", "Spiral"]:
+        if obj.OffsetPattern in ["Offset"]:
             self.form.zigZagAngle.setEnabled(False)
         else:
             self.form.zigZagAngle.setEnabled(True)

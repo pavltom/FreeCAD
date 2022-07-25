@@ -84,9 +84,7 @@ def selectOffsetWire(feature, wires):
     closest = None
     for w in wires:
         dist = feature.distToShape(w)[0]
-        if (
-            closest is None or dist > closest[0]
-        ):  # pylint: disable=unsubscriptable-object
+        if closest is None or dist > closest[0]:
             closest = (dist, w)
 
     if closest is not None:
@@ -174,6 +172,44 @@ def getExtensions(obj):
 def setExtensions(obj, extensions):
     PathLog.track(obj.Label, len(extensions))
     obj.ExtensionFeature = [(ext.obj, ext.getSubLink()) for ext in extensions]
+
+
+def getStandardAngle(x, y):
+    """getStandardAngle(x, y)...
+    Return standard degree angle given x and y values of vector."""
+    angle = math.degrees(math.atan2(y, x))
+    if angle < 0.0:
+        return angle + 360.0
+    return angle
+
+
+def arcAdjustmentAngle(arc1, arc2):
+    """arcAdjustmentAngle(arc1, arc2)...
+    Return adjustment angle to apply to arc2 in order to align it with arc1.
+    Arcs must have same center point."""
+    center = arc1.Curve.Center
+    cntr2 = arc2.Curve.Center
+
+    # Verify centers of arcs are same
+    if center.sub(cntr2).Length > 0.0000001:
+        return None
+
+    # Calculate midpoint of arc1, and standard angle from center to that midpoint
+    midPntArc1 = arc1.valueAt(
+        arc1.FirstParameter + (arc1.LastParameter - arc1.FirstParameter) / 2.0
+    )
+    midPntVect1 = midPntArc1.sub(center)
+    ang1 = getStandardAngle(midPntVect1.x, midPntVect1.y)
+
+    # Calculate midpoint of arc2, and standard angle from center to that midpoint
+    midPntArc2 = arc2.valueAt(
+        arc2.FirstParameter + (arc2.LastParameter - arc2.FirstParameter) / 2.0
+    )
+    midPntVect2 = midPntArc2.sub(center)
+    ang2 = getStandardAngle(midPntVect2.x, midPntVect2.y)
+
+    # Return adjustment angle to apply to arc2 in order to align with arc1
+    return ang1 - ang2
 
 
 class Extension(object):
@@ -281,26 +317,7 @@ class Extension(object):
         and sub element provided at class instantiation, as a closed wire.  If no closed wire
         is possible, a `None` value is returned."""
 
-        if self.sub[:6] == "Avoid_":
-            feature = self.obj.Shape.getElement(self.feature)
-            self.extFaces = [Part.Face(feature.Wires[0])]
-            return feature.Wires[0]
-        if self.sub[:7] == "Extend_":
-            rtn = self._getOutlineWire()
-            if rtn:
-                return rtn
-            else:
-                PathLog.debug("no Outline Wire")
-                return None
-        if self.sub[:10] == "Waterline_":
-            rtn = self._getWaterlineWire()
-            if rtn:
-                return rtn
-            else:
-                PathLog.debug("no Waterline Wire")
-                return None
-        else:
-            return self._getRegularWire()
+        return self._getRegularWire()
 
     def _getRegularWire(self):
         """_getRegularWire()... Private method to retrieve the extension area, pertaining to the feature
@@ -321,6 +338,7 @@ class Extension(object):
             PathLog.debug("Extending single edge wire")
             edge = edges[0]
             if Part.Circle == type(edge.Curve):
+                PathLog.debug("is Part.Circle")
                 circle = edge.Curve
                 # for a circle we have to figure out if it's a hole or a cylinder
                 p0 = edge.valueAt(edge.FirstParameter)
@@ -336,6 +354,7 @@ class Extension(object):
 
                 # assuming the offset produces a valid circle - go for it
                 if r > 0:
+                    PathLog.debug("radius > 0 - extend outward")
                     e3 = Part.makeCircle(
                         r,
                         circle.Center,
@@ -343,7 +362,18 @@ class Extension(object):
                         edge.FirstParameter * 180 / math.pi,
                         edge.LastParameter * 180 / math.pi,
                     )
+
+                    # Determine if rotational alignment is necessary for new arc
+                    rotationAdjustment = arcAdjustmentAngle(edge, e3)
+                    if not PathGeom.isRoughly(rotationAdjustment, 0.0):
+                        e3.rotate(
+                            edge.Curve.Center,
+                            FreeCAD.Vector(0.0, 0.0, 1.0),
+                            rotationAdjustment,
+                        )
+
                     if endPoints(edge):
+                        PathLog.debug("Make section of donut")
                         # need to construct the arc slice
                         e0 = Part.makeLine(
                             edge.valueAt(edge.FirstParameter),
@@ -353,12 +383,21 @@ class Extension(object):
                             edge.valueAt(edge.LastParameter),
                             e3.valueAt(e3.LastParameter),
                         )
-                        return Part.Wire([e0, edge, e2, e3])
+
+                        wire = Part.Wire([e0, edge, e2, e3])
+
+                        # Determine if calculated extension collides with model (wrong direction)
+                        face = Part.Face(wire)
+                        if face.common(feature).Area < face.Area * 0.10:
+                            return wire  # Calculated extension is correct
+                        else:
+                            return None  # Extension collides with model
 
                     extWire = Part.Wire([e3])
                     self.extFaces = [self._makeCircularExtFace(edge, extWire)]
                     return extWire
 
+                PathLog.debug("radius < 0 - extend inward")
                 # the extension is bigger than the hole - so let's just cover the whole hole
                 if endPoints(edge):
                     # if the resulting arc is smaller than the radius, create a pie slice
@@ -372,13 +411,14 @@ class Extension(object):
                 return Part.Wire([edge])
 
             else:
+                PathLog.debug("else is NOT Part.Circle")
                 PathLog.track(self.feature, self.sub, type(edge.Curve), endPoints(edge))
                 direction = self._getDirection(sub)
                 if direction is None:
                     return None
 
-            #    return self._extendEdge(feature, edge, direction)
             return self._extendEdge(feature, edges[0], direction)
+
         elif sub.isClosed():
             PathLog.debug("Extending multi-edge closed wire")
             subFace = Part.Face(sub)
@@ -401,89 +441,14 @@ class Extension(object):
             return off2D
 
         PathLog.debug("Extending multi-edge open wire")
-        return extendWire(feature, sub, length)
+        extendedWire = extendWire(feature, sub, length)
+        if extendedWire is None:
+            return extendedWire
 
-    def _getOutlineWire(self):
-        """_getOutlineWire()... Private method to retrieve an extended outline extension area,
-        pertaining to the feature and sub element provided at class instantiation, as a closed wire.
-        If no closed wire is possible, a `None` value is returned."""
-        PathLog.track()
-
-        baseShape = self.obj.Shape
-        face = baseShape.getElement(self.feature)
-        useOutline = False
-        msg = translate("PathAdaptive", "Extend Outline error")
-
-        if hasattr(self.op, "UseOutline"):
-            useOutline = self.op.UseOutline
-
-        if useOutline:
-            outFace = Part.Face(face.Wires[0])
-            rawFace = getExtendOutlineFace(baseShape, outFace, self.length)
-
-            if rawFace:
-                extFace = rawFace.cut(outFace)
-            else:
-                PathLog.error(msg + " 1")
-                extFace = outFace
-        else:
-            rawFace = getExtendOutlineFace(baseShape, face, self.length)
-
-            if rawFace:
-                extFace = rawFace.cut(face)
-            else:
-                PathLog.error(msg + " 2")
-                extFace = face
-
-        # Debug
-        # Part.show(extFace)
-        # FreeCAD.ActiveDocument.ActiveObject.Label = "outline_wire"
-
-        if len(extFace.Wires) > 0:
-            self.extFaces = [f for f in extFace.Faces]
-            return extFace.Wires[0]
-
-        return None
-
-    def _getWaterlineWire(self):
-        """_getWaterlineWire()... Private method to retrieve a waterline extension area,
-        pertaining to the feature and sub element provided at class instantiation, as a closed wire.
-        Only waterline faces touching source face are returned as part of the waterline extension area.
-        If no closed wire is possible, a `None` value is returned."""
-        PathLog.track()
-
-        msg = translate("PathFeatureExtensions", "Waterline error")
-        useOutline = False
-        if hasattr(self.op, "UseOutline"):
-            useOutline = self.op.UseOutline
-
-        baseShape = self.obj.Shape
-        if useOutline:
-            face = Part.Face(baseShape.getElement(self.feature).Wire1)
-        else:
-            face = baseShape.getElement(self.feature)
-
-        rawFace = getWaterlineFace(baseShape, face)
-
-        if not rawFace:
-            PathLog.error(msg + " 1")
-            return None
-
-        if rawFace:
-            extFace = rawFace.cut(face)
-        else:
-            PathLog.error(msg + " 2")
-            extFace = face
-
-        # Debug
-        # Part.show(extFace)
-        # FreeCAD.ActiveDocument.ActiveObject.Label = "waterline_face"
-
-        if len(extFace.Wires) > 0:
-            self.extFaces = [f for f in extFace.Faces]
-            return extFace.Wires[0]
-
-        return None
+        # Trim wire face using model
+        extFace = Part.Face(extendedWire)
+        trimmedWire = extFace.cut(self.obj.Shape).Wires[0]
+        return trimmedWire.copy()
 
     def _makeCircularExtFace(self, edge, extWire):
         """_makeCircularExtensionFace(edge, extWire)...

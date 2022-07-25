@@ -28,6 +28,8 @@
 #include <Mod/Sketcher/App/Constraint.h>
 #include <Gui/Selection.h>
 
+#include "AutoConstraint.h"
+
 class QPixmap;
 
 namespace Sketcher {
@@ -39,6 +41,33 @@ namespace SketcherGui {
 
 class ViewProviderSketch;
 
+
+
+/**
+ * Class to convert Part::Geometry to Vector2d based collections
+ */
+class CurveConverter final : public ParameterGrp::ObserverType {
+
+public:
+    CurveConverter();
+
+    ~CurveConverter();
+
+    std::vector<Base::Vector2d> toVector2D(const Part::Geometry * geometry);
+
+    std::list<std::vector<Base::Vector2d>> toVector2DList(const std::vector<Part::Geometry *> &geometries);
+
+private:
+    void updateCurvedEdgeCountSegmentsParameter();
+
+    /** Observer for parameter group. */
+    virtual void OnChange(Base::Subject<const char*> &rCaller, const char * sReason) override;
+
+private:
+    int curvedEdgeCountSegments;
+};
+
+
 /**
  * In order to enforce a certain degree of encapsulation and promote a not
  * too tight coupling, while still allowing well defined collaboration,
@@ -46,33 +75,22 @@ class ViewProviderSketch;
  */
 class ViewProviderSketchDrawSketchHandlerAttorney {
 private:
+    static inline void setConstraintSelectability(ViewProviderSketch &vp, bool enabled = true);
     static inline void setPositionText(ViewProviderSketch &vp, const Base::Vector2d &Pos, const SbString &txt);
     static inline void setPositionText(ViewProviderSketch &vp, const Base::Vector2d &Pos);
     static inline void resetPositionText(ViewProviderSketch &vp);
     static inline void drawEdit(ViewProviderSketch &vp, const std::vector<Base::Vector2d> &EditCurve);
+    static inline void drawEdit(ViewProviderSketch &vp, const std::list<std::vector<Base::Vector2d>> &list);
     static inline void drawEditMarkers(ViewProviderSketch &vp, const std::vector<Base::Vector2d> &EditMarkers, unsigned int augmentationlevel = 0);
     static inline void setAxisPickStyle(ViewProviderSketch &vp, bool on);
+    static inline void moveCursorToSketchPoint(ViewProviderSketch &vp, Base::Vector2d point);
+    static inline void preselectAtPoint(ViewProviderSketch &vp, Base::Vector2d point);
 
     static inline int getPreselectPoint(const ViewProviderSketch &vp);
     static inline int getPreselectCurve(const ViewProviderSketch &vp);
     static inline int getPreselectCross(const ViewProviderSketch &vp);
 
     friend class DrawSketchHandler;
-};
-
-
-// A Simple data type to hold basic information for suggested constraints
-struct AutoConstraint
-{
-    enum TargetType
-    {
-        VERTEX,
-        CURVE,
-        VERTEX_NO_TANGENCY
-    };
-    Sketcher::ConstraintType Type;
-    int GeoId;
-    Sketcher::PointPos PosId;
 };
 
 /** Handler to create new sketch geometry
@@ -96,8 +114,9 @@ public:
     DrawSketchHandler();
     virtual ~DrawSketchHandler();
 
-    virtual void activated(ViewProviderSketch *){}
-    virtual void deactivated(ViewProviderSketch *){}
+    void activate(ViewProviderSketch *);
+    void deactivate();
+
     virtual void mouseMove(Base::Vector2d onSketchPos)=0;
     virtual bool pressButton(Base::Vector2d onSketchPos)=0;
     virtual bool releaseButton(Base::Vector2d onSketchPos)=0;
@@ -126,6 +145,15 @@ public:
     void resetPositionText(void);
     void renderSuggestConstraintsCursor(std::vector<AutoConstraint> &suggestedConstraints);
 
+private: // NVI
+    virtual void preActivated();
+    virtual void activated(){}
+    virtual void deactivated(){}
+    virtual void postDeactivated(){}
+
+protected: // NVI requiring base implementation
+    virtual QString getCrosshairCursorSVGName() const;
+
 protected:
     // helpers
     /**
@@ -134,27 +162,58 @@ protected:
      *
      * \param autoScale - set this to false if pixmap already scaled for HiDPI
      **/
+
+    /** @name Icon helpers */
+    //@{
     void setCursor(const QPixmap &pixmap, int x,int y, bool autoScale=true);
-    void setSvgCursor(const QString &svgName, int x, int y,
-                      const std::map<unsigned long, unsigned long>& colorMapping = std::map<unsigned long, unsigned long>());
-    void addCursorTail(std::vector<QPixmap> &pixmaps);
+
+    /// updates the actCursor with the icon by calling getCrosshairCursorSVGName(),
+    /// enabling to set data member dependent icons (i.e. for different construction methods)
+    void updateCursor();
+
+    /// restitutes the cursor that was in use at the moment of starting the DrawSketchHandler (i.e. oldCursor)
     void unsetCursor(void);
+
+    /// restitutes the DSH cached cursor (e.g. without any tail due to autoconstraints, ...)
     void applyCursor(void);
-    void applyCursor(QCursor &newCursor);
-    void setCrosshairColor();
+
+    /// returns the color to be used for the crosshair (configurable as a parameter)
     unsigned long getCrosshairColor();
+
+    /// functions to set the cursor to a given svgName (to be migrated to NVI style)
+
     qreal devicePixelRatio();
-    void setCrosshairCursor(const char* svgName);
+    //@}
 
     void drawEdit(const std::vector<Base::Vector2d> &EditCurve);
+    void drawEdit(const std::list<std::vector<Base::Vector2d>> &list);
+    void drawEdit(const std::vector<Part::Geometry *> &geometries);
     void drawEditMarkers(const std::vector<Base::Vector2d> &EditMarkers, unsigned int augmentationlevel = 0);
     void setAxisPickStyle(bool on);
+    void moveCursorToSketchPoint(Base::Vector2d point);
+    void preselectAtPoint(Base::Vector2d point);
+
+    void drawPositionAtCursor(const Base::Vector2d & position);
+    void drawDirectionAtCursor(const Base::Vector2d & position, const Base::Vector2d & origin);
 
     int getPreselectPoint(void) const;
     int getPreselectCurve(void) const;
     int getPreselectCross(void) const;
 
+    Sketcher::SketchObject * getSketchObject();
 
+private:
+    void setSvgCursor(const QString &svgName, int x, int y,
+                      const std::map<unsigned long, unsigned long>& colorMapping = std::map<unsigned long, unsigned long>());
+
+    void addCursorTail(std::vector<QPixmap> &pixmaps);
+
+    void applyCursor(QCursor &newCursor);
+
+    void setCrosshairCursor(const QString & svgName);
+    void setCrosshairCursor(const char* svgName);
+
+protected:
     /**
      * Returns constraints icons scaled to width.
      **/

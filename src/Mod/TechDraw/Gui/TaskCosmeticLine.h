@@ -23,20 +23,10 @@
 #ifndef TECHDRAWGUI_TASKCOSMETICLINE_H
 #define TECHDRAWGUI_TASKCOSMETICLINE_H
 
-#include <App/DocumentObject.h>
 #include <Base/Vector3D.h>
-#include <Gui/TaskView/TaskView.h>
 #include <Gui/TaskView/TaskDialog.h>
+#include <Gui/TaskView/TaskView.h>
 
-#include <Mod/TechDraw/App/Cosmetic.h>
-
-#include <Mod/TechDraw/Gui/ui_TaskCosmeticLine.h>
-
-class Ui_TaskCosmeticLine;
-
-namespace App {
-class DocumentObject;
-}
 
 namespace TechDraw
 {
@@ -44,21 +34,19 @@ class DrawPage;
 class DrawView;
 class DrawViewPart;
 class CosmeticEdge;
-class LineFormat;
-}
-
-namespace TechDraw
-{
 class Face;
+class LineFormat;
 }
 
 namespace TechDrawGui
 {
+class QGSPage;
 class QGVPage;
 class QGIView;
 class QGIPrimPath;
 class MDIViewPage;
 class ViewProviderViewPart;
+class Ui_TaskCosmeticLine;
 
 class TaskCosmeticLine : public QWidget
 {

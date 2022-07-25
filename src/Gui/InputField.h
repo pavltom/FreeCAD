@@ -25,16 +25,13 @@
 #define GUI_INPUTFIELD_H
 
 #include <QValidator>
-#include <App/Property.h>
-#include <App/Expression.h>
 #include <Base/Parameter.h>
-#include <Gui/MetaTypes.h>
-#include "Widgets.h"
-#include "Window.h"
-#include "SpinBox.h"
-#include "FileDialog.h"
+
 #include "ExpressionBinding.h"
 #include "ExpressionCompleter.h"
+#include "MetaTypes.h"
+#include "Widgets.h"
+
 
 #ifdef Q_MOC_RUN
 Q_DECLARE_METATYPE(Base::Quantity)
@@ -62,22 +59,22 @@ class GuiExport InputField : public ExpressionLineEdit, public ExpressionBinding
 {
     Q_OBJECT
 
-    Q_PROPERTY(QByteArray prefPath  READ paramGrpPath  WRITE setParamGrpPath )
-    Q_PROPERTY(double singleStep READ singleStep WRITE setSingleStep )
-    Q_PROPERTY(double maximum READ maximum WRITE setMaximum )
-    Q_PROPERTY(double minimum READ minimum WRITE setMinimum )
+    Q_PROPERTY(QByteArray prefPath  READ paramGrpPath  WRITE setParamGrpPath ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double singleStep READ singleStep WRITE setSingleStep ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double maximum READ maximum WRITE setMaximum ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(double minimum READ minimum WRITE setMinimum ) // clazy:exclude=qproperty-without-notify
     Q_PROPERTY(double rawValue READ rawValue WRITE setValue NOTIFY valueChanged)
-    Q_PROPERTY(int historySize READ historySize WRITE setHistorySize )
-    Q_PROPERTY(QString unit READ getUnitText WRITE setUnitText )
-    Q_PROPERTY(int precision READ getPrecision WRITE setPrecision )
-    Q_PROPERTY(QString format READ getFormat WRITE setFormat )
-    Q_PROPERTY(Base::Quantity quantity READ getQuantity WRITE setValue )
-    Q_PROPERTY(QString quantityString READ getQuantityString WRITE setQuantityString )
-    Q_PROPERTY(QString rawText READ rawText WRITE setRawText )
+    Q_PROPERTY(int historySize READ historySize WRITE setHistorySize ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QString unit READ getUnitText WRITE setUnitText ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(int precision READ getPrecision WRITE setPrecision ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QString format READ getFormat WRITE setFormat ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(Base::Quantity quantity READ getQuantity WRITE setValue NOTIFY valueChanged)
+    Q_PROPERTY(QString quantityString READ getQuantityString WRITE setQuantityString ) // clazy:exclude=qproperty-without-notify
+    Q_PROPERTY(QString rawText READ rawText WRITE setRawText ) // clazy:exclude=qproperty-without-notify
 
 
 public:
-    InputField (QWidget * parent = 0);
+    InputField (QWidget * parent = nullptr);
     virtual ~InputField();
 
     /// set the field with a quantity
@@ -180,14 +177,14 @@ Q_SIGNALS:
      *  If you want the unfiltered/non-validated input use textChanged(const QString&)
      *  instead:
      */
-    void valueChanged(const Base::Quantity&);
+    void valueChanged(const Base::Quantity&); // clazy:exclude=overloaded-signal
     /** gets emitted if the user has entered a VALID input
      *  Valid means the user inputted string obeys all restrictions
      *  like: minimum, maximum and/or the right Unit (if specified).
      *  If you want the unfiltered/non-validated input use textChanged(const QString&)
      *  instead:
      */
-    void valueChanged(double);
+    void valueChanged(double); // clazy:exclude=overloaded-signal
 
     /// signal for an invalid user input (signals a lot while typing!)
     void parseError(const QString& errorText);

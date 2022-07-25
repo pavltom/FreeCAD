@@ -47,7 +47,7 @@ DrawRichAnno::DrawRichAnno(void)
 {
     static const char *group = "Text Block";
 
-    ADD_PROPERTY_TYPE(AnnoParent,(0),group,(App::PropertyType)(App::Prop_None),
+    ADD_PROPERTY_TYPE(AnnoParent,(nullptr),group,(App::PropertyType)(App::Prop_None),
                       "Object to which this annontation is attached");
     ADD_PROPERTY_TYPE(AnnoText, (""), group, App::Prop_None, "Annotation text");
     ADD_PROPERTY_TYPE(ShowFrame, (true), group, App::Prop_None, "Outline rectangle on/off");
@@ -71,18 +71,16 @@ void DrawRichAnno::onChanged(const App::Property* prop)
             requestPaint();
         }
     }
+    
     DrawView::onChanged(prop);
 
 }
 
+//NOTE: DocumentObject::mustExecute returns 1/0 and not true/false
 short DrawRichAnno::mustExecute() const
 {
-    bool result = 0;
-    if (!isRestoring()) {
-        result =  (AnnoText.isTouched());
-    }
-    if (result) {
-        return result;
+    if (!isRestoring() && AnnoText.isTouched()) {
+        return 1;
     }
 
     return DrawView::mustExecute();
@@ -100,15 +98,7 @@ App::DocumentObjectExecReturn *DrawRichAnno::execute(void)
 DrawView* DrawRichAnno::getBaseView(void) const
 {
 //    Base::Console().Message("DRA::getBaseView() - %s\n", getNameInDocument());
-    DrawView* result = nullptr;
-    App::DocumentObject* baseObj = AnnoParent.getValue();
-    if (baseObj != nullptr) {
-        DrawView* cast = dynamic_cast<DrawView*>(baseObj);
-        if (cast != nullptr) {
-            result = cast;
-        }
-    }
-    return result;
+    return dynamic_cast<DrawView*>(AnnoParent.getValue());
 }
 
 

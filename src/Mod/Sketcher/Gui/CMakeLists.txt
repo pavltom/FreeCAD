@@ -14,7 +14,6 @@ include_directories(
     ${COIN3D_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIR}
-    ${XercesC_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
 )
 link_directories(${OCC_LIBRARY_DIR})
@@ -62,8 +61,28 @@ SET(SketcherGui_SRCS
     AppSketcherGui.cpp
     GeometryCreationMode.h
     Command.cpp
+    AutoConstraint.h
     Utils.h
     Utils.cpp
+    DrawSketchHandlerLine.h
+    DrawSketchHandlerRectangle.h
+    DrawSketchHandlerPolygon.h
+    DrawSketchHandlerLineSet.h
+    DrawSketchHandlerCircle.h
+    DrawSketchHandlerEllipse.h
+    DrawSketchHandlerArc.h
+    DrawSketchHandlerArcOfEllipse.h
+    DrawSketchHandlerArcOfHyperbola.h
+    DrawSketchHandlerArcOfParabola.h
+    DrawSketchHandlerBSpline.h
+    DrawSketchHandlerPoint.h
+    DrawSketchHandlerFillet.h
+    DrawSketchHandlerTrimming.h
+    DrawSketchHandlerExtend.h
+    DrawSketchHandlerSplitting.h
+    DrawSketchHandlerExternal.h
+    DrawSketchHandlerCarbonCopy.h
+    DrawSketchHandlerSlot.h
     CommandCreateGeo.cpp
     CommandConstraints.h
     CommandConstraints.cpp

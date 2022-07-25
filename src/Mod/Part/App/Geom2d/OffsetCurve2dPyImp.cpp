@@ -20,18 +20,15 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <Geom2d_OffsetCurve.hxx>
 #endif
 
-#include <Mod/Part/App/OCCError.h>
-#include <Mod/Part/App/Geometry2d.h>
-#include <Mod/Part/App/Geom2d/OffsetCurve2dPy.h>
-#include <Mod/Part/App/Geom2d/OffsetCurve2dPy.cpp>
+#include "Geom2d/OffsetCurve2dPy.h"
+#include "Geom2d/OffsetCurve2dPy.cpp"
+#include "OCCError.h"
 
-#include <Base/GeometryPyCXX.h>
 
 using namespace Part;
 
@@ -129,7 +126,7 @@ void OffsetCurve2dPy::setBasisCurve(Py::Object arg)
 
 PyObject *OffsetCurve2dPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int OffsetCurve2dPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

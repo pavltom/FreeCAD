@@ -21,10 +21,8 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <Python.h>
 # include <QIcon>
 # include <QImage>
 # include <QFileInfo>
@@ -36,7 +34,9 @@
 #include <Base/Console.h>
 #include <Base/Exception.h>
 #include <Base/FileInfo.h>
+#include <Base/Interpreter.h>
 #include <App/Application.h>
+#include <App/Document.h>
 #include <Gui/MainWindow.h>
 #include <Gui/Document.h>
 #include <Gui/Application.h>
@@ -48,6 +48,7 @@
 #include "Workbench.h"
 #include "ViewProviderSpreadsheet.h"
 #include "SpreadsheetView.h"
+
 
 // use a different name to CreateCommand()
 void CreateSpreadsheetCommands(void);
@@ -76,7 +77,7 @@ private:
     Py::Object open(const Py::Tuple& args)
     {
         char* Name;
-        const char* DocName=0;
+        const char* DocName=nullptr;
         if (!PyArg_ParseTuple(args.ptr(), "et|s","utf-8",&Name,&DocName))
             throw Py::Exception();
         std::string EncodedName = std::string(Name);
@@ -100,7 +101,7 @@ private:
 
 PyObject* initModule()
 {
-    return (new Module)->module().ptr();
+    return Base::Interpreter().addModule(new Module);
 }
 
 } // namespace SpreadsheetGui
@@ -111,7 +112,7 @@ PyMOD_INIT_FUNC(SpreadsheetGui)
 {
     if (!Gui::Application::Instance) {
         PyErr_SetString(PyExc_ImportError, "Cannot load Gui module in console application.");
-        PyMOD_Return(0);
+        PyMOD_Return(nullptr);
     }
 
     // instantiating the commands

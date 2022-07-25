@@ -24,7 +24,7 @@ from FreeCAD import Vector
 if FreeCAD.GuiUp:
     import FreeCADGui
     from PySide import QtCore, QtGui
-    from DraftTools import translate
+    from draftutils.translate import translate
     from PySide.QtCore import QT_TRANSLATE_NOOP
     import draftguitools.gui_trackers as DraftTrackers
 else:
@@ -654,7 +654,7 @@ class _Panel(ArchComponent.Component):
                     upsegment = Part.makePolygon([p1,p2,p3,p4,p5])
                     if not downsegment:
                         a = ((p1.sub(p2)).getAngle(p3.sub(p2)))/2
-                        tx = obj.Thickness.Value*math.tan(a)
+                        tx = obj.Thickness.Value/math.tan(a)
                         d1 = Vector(tx,0,-obj.Thickness.Value)
                         d2 = Vector(-tx,0,-obj.Thickness.Value)
                         p6 = p1.add(d1)
@@ -869,11 +869,11 @@ class PanelView:
             if hasattr(obj.Source.Proxy,"BaseProfile"):
                 p = obj.Source.Proxy.BaseProfile
                 n = obj.Source.Proxy.ExtrusionVector
-                import Drawing
+                import TechDraw
                 svg1 = ""
                 svg2 = ""
                 result = ""
-                svg1 = Drawing.projectToSVG(p,DraftVecUtils.neg(n))
+                svg1 = TechDraw.projectToSVG(p,DraftVecUtils.neg(n))
                 if svg1:
                     w = str(obj.LineWidth/obj.Scale) #don't let linewidth be influenced by the scale...
                     svg1 = svg1.replace('stroke-width="0.35"','stroke-width="'+w+'"')

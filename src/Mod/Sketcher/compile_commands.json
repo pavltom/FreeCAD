@@ -1,0 +1,417 @@
+[{
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherMessages.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherMessages.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherMessages.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherElements.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherElements.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherElements.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherCreateCommands.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherCreateCommands.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherCreateCommands.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskDlgEditSketch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskDlgEditSketch.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskDlgEditSketch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherRegularPolygonDialog.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherRegularPolygonDialog.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherRegularPolygonDialog.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketch.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherConstrains.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherConstrains.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherConstrains.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherCreateCommands.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherCreateCommands.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherCreateCommands.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherGeneral.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherGeneral.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherGeneral.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherSettings.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherSettings.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherSettings.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketchGeometryExtension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketchGeometryExtension.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketchGeometryExtension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandCreateGeo.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandCreateGeo.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandCreateGeo.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherValidation.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherValidation.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherValidation.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandSketcherVirtualSpace.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandSketcherVirtualSpace.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandSketcherVirtualSpace.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderPython.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderPython.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderPython.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherConstrains.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherConstrains.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherConstrains.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/GeometryCreationMode.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/GeometryCreationMode.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/GeometryCreationMode.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/DrawSketchHandler.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/DrawSketchHandler.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/DrawSketchHandler.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskDlgEditSketch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskDlgEditSketch.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskDlgEditSketch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherGeneral.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherGeneral.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherGeneral.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherSolverAdvanced.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherSolverAdvanced.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherSolverAdvanced.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandConstraints.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandConstraints.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandConstraints.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherMessages.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherMessages.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherMessages.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandAlterGeometry.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandAlterGeometry.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandAlterGeometry.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherValidation.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherValidation.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherValidation.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/Workbench.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/Workbench.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/Workbench.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/Command.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/Command.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/Command.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchRectangularArrayDialog.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchRectangularArrayDialog.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchRectangularArrayDialog.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ShortcutListener.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ShortcutListener.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ShortcutListener.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchMirrorDialog.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchMirrorDialog.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchMirrorDialog.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PropertyConstraintListItem.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PropertyConstraintListItem.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PropertyConstraintListItem.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PreCompiled.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PreCompiled.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PreCompiled.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoDatumLabel.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoDatumLabel.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoDatumLabel.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchRectangularArrayDialog.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchRectangularArrayDialog.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchRectangularArrayDialog.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoDatumLabel.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoDatumLabel.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoDatumLabel.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoZoomTranslation.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoZoomTranslation.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoZoomTranslation.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/DrawSketchHandler.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/DrawSketchHandler.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/DrawSketchHandler.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/Workbench.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/Workbench.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/Workbench.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ShortcutListener.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ShortcutListener.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ShortcutListener.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketchGeometryExtension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketchGeometryExtension.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketchGeometryExtension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoZoomTranslation.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoZoomTranslation.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SoZoomTranslation.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/EditDatumDialog.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/EditDatumDialog.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/EditDatumDialog.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PropertyConstraintListItem.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PropertyConstraintListItem.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PropertyConstraintListItem.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherSolverAdvanced.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherSolverAdvanced.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherSolverAdvanced.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderPython.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderPython.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderPython.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherSettings.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherSettings.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherSettings.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandConstraints.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandConstraints.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandConstraints.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherRegularPolygonDialog.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherRegularPolygonDialog.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketcherRegularPolygonDialog.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/AppSketcherGui.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/AppSketcherGui.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/AppSketcherGui.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchOrientationDialog.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchOrientationDialog.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchOrientationDialog.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandSketcherTools.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandSketcherTools.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandSketcherTools.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchOrientationDialog.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchOrientationDialog.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchOrientationDialog.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketch.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/ViewProviderSketch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/EditDatumDialog.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/EditDatumDialog.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/EditDatumDialog.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherElements.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherElements.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/TaskSketcherElements.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PreCompiled.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PreCompiled.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/PreCompiled.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchMirrorDialog.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchMirrorDialog.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/SketchMirrorDialog.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandSketcherBSpline.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/Gui",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandSketcherBSpline.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/Gui/CommandSketcherBSpline.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Geo.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Geo.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Geo.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Util.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Util.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Util.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Constraints.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Constraints.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Constraints.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/SubSystem.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/SubSystem.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/SubSystem.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Constraints.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Constraints.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Constraints.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/qp_eq.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/qp_eq.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/qp_eq.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/qp_eq.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/qp_eq.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/qp_eq.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/GCS.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/GCS.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/GCS.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryFacadePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryFacadePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryFacadePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/Analyse.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Analyse.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Analyse.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/AppSketcherPy.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/AppSketcherPy.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/AppSketcherPy.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/PreCompiled.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/PreCompiled.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/PreCompiled.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/AppSketcher.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/AppSketcher.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/AppSketcher.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/PreCompiled.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/PreCompiled.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/PreCompiled.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/PropertyConstraintList.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/PropertyConstraintList.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/PropertyConstraintList.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/Constraint.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Constraint.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Constraint.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObject.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObject.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObject.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Geo.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Geo.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/Geo.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryExtensionPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryExtensionPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryExtensionPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/GeometryFacade.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/GeometryFacade.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/GeometryFacade.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/Sketch.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Sketch.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Sketch.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObject.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObject.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObject.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/SubSystem.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/SubSystem.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/SubSystem.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/GCS.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/GCS.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/planegcs/GCS.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SolverGeometryExtension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SolverGeometryExtension.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SolverGeometryExtension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryFacade.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryFacade.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryFacade.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectSF.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectSF.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectSF.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectSFPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectSFPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectSFPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryFacade.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryFacade.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryFacade.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/Sketch.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Sketch.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Sketch.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/PropertyConstraintList.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/PropertyConstraintList.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/PropertyConstraintList.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryExtension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryExtension.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryExtension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchGeometryExtension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchGeometryExtension.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchGeometryExtension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/ConstraintPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ConstraintPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ConstraintPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/GeometryFacade.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/GeometryFacade.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/GeometryFacade.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchAnalysis.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchAnalysis.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchAnalysis.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/GeometryFacadePyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/GeometryFacadePyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/GeometryFacadePyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchGeometryExtensionPyImp.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchGeometryExtensionPyImp.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchGeometryExtensionPyImp.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectSF.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectSF.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchObjectSF.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/Constraint.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Constraint.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/Constraint.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryExtension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryExtension.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/ExternalGeometryExtension.cpp.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchGeometryExtension.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchGeometryExtension.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchGeometryExtension.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchAnalysis.h",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchAnalysis.h -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SketchAnalysis.h.o  -I. -I.  -g"
+ }, {
+  "file": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App/SolverGeometryExtension.cpp",
+  "directory": "/data/src/freecad/freecad-source/src/Mod/Sketcher/App",
+  "command": "clang  -c /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SolverGeometryExtension.cpp -o /data/src/freecad/freecad-source/src/Mod/Sketcher/App/SolverGeometryExtension.cpp.o  -I. -I.  -g"
+ }]

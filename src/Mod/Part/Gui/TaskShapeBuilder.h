@@ -36,7 +36,7 @@ class ShapeBuilderWidget : public QWidget,
     Q_OBJECT
 
 public:
-    ShapeBuilderWidget(QWidget* parent = 0);
+    ShapeBuilderWidget(QWidget* parent = nullptr);
     ~ShapeBuilderWidget();
 
     bool accept();
@@ -44,6 +44,7 @@ public:
 
 private Q_SLOTS:
     void on_createButton_clicked();
+    void on_selectButton_clicked();
     void switchMode(int);
 
 private:

@@ -33,6 +33,17 @@ class DocumentBasicCases(unittest.TestCase):
   def setUp(self):
     self.Doc = FreeCAD.newDocument("CreateTest")
 
+  def testAccessByNameOrID(self):
+    obj = self.Doc.addObject("App::DocumentObject", "MyName")
+
+    with self.assertRaises(TypeError):
+      self.Doc.getObject([1])
+
+    self.assertEqual(self.Doc.getObject(obj.Name), obj)
+    self.assertEqual(self.Doc.getObject("Unknown"), None)
+    self.assertEqual(self.Doc.getObject(obj.ID), obj)
+    self.assertEqual(self.Doc.getObject(obj.ID+1), None)
+
   def testCreateDestroy(self):
     #FIXME: Causes somehow a ref count error but it's _not_ FreeCAD.getDocument()!!!
     #If we remove the whole method no error appears.
@@ -192,6 +203,15 @@ class DocumentBasicCases(unittest.TestCase):
     with self.assertRaises(ValueError):
       obj.myEnumeration = enumeration_choices[0]
 
+    obj.myEnumeration = enumeration_choices
+    obj.myEnumeration = 0
+    self.Doc.openTransaction("Modify enum")
+    obj.myEnumeration = 1
+    self.assertTrue(obj.myEnumeration, enumeration_choices[1])
+    self.Doc.commitTransaction()
+    self.Doc.undo()
+    self.assertTrue(obj.myEnumeration, enumeration_choices[0])
+
   def testWrongTypes(self):
     with self.assertRaises(TypeError):
       self.Doc.addObject("App::DocumentObjectExtension")
@@ -210,6 +230,13 @@ class DocumentBasicCases(unittest.TestCase):
 
     with self.assertRaises(TypeError):
       self.Doc.findObjects(Type="App::DocumentObjectExtension")
+
+    e = FreeCAD.Base.TypeId.fromName("App::LinkExtensionPython")
+    self.assertIsNone(e.createInstance())
+
+    if FreeCAD.GuiUp:
+      obj = self.Doc.addObject("App::DocumentObject", viewType="App::Extension")
+      self.assertIsNone(obj.ViewObject)
 
   def testMem(self):
     self.Doc.MemSize
@@ -256,6 +283,55 @@ class DocumentBasicCases(unittest.TestCase):
     else:
       self.failUnless(False)
     del L2
+
+  def testSubObject(self):
+    obj = self.Doc.addObject("App::Origin", "Origin")
+    self.Doc.recompute()
+
+    self.assertEqual(obj.getSubObject("XY_Plane", retType=1).Label, "XY_Plane")
+    self.assertEqual(obj.getSubObject("XZ_Plane", retType=1).Label, "XZ_Plane")
+    self.assertEqual(obj.getSubObject("YZ_Plane", retType=1).Label, "YZ_Plane")
+    self.assertEqual(obj.getSubObject("X_Axis", retType=1).Label, "X_Axis")
+    self.assertEqual(obj.getSubObject("Y_Axis", retType=1).Label, "Y_Axis")
+    self.assertEqual(obj.getSubObject("Z_Axis", retType=1).Label, "Z_Axis")
+
+    res = obj.getSubObject("X_Axis", retType=2)
+    self.assertEqual(res[1].multVec(FreeCAD.Vector(1,0,0)).getAngle(FreeCAD.Vector(1,0,0)), 0.0)
+
+    res = obj.getSubObject("Y_Axis", retType=2)
+    self.assertEqual(res[1].multVec(FreeCAD.Vector(1,0,0)).getAngle(FreeCAD.Vector(0,1,0)), 0.0)
+
+    res = obj.getSubObject("Z_Axis", retType=2)
+    self.assertEqual(res[1].multVec(FreeCAD.Vector(1,0,0)).getAngle(FreeCAD.Vector(0,0,1)), 0.0)
+
+    res = obj.getSubObject("XY_Plane", retType=2)
+    self.assertEqual(res[1].multVec(FreeCAD.Vector(0,0,1)).getAngle(FreeCAD.Vector(0,0,1)), 0.0)
+
+    res = obj.getSubObject("XZ_Plane", retType=2)
+    self.assertEqual(res[1].multVec(FreeCAD.Vector(0,0,1)).getAngle(FreeCAD.Vector(0,-1,0)), 0.0)
+
+    res = obj.getSubObject("YZ_Plane", retType=2)
+    self.assertEqual(res[1].multVec(FreeCAD.Vector(0,0,1)).getAngle(FreeCAD.Vector(1,0,0)), 0.0)
+
+    res = obj.getSubObject("YZ_Plane", retType=3)
+    self.assertEqual(res.multVec(FreeCAD.Vector(0,0,1)).getAngle(FreeCAD.Vector(1,0,0)), 0.0)
+
+    res = obj.getSubObject("YZ_Plane", retType=4)
+    self.assertEqual(res.multVec(FreeCAD.Vector(0,0,1)).getAngle(FreeCAD.Vector(1,0,0)), 0.0)
+
+    self.assertEqual(obj.getSubObject(("XY_Plane", "YZ_Plane"), retType=4)[0], obj.getSubObject("XY_Plane", retType=4))
+    self.assertEqual(obj.getSubObject(("XY_Plane", "YZ_Plane"), retType=4)[1], obj.getSubObject("YZ_Plane", retType=4))
+
+    # Create a second origin object
+    obj2 = self.Doc.addObject("App::Origin", "Origin2")
+    self.Doc.recompute()
+
+    # Use the names of the origin's out-list
+    for i in obj2.OutList:
+        self.assertEqual(obj2.getSubObject(i.Name, retType=1).Name, i.Name)
+    # Add a '.' to the names
+    for i in obj2.OutList:
+        self.assertEqual(obj2.getSubObject(i.Name + '.', retType=1).Name, i.Name)
 
   def testExtensions(self):
     #we try to create a normal python object and add an extension to it
@@ -352,6 +428,44 @@ class DocumentBasicCases(unittest.TestCase):
     o2.Placement = FreeCAD.Placement()
     self.assertEqual(o1.Link, o3)
 
+  def testProp_NonePropertyLink(self):
+    obj1 = self.Doc.addObject("App::FeaturePython", "Obj1")
+    obj2 = self.Doc.addObject("App::FeaturePython", "Obj2")
+    obj1.addProperty("App::PropertyLink", "Link", "Base", "Link to another feature", FreeCAD.PropertyType.Prop_None, False, False)
+    obj1.Link = obj2
+    self.assertEqual(obj1.MustExecute, True)
+
+  def testProp_OutputPropertyLink(self):
+    obj1 = self.Doc.addObject("App::FeaturePython", "Obj1")
+    obj2 = self.Doc.addObject("App::FeaturePython", "Obj2")
+    obj1.addProperty("App::PropertyLink", "Link", "Base", "Link to another feature", FreeCAD.PropertyType.Prop_Output, False, False)
+    obj1.Link = obj2
+    self.assertEqual(obj1.MustExecute, False)
+
+  def testAttributeOfDynamicProperty(self):
+    obj = self.Doc.addObject("App::FeaturePython", "Obj")
+    # Prop_NoPersist is the enum with the highest value
+    max_value = FreeCAD.PropertyType.Prop_NoPersist
+    list_of_types = []
+    for i in range(0, max_value + 1):
+      obj.addProperty("App::PropertyString", "String" + str(i), "", "", i)
+      list_of_types.append(obj.getTypeOfProperty("String" + str(i)))
+
+    # saving and restoring
+    SaveName = tempfile.gettempdir() + os.sep + "CreateTest.FCStd"
+    self.Doc.saveAs(SaveName)
+    FreeCAD.closeDocument("CreateTest")
+    self.Doc = FreeCAD.open(SaveName)
+
+    obj = self.Doc.ActiveObject
+    for i in range(0, max_value):
+      types = obj.getTypeOfProperty("String" + str(i))
+      self.assertEqual(list_of_types[i], types)
+
+    # A property with flag Prop_NoPersist won't be saved to the file
+    with self.assertRaises(AttributeError):
+      obj.getTypeOfProperty("String" + str(max_value))
+
   def testNotification_Issue2902Part2(self):
     o = self.Doc.addObject("App::FeatureTest","test")
 
@@ -403,6 +517,21 @@ class DocumentBasicCases(unittest.TestCase):
     # The issue was only visible in GUI mode and it crashed in the tree view
     obj = self.Doc.addObject("App::Origin")
     self.Doc.removeObject(obj.Name)
+
+  def testSamePropertyOfLinkAndLinkedObject(self):
+    # See also https://github.com/FreeCAD/FreeCAD/pull/6787
+    test = self.Doc.addObject("App::FeaturePython", "Python")
+    link = self.Doc.addObject("App::Link", "Link")
+    test.addProperty("App::PropertyFloat", "Test")
+    link.addProperty("App::PropertyFloat", "Test")
+    link.LinkedObject = test
+    # saving and restoring
+    SaveName = tempfile.gettempdir() + os.sep + "CreateTest.FCStd"
+    self.Doc.saveAs(SaveName)
+    FreeCAD.closeDocument("CreateTest")
+    self.Doc = FreeCAD.open(SaveName)
+    self.assertIn("Test", self.Doc.Python.PropertiesList)
+    self.assertIn("Test", self.Doc.Link.PropertiesList)
 
   def tearDown(self):
     #closing doc
@@ -1430,6 +1559,14 @@ class DocumentExpressionCases(unittest.TestCase):
     self.Obj2.Placement = self.Obj2.Placement
     # must not raise a topological error
     self.assertEqual(self.Doc.recompute(), 2)
+
+    # add test for issue #6948
+    self.Obj3 = self.Doc.addObject("App::FeatureTest", "Test")
+    self.Obj3.setExpression('Float', u'2*(5%3)')
+    self.Doc.recompute()
+    self.assertEqual(self.Obj3.Float, 4)
+    self.assertEqual(self.Obj3.evalExpression(self.Obj3.ExpressionEngine[0][1]), 4)
+
 
   def testIssue4649(self):
       class Cls():

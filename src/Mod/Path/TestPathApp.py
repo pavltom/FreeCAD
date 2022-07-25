@@ -31,19 +31,25 @@ from PathTests.TestPathDressupHoldingTags import TestHoldingTags
 from PathTests.TestPathDrillable import TestPathDrillable
 from PathTests.TestPathDrillGenerator import TestPathDrillGenerator
 from PathTests.TestPathGeom import TestPathGeom
+
 # from PathTests.TestPathHelix import TestPathHelix
 from PathTests.TestPathHelpers import TestPathHelpers
 from PathTests.TestPathHelixGenerator import TestPathHelixGenerator
 from PathTests.TestPathLog import TestPathLog
 from PathTests.TestPathOpTools import TestPathOpTools
-# from PathTests.TestPathPost import PathPostTestCases
+
+# from PathTests.TestPathPost import TestPathPost
 from PathTests.TestPathPost import TestPathPostUtils
+from PathTests.TestPathPost import TestBuildPostList
+from PathTests.TestPathPost import TestOutputNameSubstitution
+
 from PathTests.TestPathPreferences import TestPathPreferences
 from PathTests.TestPathPropertyBag import TestPathPropertyBag
 from PathTests.TestPathRotationGenerator import TestPathRotationGenerator
 from PathTests.TestPathSetupSheet import TestPathSetupSheet
 from PathTests.TestPathStock import TestPathStock
 from PathTests.TestPathThreadMilling import TestPathThreadMilling
+from PathTests.TestPathThreadMillingGenerator import TestPathThreadMillingGenerator
 from PathTests.TestPathTool import TestPathTool
 from PathTests.TestPathToolBit import TestPathToolBit
 from PathTests.TestPathToolChangeGenerator import TestPathToolChangeGenerator
@@ -53,11 +59,23 @@ from PathTests.TestPathUtil import TestPathUtil
 from PathTests.TestPathVcarve import TestPathVcarve
 from PathTests.TestPathVoronoi import TestPathVoronoi
 
+from PathTests.TestCentroidPost import TestCentroidPost
+from PathTests.TestGrblPost import TestGrblPost
+from PathTests.TestLinuxCNCPost import TestLinuxCNCPost
+from PathTests.TestMach3Mach4Post import TestMach3Mach4Post
+from PathTests.TestRefactoredCentroidPost import TestRefactoredCentroidPost
+from PathTests.TestRefactoredGrblPost import TestRefactoredGrblPost
+from PathTests.TestRefactoredLinuxCNCPost import TestRefactoredLinuxCNCPost
+from PathTests.TestRefactoredMach3Mach4Post import TestRefactoredMach3Mach4Post
+from PathTests.TestRefactoredTestPost import TestRefactoredTestPost
+
 # dummy usage to get flake8 and lgtm quiet
 False if depthTestCases.__name__ else True
 False if TestApp.__name__ else True
+False if TestBuildPostList.__name__ else True
 False if TestDressupDogbone.__name__ else True
 False if TestHoldingTags.__name__ else True
+False if TestOutputNameSubstitution.__name__ else True
 False if TestPathAdaptive.__name__ else True
 False if TestPathCore.__name__ else True
 False if TestPathDeburr.__name__ else True
@@ -75,6 +93,7 @@ False if TestPathRotationGenerator.__name__ else True
 False if TestPathSetupSheet.__name__ else True
 False if TestPathStock.__name__ else True
 False if TestPathThreadMilling.__name__ else True
+False if TestPathThreadMillingGenerator.__name__ else True
 False if TestPathTool.__name__ else True
 False if TestPathToolBit.__name__ else True
 False if TestPathToolChangeGenerator.__name__ else True
@@ -85,3 +104,13 @@ False if TestPathVcarve.__name__ else True
 False if TestPathVoronoi.__name__ else True
 False if TestPathDrillGenerator.__name__ else True
 False if TestPathHelixGenerator.__name__ else True
+
+False if TestCentroidPost.__name__ else True
+False if TestGrblPost.__name__ else True
+False if TestLinuxCNCPost.__name__ else True
+False if TestMach3Mach4Post.__name__ else True
+False if TestRefactoredCentroidPost.__name__ else True
+False if TestRefactoredGrblPost.__name__ else True
+False if TestRefactoredLinuxCNCPost.__name__ else True
+False if TestRefactoredMach3Mach4Post.__name__ else True
+False if TestRefactoredTestPost.__name__ else True

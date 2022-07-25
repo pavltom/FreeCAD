@@ -25,18 +25,18 @@
 #define GUI_TREE_H
 
 #include <unordered_map>
-#include <QTreeWidget>
 #include <QElapsedTimer>
 #include <QStyledItemDelegate>
+#include <QTreeWidget>
 #include <QDockWidget>
 
+#include <App/Application.h>
+#include <App/DocumentObject.h>
 #include <Base/Parameter.h>
 #include <Base/Persistence.h>
-#include <App/Document.h>
-#include <App/Application.h>
-
 #include <Gui/DockWindow.h>
 #include <Gui/Selection.h>
+#include <Gui/TreeItemMode.h>
 
 class QLineEdit;
 
@@ -49,26 +49,6 @@ typedef std::shared_ptr<DocumentObjectData> DocumentObjectDataPtr;
 
 class DocumentItem;
 
-/// highlight modes for the tree items
-enum class HighlightMode {
-    Underlined,
-    Italic,
-    Overlined,
-    Bold,
-    Blue,
-    LightBlue,
-    UserDefined
-};
-
-/// highlight modes for the tree items
-enum class TreeItemMode {
-    ExpandItem,
-    ExpandPath,
-    CollapseItem,
-    ToggleItem
-};
-
-
 /** Tree view that allows drag & drop of document objects.
  * @author Werner Mayer
  */
@@ -77,7 +57,7 @@ class TreeWidget : public QTreeWidget, public SelectionObserver
     Q_OBJECT
 
 public:
-    TreeWidget(const char *name, QWidget* parent=0);
+    TreeWidget(const char *name, QWidget* parent=nullptr);
     ~TreeWidget();
 
     static void scrollItemToTop();
@@ -99,7 +79,7 @@ public:
      * This function can return the non-group parent of the selected object,
      * which Gui::Selection() cannot provide.
      */
-    static std::vector<SelInfo> getSelection(App::Document *doc=0);
+    static std::vector<SelInfo> getSelection(App::Document *doc=nullptr);
 
     static TreeWidget *instance();
 
@@ -297,7 +277,7 @@ public:
     ~DocumentItem();
 
     Gui::Document* document() const;
-    void clearSelection(DocumentObjectItem *exclude=0);
+    void clearSelection(DocumentObjectItem *exclude=nullptr);
     void updateSelection(QTreeWidgetItem *, bool unselect=false);
     void updateSelection();
     void updateItemSelection(DocumentObjectItem *);
@@ -355,7 +335,7 @@ protected:
     bool updateObject(const Gui::ViewProviderDocumentObject&, const App::Property &prop);
 
     bool createNewItem(const Gui::ViewProviderDocumentObject&,
-                    QTreeWidgetItem *parent=0, int index=-1,
+                    QTreeWidgetItem *parent=nullptr, int index=-1,
                     DocumentObjectDataPtr ptrs = DocumentObjectDataPtr());
 
     int findRootIndex(const ViewProviderDocumentObject *childObj) const;
@@ -430,15 +410,15 @@ public:
 
     // return the owner, and full qualified subname
     App::DocumentObject *getFullSubName(std::ostringstream &str,
-            DocumentObjectItem *parent = 0) const;
+            DocumentObjectItem *parent = nullptr) const;
 
     // return the immediate descendent of the common ancestor of this item and
     // 'cousin'.
     App::DocumentObject *getRelativeParent(
             std::ostringstream &str,
             DocumentObjectItem *cousin,
-            App::DocumentObject **topParent=0,
-            std::string *topSubname=0) const;
+            App::DocumentObject **topParent=nullptr,
+            std::string *topSubname=nullptr) const;
 
     // return the top most linked group owner's name, and subname.  This method
     // is necessary despite have getFullSubName above is because native geo group
@@ -512,7 +492,7 @@ class TreeDockWidget : public Gui::DockWindow
     Q_OBJECT
 
 public:
-    TreeDockWidget(Gui::Document*  pcDocument,QWidget *parent=0);
+    TreeDockWidget(Gui::Document*  pcDocument,QWidget *parent=nullptr);
     ~TreeDockWidget();
 };
 
@@ -523,7 +503,7 @@ public:
 class TreeWidgetEditDelegate: public QStyledItemDelegate {
     Q_OBJECT
 public:
-    TreeWidgetEditDelegate(QObject* parent=0);
+    TreeWidgetEditDelegate(QObject* parent=nullptr);
     virtual QWidget* createEditor(QWidget *parent,
             const QStyleOptionViewItem &, const QModelIndex &index) const;
 };
@@ -551,6 +531,7 @@ public:
     TreeParams();
     void OnChange(Base::Subject<const char*> &, const char* sReason);
     static TreeParams *Instance();
+    bool getTreeViewStretchDescription() const;
 
 #define FC_TREEPARAM_DEFS \
     FC_TREEPARAM_DEF2(SyncSelection,bool,Bool,true) \

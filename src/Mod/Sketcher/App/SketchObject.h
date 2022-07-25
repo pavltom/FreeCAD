@@ -211,6 +211,9 @@ public:
      */
     int setUpSketch();
 
+    /** Performs a full analysis of the addition of additional constraints without adding them to the sketch object */
+    int diagnoseAdditionalConstraints(std::vector<Sketcher::Constraint *> additionalconstraints);
+
     /** solves the sketch and updates the geometry, but not all the dependent features (does not recompute)
         When a recompute is necessary, recompute triggers execute() which solves the sketch and updates all dependent features
         When a solve only is necessary (e.g. DoF changed), solve() solves the sketch and
@@ -447,6 +450,8 @@ public: /* Solver exposed interface */
         {solvedSketch.setRecalculateInitialSolutionWhileMovingPoint(recalculateInitialSolutionWhileMovingPoint);}
     /// Forwards a request for a temporary initMove to the solver using the current sketch state as a reference (enables dragging)
     inline int initTemporaryMove(int geoId, PointPos pos, bool fine=true);
+    /// Forwards a request for a temporary initBSplinePieceMove to the solver using the current sketch state as a reference (enables dragging)
+    inline int initTemporaryBSplinePieceMove(int geoId, PointPos pos, const Base::Vector3d& firstPoint, bool fine=true);
     /** Forwards a request for point or curve temporary movement to the solver using the current state as a reference (enables dragging).
      *  NOTE: A temporary move operation must always be preceded by a initTemporaryMove() operation.
      */
@@ -490,9 +495,9 @@ public:
     };
     /// Return true if this object is allowed as external geometry for the
     /// sketch. rsn argument receives the reason for disallowing.
-    bool isExternalAllowed(App::Document *pDoc, App::DocumentObject *pObj, eReasonList* rsn = 0) const;
+    bool isExternalAllowed(App::Document *pDoc, App::DocumentObject *pObj, eReasonList* rsn = nullptr) const;
 
-    bool isCarbonCopyAllowed(App::Document *pDoc, App::DocumentObject *pObj, bool & xinv, bool & yinv, eReasonList* rsn = 0) const;
+    bool isCarbonCopyAllowed(App::Document *pDoc, App::DocumentObject *pObj, bool & xinv, bool & yinv, eReasonList* rsn = nullptr) const;
 
     bool isPerformingInternalTransaction() const {return internaltransaction;};
 
@@ -687,6 +692,17 @@ inline int SketchObject::initTemporaryMove(int geoId, PointPos pos, bool fine/*=
         solve();
 
     return solvedSketch.initMove(geoId,pos,fine);
+}
+
+inline int SketchObject::initTemporaryBSplinePieceMove(int geoId, PointPos pos, const Base::Vector3d& firstPoint, bool fine)
+{
+    // if a previous operation did not update the geometry (including geometry extensions)
+    // or constraints (including any deleted pointer, as in renameConstraint) of the solver,
+    // here we update them before starting a temporary operation.
+    if(solverNeedsUpdate)
+        solve();
+
+    return solvedSketch.initBSplinePieceMove(geoId,pos,firstPoint,fine);
 }
 
 inline int SketchObject::moveTemporaryPoint(int geoId, PointPos pos, Base::Vector3d toPoint, bool relative/*=false*/)

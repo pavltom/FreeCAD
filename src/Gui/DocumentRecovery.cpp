@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 // Implement FileWriter which puts files into a directory
 // write a property to file only when it has been modified
 // implement xml meta file
@@ -28,47 +27,41 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
+# include <boost/interprocess/sync/file_lock.hpp>
 # include <QApplication>
 # include <QCloseEvent>
 # include <QDateTime>
 # include <QDebug>
 # include <QDir>
-# include <QFile>
+# include <QDomDocument>
 # include <QFileInfo>
 # include <QHeaderView>
+# include <QList>
+# include <QMap>
 # include <QMenu>
 # include <QMessageBox>
-# include <QPushButton>
+# include <QSet>
 # include <QTextStream>
 # include <QTreeWidgetItem>
-# include <QMap>
-# include <QSet>
-# include <QList>
 # include <QVector>
 # include <sstream>
 #endif
 
-#include <Base/Console.h>
+#include <App/Application.h>
+#include <App/Document.h>
+#include <Base/Exception.h>
+#include <Gui/Application.h>
+#include <Gui/Command.h>
+#include <Gui/DlgCheckableMessageBox.h>
+#include <Gui/Document.h>
+#include <Gui/MainWindow.h>
+
 #include "DocumentRecovery.h"
 #include "ui_DocumentRecovery.h"
 #include "WaitCursor.h"
 
-#include <Base/Exception.h>
 
-#include <App/Application.h>
-#include <App/Document.h>
-
-#include <Gui/Application.h>
-#include <Gui/Command.h>
-#include <Gui/Document.h>
-#include <Gui/DlgCheckableMessageBox.h>
-#include <Gui/MainWindow.h>
-
-#include <QDomDocument>
-#include <QDirIterator>
-#include <boost/interprocess/sync/file_lock.hpp>
-
-FC_LOG_LEVEL_INIT("Gui",true,true)
+FC_LOG_LEVEL_INIT("Gui", true, true)
 
 using namespace Gui;
 using namespace Gui::Dialog;
@@ -164,7 +157,7 @@ public:
         QString label;
         QString fileName;
         QString tooltip;
-        Status status;
+        Status status = Unknown;
     };
     Ui_DocumentRecovery ui;
     bool recovered;
@@ -560,7 +553,7 @@ void DocumentRecovery::on_buttonCleanup_clicked()
 
     DocumentRecoveryHandler handler;
     handler.checkForPreviousCrashes(std::bind(&DocumentRecovery::cleanup, this, sp::_1, sp::_2, sp::_3));
-    DlgCheckableMessageBox::showMessage(tr("Transient deleted"), tr("Transient directories deleted."));
+    DlgCheckableMessageBox::showMessage(tr("Delete"), tr("Transient directories deleted."));
     reject();
 }
 
@@ -730,7 +723,7 @@ void DocumentRecoveryCleaner::subtractFiles(QStringList& files)
 void DocumentRecoveryCleaner::subtractDirs(QFileInfoList& dirs)
 {
     if (!ignoreDirs.isEmpty() && !dirs.isEmpty()) {
-        for (const auto& it : ignoreDirs) {
+        for (const auto& it : qAsConst(ignoreDirs)) {
             dirs.removeOne(it);
         }
     }

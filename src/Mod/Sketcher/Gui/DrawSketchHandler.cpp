@@ -54,12 +54,16 @@
 #include "ViewProviderSketch.h"
 #include "CommandConstraints.h"
 
-
 using namespace SketcherGui;
 using namespace Sketcher;
 
 
 /************************************ Attorney *******************************************/
+
+inline void ViewProviderSketchDrawSketchHandlerAttorney::setConstraintSelectability(ViewProviderSketch &vp, bool enabled /*= true*/)
+{
+    vp.setConstraintSelectability(enabled);
+}
 
 inline void ViewProviderSketchDrawSketchHandlerAttorney::setPositionText(ViewProviderSketch &vp, const Base::Vector2d &Pos, const SbString &txt)
 {
@@ -81,6 +85,11 @@ inline void ViewProviderSketchDrawSketchHandlerAttorney::drawEdit(ViewProviderSk
     vp.drawEdit(EditCurve);
 }
 
+inline void ViewProviderSketchDrawSketchHandlerAttorney::drawEdit(ViewProviderSketch &vp, const std::list<std::vector<Base::Vector2d>> &list)
+{
+    vp.drawEdit(list);
+}
+
 inline void ViewProviderSketchDrawSketchHandlerAttorney::drawEditMarkers(ViewProviderSketch &vp, const std::vector<Base::Vector2d> &EditMarkers, unsigned int augmentationlevel)
 {
     vp.drawEditMarkers(EditMarkers, augmentationlevel);
@@ -89,6 +98,16 @@ inline void ViewProviderSketchDrawSketchHandlerAttorney::drawEditMarkers(ViewPro
 inline void ViewProviderSketchDrawSketchHandlerAttorney::setAxisPickStyle(ViewProviderSketch &vp, bool on)
 {
     vp.setAxisPickStyle(on);
+}
+
+inline void ViewProviderSketchDrawSketchHandlerAttorney::moveCursorToSketchPoint(ViewProviderSketch &vp, Base::Vector2d point)
+{
+    vp.moveCursorToSketchPoint(point);
+}
+
+inline void ViewProviderSketchDrawSketchHandlerAttorney::preselectAtPoint(ViewProviderSketch &vp, Base::Vector2d point)
+{
+    vp.preselectAtPoint(point);
 }
 
 inline int ViewProviderSketchDrawSketchHandlerAttorney::getPreselectPoint(const ViewProviderSketch &vp)
@@ -106,27 +125,156 @@ inline int ViewProviderSketchDrawSketchHandlerAttorney::getPreselectCross(const 
     return vp.getPreselectCross();
 }
 
+
+/**************************** CurveConverter **********************************************/
+
+CurveConverter::CurveConverter()
+{
+    try {
+        ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
+        hGrp->Attach(this);
+    }
+    catch(const Base::ValueError & e) { // ensure that if parameter strings are not well-formed, the exception is not propagated
+        Base::Console().Error("CurveConverter: Malformed parameter string: %s\n", e.what());
+    }
+
+    updateCurvedEdgeCountSegmentsParameter();
+}
+
+CurveConverter::~CurveConverter()
+{
+    try {
+        ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
+        hGrp->Detach(this);
+    }
+    catch(const Base::ValueError & e) {// ensure that if parameter strings are not well-formed, the program is not terminated when calling the noexcept destructor.
+        Base::Console().Error("CurveConverter: Malformed parameter string: %s\n", e.what());
+    }
+}
+
+std::vector<Base::Vector2d> CurveConverter::toVector2D(const Part::Geometry * geometry)
+{
+    std::vector<Base::Vector2d> vector2d;
+
+    const auto type = geometry->getTypeId();
+
+    auto emplaceasvector2d = [&vector2d](const Base::Vector3d & point) {
+        vector2d.emplace_back(point.x,point.y);
+    };
+
+    auto isconic = type.isDerivedFrom(Part::GeomConic::getClassTypeId());
+    auto isbounded = type.isDerivedFrom(Part::GeomBoundedCurve::getClassTypeId());
+
+    if (type == Part::GeomLineSegment::getClassTypeId()) { // add a line
+        auto geo = static_cast<const Part::GeomLineSegment *>(geometry);
+
+        emplaceasvector2d(geo->getStartPoint());
+        emplaceasvector2d(geo->getEndPoint());
+    }
+    else if ( isconic || isbounded ) {
+
+        auto geo = static_cast<const Part::GeomConic *>(geometry);
+
+        double segment = (geo->getLastParameter() - geo->getFirstParameter()) / curvedEdgeCountSegments;
+
+        for (int i=0; i < curvedEdgeCountSegments; i++)
+            emplaceasvector2d(geo->value(geo->getFirstParameter() + i * segment));
+
+        // either close the curve for untrimmed conic or set the last point for bounded curves
+        emplaceasvector2d(isconic ? geo->value(0) : geo->value(geo->getLastParameter()));
+    }
+
+    return vector2d;
+}
+
+std::list<std::vector<Base::Vector2d>> CurveConverter::toVector2DList(const std::vector<Part::Geometry *> &geometries)
+{
+    std::list<std::vector<Base::Vector2d>> list;
+
+    for(const auto & geo : geometries)
+        list.push_back(toVector2D(geo));
+
+    return list;
+}
+
+void CurveConverter::updateCurvedEdgeCountSegmentsParameter()
+{
+    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
+    int stdcountsegments = hGrp->GetInt("SegmentsPerGeometry", 50);
+
+    // value cannot be smaller than 6
+    if (stdcountsegments < 6)
+        stdcountsegments = 6;
+
+    curvedEdgeCountSegments = stdcountsegments;
+};
+
+/** Observer for parameter group. */
+void CurveConverter::OnChange(Base::Subject<const char*> &rCaller, const char * sReason)
+{
+    (void) rCaller;
+
+    if(strcmp(sReason, "SegmentsPerGeometry") == 0) {
+        updateCurvedEdgeCountSegmentsParameter();
+    }
+
+}
+
 /**************************** DrawSketchHandler *******************************************/
 
 
 //**************************************************************************
 // Construction/Destruction
 
-DrawSketchHandler::DrawSketchHandler() : sketchgui(0) {}
+DrawSketchHandler::DrawSketchHandler() : sketchgui(nullptr) {}
 
 DrawSketchHandler::~DrawSketchHandler() {}
+
+QString DrawSketchHandler::getCrosshairCursorSVGName() const
+{
+    return QString::fromLatin1("None");
+}
+
+void DrawSketchHandler::activate(ViewProviderSketch * vp)
+{
+    sketchgui = vp;
+
+    // save the cursor at the time the DSH is activated
+    Gui::MDIView* view = Gui::getMainWindow()->activeWindow();
+    Gui::View3DInventorViewer* viewer = static_cast<Gui::View3DInventor*>(view)->getViewer();
+    oldCursor = viewer->getWidget()->cursor();
+
+    updateCursor();
+
+    this->preActivated();
+    this->activated();
+}
+
+void DrawSketchHandler::deactivate()
+{
+    this->deactivated();
+    this->postDeactivated();
+    ViewProviderSketchDrawSketchHandlerAttorney::setConstraintSelectability(*sketchgui, true);
+
+    // clear temporary Curve and Markers from the scenograph
+    drawEdit(std::vector<Base::Vector2d>());
+    drawEditMarkers(std::vector<Base::Vector2d>());
+    resetPositionText();
+    unsetCursor();
+}
+
+void DrawSketchHandler::preActivated()
+{
+    ViewProviderSketchDrawSketchHandlerAttorney::setConstraintSelectability(*sketchgui, false);
+}
 
 void DrawSketchHandler::quit(void)
 {
     assert(sketchgui);
-    drawEdit(std::vector<Base::Vector2d>());
-    drawEditMarkers(std::vector<Base::Vector2d>());
-    resetPositionText();
 
     Gui::Selection().rmvSelectionGate();
     Gui::Selection().rmvPreselect();
 
-    unsetCursor();
     sketchgui->purgeHandler();
 }
 
@@ -143,8 +291,18 @@ int DrawSketchHandler::getHighestCurveIndex(void)
     return sketchgui->getSketchObject()->getHighestCurveIndex();
 }
 
-void DrawSketchHandler::setCrosshairCursor(const char* svgName) {
-    QString cursorName = QString::fromLatin1(svgName);
+unsigned long DrawSketchHandler::getCrosshairColor()
+{
+    unsigned long color = 0xFFFFFFFF; // white
+    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath
+        ("User parameter:BaseApp/Preferences/View");
+    color = hGrp->GetUnsigned("CursorCrosshairColor", color);
+    // from rgba to rgb
+    color = (color >> 8) & 0xFFFFFF;
+    return color;
+}
+
+void DrawSketchHandler::setCrosshairCursor(const QString & svgName) {
     const unsigned long defaultCrosshairColor = 0xFFFFFF;
     unsigned long color = getCrosshairColor();
     auto colorMapping = std::map<unsigned long, unsigned long>();
@@ -152,7 +310,12 @@ void DrawSketchHandler::setCrosshairCursor(const char* svgName) {
     // hot spot of all SVG icons should be 8,8 for 32x32 size (16x16 for 64x64)
     int hotX = 8;
     int hotY = 8;
-    setSvgCursor(cursorName, hotX, hotY, colorMapping);
+    setSvgCursor(svgName, hotX, hotY, colorMapping);
+}
+
+void DrawSketchHandler::setCrosshairCursor(const char* svgName) {
+    QString cursorName = QString::fromLatin1(svgName);
+    setCrosshairCursor(cursorName);
 }
 
 void DrawSketchHandler::setSvgCursor(const QString & cursorName, int x, int y, const std::map<unsigned long, unsigned long>& colorMapping)
@@ -187,8 +350,6 @@ void DrawSketchHandler::setCursor(const QPixmap &p,int x,int y, bool autoScale)
     Gui::MDIView* view = Gui::getMainWindow()->activeWindow();
     if (view && view->isDerivedFrom(Gui::View3DInventor::getClassTypeId())) {
         Gui::View3DInventorViewer* viewer = static_cast<Gui::View3DInventor*>(view)->getViewer();
-
-        oldCursor = viewer->getWidget()->cursor();
 
         QCursor cursor;
         QPixmap p1(p);
@@ -273,6 +434,14 @@ void DrawSketchHandler::addCursorTail( std::vector<QPixmap> &pixmaps ) {
         QCursor newCursor(newIcon, p.x(), p.y());
         applyCursor(newCursor);
     }
+}
+
+void DrawSketchHandler::updateCursor()
+{
+    auto cursorstring = getCrosshairCursorSVGName();
+
+    if(cursorstring != QString::fromLatin1("None"))
+        setCrosshairCursor(cursorstring);
 }
 
 void DrawSketchHandler::applyCursor(void)
@@ -374,12 +543,15 @@ int DrawSketchHandler::seekAutoConstraint(std::vector<AutoConstraint> &suggested
     if (preSelPnt != -1)
         sketchgui->getSketchObject()->getGeoVertexIndex(preSelPnt, GeoId, PosId);
     else if (preSelCrv != -1){
-        GeoId = preSelCrv;
-        const Part::Geometry *geom = sketchgui->getSketchObject()->getGeometry(GeoId);
+        const Part::Geometry *geom = sketchgui->getSketchObject()->getGeometry(preSelCrv);
 
-        if(geom->getTypeId() == Part::GeomLineSegment::getClassTypeId()){
-            const Part::GeomLineSegment *line = static_cast<const Part::GeomLineSegment *>(geom);
-            hitShapeDir= line->getEndPoint()-line->getStartPoint();
+        // ensure geom exists in case object was called before preselection is updated
+        if (geom) {
+            GeoId = preSelCrv;
+            if (geom->getTypeId() == Part::GeomLineSegment::getClassTypeId()) {
+                const Part::GeomLineSegment *line = static_cast<const Part::GeomLineSegment *>(geom);
+                hitShapeDir= line->getEndPoint()-line->getStartPoint();
+            }
         }
 
     }
@@ -458,7 +630,8 @@ int DrawSketchHandler::seekAutoConstraint(std::vector<AutoConstraint> &suggested
         suggestedConstraints.push_back(constr);
 
     // Do not seek for tangent if we are actually building a primitive
-    if (type == AutoConstraint::VERTEX_NO_TANGENCY) return suggestedConstraints.size();
+    if (type == AutoConstraint::VERTEX_NO_TANGENCY)
+        return suggestedConstraints.size();
 
     // Find if there are tangent constraints (currently arcs and circles)
 
@@ -760,6 +933,35 @@ void DrawSketchHandler::drawEdit(const std::vector<Base::Vector2d> &EditCurve)
     ViewProviderSketchDrawSketchHandlerAttorney::drawEdit(*sketchgui, EditCurve);
 }
 
+void DrawSketchHandler::drawEdit(const std::list<std::vector<Base::Vector2d>> &list)
+{
+    ViewProviderSketchDrawSketchHandlerAttorney::drawEdit(*sketchgui, list);
+}
+
+void DrawSketchHandler::drawEdit(const std::vector<Part::Geometry *> &geometries)
+{
+    static CurveConverter c;
+
+    auto list = c.toVector2DList(geometries);
+
+    drawEdit(list);
+}
+
+void DrawSketchHandler::drawPositionAtCursor(const Base::Vector2d & position)
+{
+    setPositionText(position);
+}
+
+void DrawSketchHandler::drawDirectionAtCursor(const Base::Vector2d & position, const Base::Vector2d & origin)
+{
+    float length = (position - origin).Length();
+    float angle = (position - origin).GetAngle(Base::Vector2d(1.f,0.f));
+
+    SbString text;
+    text.sprintf(" (%.1f,%.1fdeg)", length, angle * 180 / M_PI);
+    setPositionText(position, text);
+}
+
 void DrawSketchHandler::drawEditMarkers(const std::vector<Base::Vector2d> &EditMarkers, unsigned int augmentationlevel)
 {
     ViewProviderSketchDrawSketchHandlerAttorney::drawEditMarkers(*sketchgui, EditMarkers, augmentationlevel);
@@ -768,6 +970,16 @@ void DrawSketchHandler::drawEditMarkers(const std::vector<Base::Vector2d> &EditM
 void DrawSketchHandler::setAxisPickStyle(bool on)
 {
     ViewProviderSketchDrawSketchHandlerAttorney::setAxisPickStyle(*sketchgui, on);
+}
+
+void DrawSketchHandler::moveCursorToSketchPoint(Base::Vector2d point)
+{
+    ViewProviderSketchDrawSketchHandlerAttorney::moveCursorToSketchPoint(*sketchgui, point);
+}
+
+void DrawSketchHandler::preselectAtPoint(Base::Vector2d point)
+{
+    ViewProviderSketchDrawSketchHandlerAttorney::preselectAtPoint(*sketchgui, point);
 }
 
 int DrawSketchHandler::getPreselectPoint(void) const
@@ -784,3 +996,9 @@ int DrawSketchHandler::getPreselectCross(void) const
 {
     return ViewProviderSketchDrawSketchHandlerAttorney::getPreselectCross(*sketchgui);
 }
+
+Sketcher::SketchObject * DrawSketchHandler::getSketchObject()
+{
+    return sketchgui->getSketchObject();
+}
+

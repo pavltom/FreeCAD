@@ -24,14 +24,11 @@
 #ifndef GUI_MAINWINDOW_H
 #define GUI_MAINWINDOW_H
 
-#include "Window.h"
-#include <Base/Console.h>
-#include <string>
-#include <vector>
-
 #include <QEvent>
 #include <QMainWindow>
 #include <QMdiArea>
+
+#include "Window.h"
 
 class QMimeData;
 class QUrl;
@@ -58,7 +55,7 @@ class GuiExport UrlHandler : public QObject
     Q_OBJECT
 
 public:
-    UrlHandler(QObject* parent = 0)
+    UrlHandler(QObject* parent = nullptr)
         : QObject(parent){
     }
     virtual ~UrlHandler() {
@@ -88,7 +85,7 @@ public:
      * Constructs an empty main window. For default \a parent is 0, as there usually is
      * no toplevel window there.
      */
-    MainWindow(QWidget * parent = 0, Qt::WindowFlags f = Qt::Window);
+    MainWindow(QWidget * parent = nullptr, Qt::WindowFlags f = Qt::Window);
     /** Destroys the object and frees any allocated resources. */
     ~MainWindow();
     /**
@@ -228,7 +225,7 @@ public Q_SLOTS:
     bool closeAllDocuments (bool close=true);
     /** Pop up a message box asking for saving document
      */
-    int confirmSave(const char *docName, QWidget *parent=0, bool addCheckBox=false);
+    int confirmSave(const char *docName, QWidget *parent=nullptr, bool addCheckBox=false);
     /**
      * Activates the next window in the child window chain.
      */
@@ -259,7 +256,9 @@ protected:
     void closeEvent (QCloseEvent * e);
     void showEvent  (QShowEvent  * e);
     void hideEvent  (QHideEvent  * e);
-    void timerEvent (QTimerEvent *  ){ timeEvent();}
+    void timerEvent (QTimerEvent *  ) {
+        Q_EMIT timeEvent();
+    }
     void customEvent(QEvent      * e);
     bool event      (QEvent      * e);
     /**
@@ -321,7 +320,7 @@ private Q_SLOTS:
 
 Q_SIGNALS:
     void timeEvent();
-    void windowStateChanged(MDIView*);
+    void windowStateChanged(Gui::MDIView*);
     void workbenchActivated(const QString&);
     void mainWindowClosed();
 

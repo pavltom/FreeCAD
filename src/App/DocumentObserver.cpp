@@ -23,17 +23,12 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-# include <functional>
-# include <sstream>
-#endif
-
 #include <Base/Tools.h>
+
 #include "Application.h"
-#include "Document.h"
-#include "DocumentObject.h"
-#include "DocumentObserver.h"
 #include "ComplexGeoData.h"
+#include "Document.h"
+#include "DocumentObserver.h"
 #include "GeoFeature.h"
 
 using namespace App;
@@ -223,7 +218,7 @@ std::string DocumentObjectT::getDocumentPython() const
 
 DocumentObject* DocumentObjectT::getObject() const
 {
-    DocumentObject* obj = 0;
+    DocumentObject* obj = nullptr;
     Document* doc = getDocument();
     if (doc) {
         obj = doc->getObject(object.c_str());
@@ -265,7 +260,7 @@ Property *DocumentObjectT::getProperty() const {
     auto obj = getObject();
     if(obj)
         return obj->getPropertyByName(property.c_str());
-    return 0;
+    return nullptr;
 }
 
 // -----------------------------------------------------------------------------
@@ -285,6 +280,11 @@ SubObjectT::SubObjectT(SubObjectT &&other)
 
 SubObjectT::SubObjectT(const DocumentObject *obj, const char *s)
     :DocumentObjectT(obj),subname(s?s:"")
+{
+}
+
+SubObjectT::SubObjectT(const DocumentObject *obj)
+    :DocumentObjectT(obj)
 {
 }
 
@@ -329,6 +329,22 @@ SubObjectT &SubObjectT::operator=(SubObjectT &&other)
         return *this;
     static_cast<DocumentObjectT&>(*this) = std::move(other);
     subname = std::move(other.subname);
+    return *this;
+}
+
+SubObjectT &SubObjectT::operator=(const DocumentObjectT &other)
+{
+    if (this == &other)
+        return *this;
+    static_cast<DocumentObjectT&>(*this) = other;
+    subname.clear();
+    return *this;
+}
+
+SubObjectT &SubObjectT::operator=(const DocumentObject *other)
+{
+    static_cast<DocumentObjectT&>(*this) = other;
+    subname.clear();
     return *this;
 }
 
@@ -384,7 +400,7 @@ App::DocumentObject *SubObjectT::getSubObject() const {
     auto obj = getObject();
     if(obj)
         return obj->getSubObject(subname.c_str());
-    return 0;
+    return nullptr;
 }
 
 std::string SubObjectT::getSubObjectPython(bool force) const {
@@ -401,6 +417,43 @@ std::vector<App::DocumentObject*> SubObjectT::getSubObjectList() const {
     if(obj)
         return obj->getSubObjectList(subname.c_str());
     return {};
+}
+
+std::string SubObjectT::getObjectFullName(const char *docName) const
+{
+    std::ostringstream ss;
+    if (!docName || getDocumentName() != docName) {
+        ss << getDocumentName();
+        if (auto doc = getDocument()) {
+            if (doc->Label.getStrValue() != getDocumentName())
+                ss << "(" << doc->Label.getValue() << ")";
+        }
+        ss << "#";
+    }
+    ss << getObjectName();
+    if (getObjectLabel().size() && getObjectLabel() != getObjectName())
+        ss << " (" << getObjectLabel() << ")";
+    return ss.str();
+}
+
+std::string SubObjectT::getSubObjectFullName(const char *docName) const
+{
+    if (subname.empty())
+        return getObjectFullName(docName);
+    std::ostringstream ss;
+    if (!docName || getDocumentName() != docName) {
+        ss << getDocumentName();
+        if (auto doc = getDocument()) {
+            if (doc->Label.getStrValue() != getDocumentName())
+                ss << "(" << doc->Label.getValue() << ")";
+        }
+        ss << "#";
+    }
+    ss << getObjectName() << "." << subname;
+    auto sobj = getSubObject();
+    if (sobj && sobj->Label.getStrValue() != sobj->getNameInDocument())
+        ss << " (" << sobj->Label.getValue() << ")";
+    return ss.str();
 }
 
 // -----------------------------------------------------------------------------
@@ -540,7 +593,12 @@ bool DocumentWeakPtrT::expired() const noexcept
     return (d->_document == nullptr);
 }
 
-App::Document* DocumentWeakPtrT::operator->() noexcept
+App::Document* DocumentWeakPtrT::operator*() const noexcept
+{
+    return d->_document;
+}
+
+App::Document* DocumentWeakPtrT::operator->() const noexcept
 {
     return d->_document;
 }
@@ -633,7 +691,12 @@ DocumentObjectWeakPtrT& DocumentObjectWeakPtrT::operator= (App::DocumentObject* 
     return *this;
 }
 
-App::DocumentObject* DocumentObjectWeakPtrT::operator->() noexcept
+App::DocumentObject* DocumentObjectWeakPtrT::operator*() const noexcept
+{
+    return d->get();
+}
+
+App::DocumentObject* DocumentObjectWeakPtrT::operator->() const noexcept
 {
     return d->get();
 }

@@ -26,17 +26,6 @@
 
 #include <FCConfig.h>
 
-// Exporting of App classes
-#ifdef FC_OS_WIN32
-# define MeshPartExport __declspec(dllexport)
-# define PartExport  __declspec(dllimport)
-# define MeshExport     __declspec(dllimport)
-#else // for Linux
-# define MeshPartExport
-# define PartExport 
-# define MeshExport   
-#endif
-
 #ifdef _MSC_VER
 # pragma warning(disable : 4244)
 # pragma warning(disable : 4275)
@@ -49,8 +38,8 @@
 // standard
 #include <iostream>
 #include <sstream>
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 #include <string>
 #include <map>
 #include <vector>
@@ -196,13 +185,9 @@
 #include <gp_Torus.hxx>
 #include <gp_Vec.hxx>
 #include <gp_Vec2d.hxx>
-#include <MMgt_TShared.hxx>
 #include <Precision.hxx>
-#include <Quantity_Factor.hxx>
-#include <Quantity_Length.hxx>
 #include <Quantity_NameOfColor.hxx>
 #include <Quantity_PhysicalQuantity.hxx>
-#include <Quantity_PlaneAngle.hxx>
 #include <Quantity_TypeOfColor.hxx>
 #include <Standard_Boolean.hxx>
 #include <Standard_CString.hxx>
@@ -238,8 +223,6 @@
 #include <BndLib_Add3dCurve.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
-
-#include <Python.h>
 
 #endif // _PreComp_
 #endif

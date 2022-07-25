@@ -20,29 +20,21 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <Geom_ConicalSurface.hxx>
-# include <Geom_Circle.hxx>
 # include <GC_MakeConicalSurface.hxx>
-# include <gp_Circ.hxx>
+# include <Geom_ConicalSurface.hxx>
 # include <gp_Cone.hxx>
-# include <gp_Lin.hxx>
-# include <Geom_Line.hxx>
-# include <Geom_TrimmedCurve.hxx>
 # include <Standard_Failure.hxx>
 #endif
 
 #include <Base/GeometryPyCXX.h>
 #include <Base/VectorPy.h>
 
-#include "OCCError.h"
-#include "Geometry.h"
-#include "LinePy.h"
-#include "CirclePy.h"
 #include "ConePy.h"
 #include "ConePy.cpp"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -63,7 +55,7 @@ PyObject *ConePy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // Pytho
 // constructor method
 int ConePy::PyInit(PyObject* args, PyObject* kwds)
 {
-    char* keywords_n[] = {NULL};
+    char* keywords_n[] = {nullptr};
     if (PyArg_ParseTupleAndKeywords(args, kwds, "", keywords_n)) {
         Handle(Geom_ConicalSurface) s = Handle(Geom_ConicalSurface)::DownCast
             (getGeometryPtr()->handle());
@@ -73,7 +65,7 @@ int ConePy::PyInit(PyObject* args, PyObject* kwds)
 
     PyObject *pV1, *pV2;
     double radius1, radius2;
-    static char* keywords_pprr[] = {"Point1","Point2","Radius1","Radius2",NULL};
+    static char* keywords_pprr[] = {"Point1","Point2","Radius1","Radius2",nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!O!dd", keywords_pprr,
                                         &(Base::VectorPy::Type), &pV1,
@@ -96,7 +88,7 @@ int ConePy::PyInit(PyObject* args, PyObject* kwds)
     }
 
     PyObject *pV3, *pV4;
-    static char* keywords_pppp[] = {"Point1","Point2","Point3","Point4",NULL};
+    static char* keywords_pppp[] = {"Point1","Point2","Point3","Point4",nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!O!", keywords_pppp,
                                         &(Base::VectorPy::Type), &pV1,
@@ -123,7 +115,7 @@ int ConePy::PyInit(PyObject* args, PyObject* kwds)
     }
 
     PyObject *pCone;
-    static char* keywords_c[] = {"Cone",NULL};
+    static char* keywords_c[] = {"Cone",nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!d", keywords_c,
                                         &(ConePy::Type), &pCone)) {
@@ -262,7 +254,7 @@ void ConePy::setAxis(Py::Object arg)
 
 PyObject *ConePy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ConePy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

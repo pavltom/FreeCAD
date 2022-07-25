@@ -23,12 +23,9 @@
 #ifndef TECHDRAWGUI_TASKSELECTLINEATTRIBUTES_H
 #define TECHDRAWGUI_TASKSELECTLINEATTRIBUTES_H
 
-#include <App/DocumentObject.h>
-#include <Base/Vector3D.h>
-#include <Gui/TaskView/TaskView.h>
 #include <Gui/TaskView/TaskDialog.h>
+#include <Gui/TaskView/TaskView.h>
 
-#include <Mod/TechDraw/App/Cosmetic.h>
 
 class dimAttributes {
     double cascadeSpacing;
@@ -46,10 +43,6 @@ class dimAttributes {
 
 extern dimAttributes activeDimAttributes; // container holding dimension attributes
 
-namespace App {
-class DocumentObject;
-}
-
 namespace TechDraw
 {
 class DrawPage;
@@ -66,6 +59,7 @@ class Face;
 
 namespace TechDrawGui
 {
+class QGSPage;
 class QGVPage;
 class QGIView;
 class QGIPrimPath;

@@ -54,52 +54,43 @@
 
 #include <cassert>
 
-#include <Quarter/QuarterWidget.h>
-#include <Quarter/eventhandlers/EventFilter.h>
-#include <Quarter/eventhandlers/DragDropHandler.h>
-
-#include <QtCore/QEvent>
-#include <QtCore/QDebug>
-#include <QtCore/QFile>
 #include <QAction>
 #include <QApplication>
+#include <QDebug>
+#include <QEvent>
+#include <QFile>
+#include <QGuiApplication>
+#include <QMetaObject>
+#include <QOpenGLDebugLogger>
+#include <QOpenGLDebugMessage>
 #include <QPaintEvent>
 #include <QResizeEvent>
+#include <QWindow>
 
-#include <QOpenGLDebugMessage>
-#include <QOpenGLDebugLogger>
-
+#include <Inventor/C/basic.h>
 #if COIN_MAJOR_VERSION >= 4
 #include <Inventor/SbByteBuffer.h>
 #endif
 
-#include <Inventor/SbViewportRegion.h>
-#include <Inventor/system/gl.h>
-#include <Inventor/events/SoEvents.h>
-#include <Inventor/nodes/SoNode.h>
-#include <Inventor/nodes/SoCamera.h>
-#include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/nodes/SoDirectionalLight.h>
-#include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/SbColor.h>
-#include <Inventor/sensors/SoSensorManager.h>
+#include <Inventor/SbViewportRegion.h>
 #include <Inventor/SoDB.h>
-
-#include <Inventor/SbBasic.h>
-#include <Inventor/SoRenderManager.h>
 #include <Inventor/SoEventManager.h>
+#include <Inventor/SoRenderManager.h>
+#include <Inventor/nodes/SoCamera.h>
+#include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/nodes/SoNode.h>
+#include <Inventor/nodes/SoPerspectiveCamera.h>
+#include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/scxml/ScXML.h>
 #include <Inventor/scxml/SoScXMLStateMachine.h>
 
-#include <ctime>
-
+#include "QuarterWidget.h"
 #include "InteractionMode.h"
-#include "QuarterWidgetP.h"
 #include "QuarterP.h"
-
-#include <QWindow>
-#include <QGuiApplication>
-#include <QMetaObject>
+#include "QuarterWidgetP.h"
+#include "eventhandlers/EventFilter.h"
+#include "eventhandlers/DragDropHandler.h"
 
 
 using namespace SIM::Coin3D::Quarter;
@@ -690,10 +681,10 @@ QuarterWidget::setSoRenderManager(SoRenderManager * manager)
   SoNode * scene = nullptr;
   SoCamera * camera = nullptr;
   SbViewportRegion vp;
-  if (PRIVATE(this)->sorendermanager && (manager != nullptr)) {
+  if (PRIVATE(this)->sorendermanager && manager) {
     scene = PRIVATE(this)->sorendermanager->getSceneGraph();
     camera = PRIVATE(this)->sorendermanager->getCamera();
-    vp = PRIVATE(this)->sorendermanager->getViewportRegion();
+    vp = PRIVATE(this)->sorendermanager->getViewportRegion(); // clazy:exclude=rule-of-two-soft
     carrydata = true;
   }
 
@@ -735,10 +726,10 @@ QuarterWidget::setSoEventManager(SoEventManager * manager)
   SoNode * scene = nullptr;
   SoCamera * camera = nullptr;
   SbViewportRegion vp;
-  if (PRIVATE(this)->soeventmanager && (manager != nullptr)) {
+  if (PRIVATE(this)->soeventmanager && manager) {
     scene = PRIVATE(this)->soeventmanager->getSceneGraph();
     camera = PRIVATE(this)->soeventmanager->getCamera();
-    vp = PRIVATE(this)->soeventmanager->getViewportRegion();
+    vp = PRIVATE(this)->soeventmanager->getViewportRegion(); // clazy:exclude=rule-of-two-soft
     carrydata = true;
   }
 
@@ -933,31 +924,7 @@ void QuarterWidget::paintEvent(QPaintEvent* event)
 
 bool QuarterWidget::viewportEvent(QEvent* event)
 {
-    // Disable the old implementation of this method as it show
-    // problems with panning and rotations when a widget item is
-    // added to the scene.
-#if 0
-    if (event->type() == QEvent::Paint || event->type() == QEvent::Resize) {
-        return QGraphicsView::viewportEvent(event);
-    }
-    else if (event->type() == QEvent::MouseMove ||
-             event->type() == QEvent::Wheel ||
-             event->type() == QEvent::MouseButtonDblClick ||
-             event->type() == QEvent::MouseButtonRelease ||
-             event->type() == QEvent::MouseButtonPress) {
-        QMouseEvent* mouse = static_cast<QMouseEvent*>(event);
-        QGraphicsItem *item = itemAt(mouse->pos());
-        if (!item) {
-            return false;
-        }
 
-        return QGraphicsView::viewportEvent(event);
-      }
-
-     //if we return false the events get processed normally, this means they get passed to the quarter
-     //event filters for processing in the scene graph. If we return true event processing stops here.
-     return false;
-#else
     // If no item is selected still let the graphics scene handle it but
     // additionally handle it by this viewer. This is e.g. needed when
     // resizing a widget item because the cursor may already be outside
@@ -982,7 +949,6 @@ bool QuarterWidget::viewportEvent(QEvent* event)
     }
 
     return QGraphicsView::viewportEvent(event);
-#endif
 }
 
 /*!
@@ -1226,19 +1192,13 @@ QuarterWidget::setNavigationModeFile(const QUrl & url)
 
   if (url.scheme()=="coin") {
     filename = url.path();
-    //FIXME: This conditional needs to be implemented when the
-    //CoinResources systems if working
-#if 0
-    //#if (COIN_MAJOR_VERSION==3) && (COIN_MINOR_VERSION==0)
-#endif
+
     //Workaround for differences between url scheme, and Coin internal
     //scheme in Coin 3.0.
     if (filename[0]=='/') {
       filename.remove(0,1);
     }
-#if 0
-    //#endif
-#endif
+
     filename = url.scheme()+':'+filename;
   }
   else if (url.scheme()=="file")

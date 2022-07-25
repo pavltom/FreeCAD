@@ -127,8 +127,8 @@ public:
     virtual bool removeDynamicProperty(const char* prop) override;
 
     virtual App::Property* addDynamicProperty(
-            const char* type, const char* name=0,
-            const char* group=0, const char* doc=0,
+            const char* type, const char* name=nullptr,
+            const char* group=nullptr, const char* doc=nullptr,
             short attr=0, bool ro=false, bool hidden=false) override;
 
     /** Return the linked view object
@@ -143,7 +143,7 @@ public:
      * itself.
      */
     virtual ViewProviderDocumentObject *getLinkedViewProvider(
-            std::string *subname=0, bool recursive=false) const;
+            std::string *subname=nullptr, bool recursive=false) const;
 
     virtual std::string getFullName() const override;
 

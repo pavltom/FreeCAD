@@ -30,7 +30,7 @@ from draftutils.messages import _wrn
 if FreeCAD.GuiUp:
     import FreeCADGui
     from PySide import QtCore, QtGui, QtSvg
-    from DraftTools import translate
+    from draftutils.translate import translate
     from PySide.QtCore import QT_TRANSLATE_NOOP
     import draftguitools.gui_trackers as DraftTrackers
 else:
@@ -96,7 +96,11 @@ def makeWindow(baseobj=None,width=None,height=None,parts=None,name=None):
     else:
         if baseobj:
             if baseobj.getLinkedObject().isDerivedFrom("Part::Part2DObject"):
+                # create default component
                 if baseobj.Shape.Wires:
+                    tp = "Frame"
+                    if len(baseobj.Shape.Wires) == 1:
+                        tp = "Solid panel"
                     i = 0
                     ws = ''
                     for w in baseobj.Shape.Wires:
@@ -104,7 +108,7 @@ def makeWindow(baseobj=None,width=None,height=None,parts=None,name=None):
                             if ws: ws += ","
                             ws += "Wire" + str(i)
                             i += 1
-                    obj.WindowParts = ["Default","Frame",ws,"1","0"]
+                    obj.WindowParts = ["Default",tp,ws,"1","0"]
             else:
                 # bind properties from base obj if existing
                 for prop in ["Height","Width","Subvolume","Tag","Description","Material"]:
@@ -383,15 +387,16 @@ class _CommandWindow:
         librarypath = librarypath.replace("\\", "/") + "/Architectural Parts"
         presetdir = FreeCAD.getUserAppDataDir().replace("\\", "/") + "/Arch"
         for path in [librarypath, presetdir]:
-            if os.path.exists(path):
+            if os.path.isdir(path):
                 for wtype in ["Windows", "Doors"]:
                     wdir = path + "/" + wtype
-                    if os.path.exists(wdir):
+                    if os.path.isdir(wdir):
                         for subtype in os.listdir(wdir):
                             subdir = wdir + "/" + subtype
-                            if os.path.exists(subdir):
+                            if os.path.isdir(subdir):
                                 for subfile in os.listdir(subdir):
-                                    if subfile.lower().endswith(".fcstd"):
+                                    if (os.path.isfile(subdir + "/" + subfile)
+                                            and subfile.lower().endswith(".fcstd")):
                                         self.librarypresets.append([wtype + " - " + subtype + " - " + subfile[:-6],
                                                                     subdir + "/" + subfile])
 
@@ -1231,6 +1236,9 @@ class _ViewProviderWindow(ArchComponent.ViewProviderComponent):
 
         pairs = [["Edge6","Edge8"],["Edge5","Edge7"]]
         self.invertPairs(pairs)
+        # Also invert opening direction, so the door still opens towards
+        # the same side of the wall
+        self.invertOpening()
 
     def invertPairs(self,pairs):
 

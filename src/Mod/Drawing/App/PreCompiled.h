@@ -26,26 +26,13 @@
 
 #include <FCConfig.h>
 
-// Exporting of App classes
-#ifdef FC_OS_WIN32
-# define DrawingExport         __declspec(dllexport)
-# define PartExport            __declspec(dllimport)
-# define MeshExport            __declspec(dllimport)
-# define SpreadsheetExport     __declspec(dllimport)
-#else // for Linux
-# define DrawingExport
-# define PartExport
-# define MeshExport
-# define SpreadsheetExport
-#endif
-
 #ifdef _PreComp_
 
 // standard
 #include <iostream>
 #include <sstream>
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 #include <string>
 #include <map>
 #include <vector>
@@ -187,13 +174,9 @@
 #include <gp_Torus.hxx>
 #include <gp_Vec.hxx>
 #include <gp_Vec2d.hxx>
-#include <MMgt_TShared.hxx>
 #include <Precision.hxx>
-#include <Quantity_Factor.hxx>
-#include <Quantity_Length.hxx>
 #include <Quantity_NameOfColor.hxx>
 #include <Quantity_PhysicalQuantity.hxx>
-#include <Quantity_PlaneAngle.hxx>
 #include <Quantity_TypeOfColor.hxx>
 #include <Standard_Boolean.hxx>
 #include <Standard_CString.hxx>
@@ -227,9 +210,6 @@
 #include <UnitsAPI.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
-
-#include <Python.h>
-
 
 #endif // _PreComp_
 #endif

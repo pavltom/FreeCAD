@@ -22,23 +22,18 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-# include <QMessageBox>
-# include <boost_bind_bind.hpp>
-#endif
-
-#include "ui_TaskHoleParameters.h"
-#include "TaskHoleParameters.h"
 #include <Base/Console.h>
 #include <Base/Tools.h>
+#include <App/Document.h>
 #include <Gui/Application.h>
-#include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
 #include <Gui/Document.h>
 #include <Gui/Selection.h>
 #include <Gui/ViewProvider.h>
-#include <Gui/WaitCursor.h>
 #include <Mod/PartDesign/App/FeatureHole.h>
+
+#include "ui_TaskHoleParameters.h"
+#include "TaskHoleParameters.h"
 
 using namespace PartDesignGui;
 using namespace Gui;
@@ -83,17 +78,15 @@ TaskHoleParameters::TaskHoleParameters(ViewProviderHole* HoleView, QWidget* pare
     ui->ThreadType->setCurrentIndex(pcHole->ThreadType.getValue());
 
     ui->ThreadSize->clear();
-    const char** cursor = pcHole->ThreadSize.getEnums();
-    while (*cursor) {
-        ui->ThreadSize->addItem(tr(*cursor));
-        ++cursor;
+    std::vector<std::string> cursor = pcHole->ThreadSize.getEnumVector();
+    for (const auto& it : cursor) {
+        ui->ThreadSize->addItem(tr(it.c_str()));
     }
     ui->ThreadSize->setCurrentIndex(pcHole->ThreadSize.getValue());
     ui->ThreadClass->clear();
-    cursor = pcHole->ThreadClass.getEnums();
-    while (*cursor) {
-        ui->ThreadClass->addItem(tr(*cursor));
-        ++cursor;
+    cursor = pcHole->ThreadClass.getEnumVector();
+    for (const auto& it : cursor) {
+        ui->ThreadClass->addItem(tr(it.c_str()));
     }
     ui->ThreadClass->setCurrentIndex(pcHole->ThreadClass.getValue());
     // Class is only enabled (sensible) if threaded
@@ -114,10 +107,9 @@ TaskHoleParameters::TaskHoleParameters(ViewProviderHole* HoleView, QWidget* pare
     ui->directionRightHand->setEnabled(pcHole->Threaded.getValue());
     ui->directionLeftHand->setEnabled(pcHole->Threaded.getValue());
     ui->HoleCutType->clear();
-    cursor = pcHole->HoleCutType.getEnums();
-    while (*cursor) {
-        ui->HoleCutType->addItem(tr(*cursor));
-        ++cursor;
+    cursor = pcHole->HoleCutType.getEnumVector();
+    for (const auto& it : cursor) {
+        ui->HoleCutType->addItem(tr(it.c_str()));
     }
     ui->HoleCutType->setCurrentIndex(pcHole->HoleCutType.getValue());
     ui->HoleCutCustomValues->setChecked(pcHole->HoleCutCustomValues.getValue());
@@ -373,6 +365,15 @@ void TaskHoleParameters::holeCutTypeChanged(int index)
     if (HoleCutTypeString == "None" || HoleCutTypeString == "Counterbore"
         || HoleCutTypeString == "Countersink") {
         ui->HoleCutCustomValues->setEnabled(false);
+        if (HoleCutTypeString == "None") {
+            ui->HoleCutDiameter->setEnabled(false);
+            ui->HoleCutDepth->setEnabled(false);
+            ui->HoleCutCountersinkAngle->setEnabled(false);
+        }
+        if (HoleCutTypeString == "Counterbore")
+            ui->HoleCutCountersinkAngle->setEnabled(false);
+        if (HoleCutTypeString == "Countersink")
+            ui->HoleCutCountersinkAngle->setEnabled(true);
     }
     else { // screw definition
         // we can have the case that we have no normed values
@@ -384,6 +385,7 @@ void TaskHoleParameters::holeCutTypeChanged(int index)
                 ui->HoleCutCountersinkAngle->setEnabled(true);
         }
         else {
+            ui->HoleCutCustomValues->setEnabled(true);
             ui->HoleCutDiameter->setEnabled(false);
             ui->HoleCutDepth->setEnabled(false);
             ui->HoleCutCountersinkAngle->setEnabled(false);
@@ -687,7 +689,7 @@ void TaskHoleParameters::changeEvent(QEvent* e)
 void TaskHoleParameters::changedObject(const App::Document&, const App::Property& Prop)
 {
     // happens when aborting the command
-    if (vp == nullptr)
+    if (!vp)
         return;
 
     PartDesign::Hole* pcHole = static_cast<PartDesign::Hole*>(vp->getObject());
@@ -709,10 +711,9 @@ void TaskHoleParameters::changedObject(const App::Document&, const App::Property
 
         ui->ThreadSize->blockSignals(true);
         ui->ThreadSize->clear();
-        const char** cursor = pcHole->ThreadSize.getEnums();
-        while (*cursor) {
-            ui->ThreadSize->addItem(QString::fromLatin1(*cursor));
-            ++cursor;
+        std::vector<std::string> cursor = pcHole->ThreadSize.getEnumVector();
+        for (const auto& it : cursor) {
+            ui->ThreadSize->addItem(QString::fromStdString(it));
         }
         ui->ThreadSize->setCurrentIndex(pcHole->ThreadSize.getValue());
         ui->ThreadSize->blockSignals(false);
@@ -720,20 +721,18 @@ void TaskHoleParameters::changedObject(const App::Document&, const App::Property
         // Thread type also updates HoleCutType and ThreadClass
         ui->HoleCutType->blockSignals(true);
         ui->HoleCutType->clear();
-        cursor = pcHole->HoleCutType.getEnums();
-        while (*cursor) {
-            ui->HoleCutType->addItem(QString::fromLatin1(*cursor));
-            ++cursor;
+        cursor = pcHole->HoleCutType.getEnumVector();
+        for (const auto& it: cursor) {
+            ui->HoleCutType->addItem(QString::fromStdString(it));
         }
         ui->HoleCutType->setCurrentIndex(pcHole->HoleCutType.getValue());
         ui->HoleCutType->blockSignals(false);
 
         ui->ThreadClass->blockSignals(true);
         ui->ThreadClass->clear();
-        cursor = pcHole->ThreadClass.getEnums();
-        while (*cursor) {
-            ui->ThreadClass->addItem(QString::fromLatin1(*cursor));
-            ++cursor;
+        cursor = pcHole->ThreadClass.getEnumVector();
+        for (const auto& it : cursor) {
+            ui->ThreadClass->addItem(QString::fromStdString(it));
         }
         ui->ThreadClass->setCurrentIndex(pcHole->ThreadClass.getValue());
         ui->ThreadClass->blockSignals(false);

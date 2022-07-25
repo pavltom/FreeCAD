@@ -24,32 +24,20 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <sstream>
 # include <QAction>
-# include <QRegExp>
-# include <QTextStream>
-# include <QMessageBox>
-# include <Precision.hxx>
 #endif
 
-#include "ui_TaskLoftParameters.h"
-#include "TaskLoftParameters.h"
 #include <App/Application.h>
 #include <App/Document.h>
 #include <Gui/Application.h>
-#include <Gui/Document.h>
-#include <Gui/BitmapFactory.h>
-#include <Gui/ViewProvider.h>
-#include <Gui/WaitCursor.h>
-#include <Base/Console.h>
-#include <Gui/Selection.h>
-#include <Gui/Command.h>
 #include <Gui/CommandT.h>
+#include <Gui/Document.h>
+#include <Gui/Selection.h>
 #include <Mod/PartDesign/App/FeatureLoft.h>
-#include <Mod/Sketcher/App/SketchObject.h>
-#include <Mod/PartDesign/App/Body.h>
+
+#include "ui_TaskLoftParameters.h"
+#include "TaskLoftParameters.h"
 #include "TaskSketchBasedParameters.h"
-#include "ReferenceSelection.h"
 
 Q_DECLARE_METATYPE(App::PropertyLinkSubList::SubSet)
 
@@ -97,7 +85,8 @@ TaskLoftParameters::TaskLoftParameters(ViewProviderLoft *LoftView, bool /*newObj
     this->groupLayout()->addWidget(proxy);
 
     // Temporarily prevent unnecessary feature recomputes
-    for (QWidget* child : proxy->findChildren<QWidget*>())
+    const auto childs = proxy->findChildren<QWidget*>();
+    for (QWidget* child : childs)
         child->blockSignals(true);
 
     //add the profiles
@@ -127,7 +116,7 @@ TaskLoftParameters::TaskLoftParameters(ViewProviderLoft *LoftView, bool /*newObj
     ui->checkBoxClosed->setChecked(loft->Closed.getValue());
 
     // activate and de-activate dialog elements as appropriate
-    for (QWidget* child : proxy->findChildren<QWidget*>())
+    for (QWidget* child : childs)
         child->blockSignals(false);
 
     updateUI();
@@ -237,7 +226,7 @@ void TaskLoftParameters::removeFromListWidget(QListWidget* widget, QString name)
 
     QList<QListWidgetItem*> items = widget->findItems(name, Qt::MatchExactly);
     if (!items.empty()) {
-        for (QList<QListWidgetItem*>::const_iterator it = items.begin(); it != items.end(); ++it) {
+        for (QList<QListWidgetItem*>::const_iterator it = items.cbegin(); it != items.cend(); ++it) {
             QListWidgetItem* item = widget->takeItem(widget->row(*it));
             delete item;
         }
@@ -278,7 +267,6 @@ void TaskLoftParameters::indexesMoved()
     PartDesign::Loft* loft = static_cast<PartDesign::Loft*>(vp->getObject());
     auto originals = loft->Sections.getSubListValues();
 
-    QByteArray name;
     int rows = model->rowCount();
     for (int i = 0; i < rows; i++) {
         QModelIndex index = model->index(i, 0);

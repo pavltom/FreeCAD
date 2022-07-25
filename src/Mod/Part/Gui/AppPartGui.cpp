@@ -13,65 +13,57 @@
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <Standard_math.hxx>
-# include <Python.h>
-# include <Inventor/system/inttypes.h>
 #endif
-
-#include <CXX/Extensions.hxx>
-#include <CXX/Objects.hxx>
 
 #include <Base/Console.h>
 #include <Base/Interpreter.h>
-
+#include <Base/PyObjectBase.h>
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
+#include <Gui/DlgPreferencesImp.h>
 #include <Gui/WidgetFactory.h>
-
-#include <Mod/Part/App/PropertyTopoShape.h>
+#include <Gui/Language/Translator.h>
 
 #include "AttacherTexts.h"
 #include "PropertyEnumAttacherItem.h"
-#include "SoBrepFaceSet.h"
 #include "SoBrepEdgeSet.h"
+#include "SoBrepFaceSet.h"
 #include "SoBrepPointSet.h"
 #include "SoFCShapeObject.h"
-#include "ViewProvider.h"
-#include "ViewProviderExt.h"
-#include "ViewProviderPython.h"
-#include "ViewProviderPrimitive.h"
-#include "ViewProviderBox.h"
-#include "ViewProviderCurveNet.h"
-#include "ViewProviderImport.h"
-#include "ViewProviderExtrusion.h"
-#include "ViewProvider2DObject.h"
-#include "ViewProviderMirror.h"
-#include "ViewProviderBoolean.h"
-#include "ViewProviderCompound.h"
-#include "ViewProviderCircleParametric.h"
-#include "ViewProviderLineParametric.h"
-#include "ViewProviderPointParametric.h"
-#include "ViewProviderEllipseParametric.h"
-#include "ViewProviderHelixParametric.h"
-#include "ViewProviderPlaneParametric.h"
-#include "ViewProviderSphereParametric.h"
-#include "ViewProviderCylinderParametric.h"
-#include "ViewProviderConeParametric.h"
-#include "ViewProviderTorusParametric.h"
-#include "ViewProviderRuledSurface.h"
-#include "ViewProviderPrism.h"
-#include "ViewProviderSpline.h"
-#include "ViewProviderRegularPolygon.h"
-#include "ViewProviderAttachExtension.h"
 #include "TaskDimension.h"
-#include "DlgSettingsGeneral.h"
-#include "DlgSettingsObjectColor.h"
 #include "DlgSettings3DViewPartImp.h"
+#include "DlgSettingsGeneral.h"
+#include "DlgSettingsMeasure.h"
+#include "DlgSettingsObjectColor.h"
+#include "ViewProvider.h"
+#include "ViewProvider2DObject.h"
+#include "ViewProviderAttachExtension.h"
+#include "ViewProviderBoolean.h"
+#include "ViewProviderBox.h"
+#include "ViewProviderCircleParametric.h"
+#include "ViewProviderCompound.h"
+#include "ViewProviderConeParametric.h"
+#include "ViewProviderCurveNet.h"
+#include "ViewProviderCylinderParametric.h"
+#include "ViewProviderEllipseParametric.h"
+#include "ViewProviderExt.h"
+#include "ViewProviderExtrusion.h"
+#include "ViewProviderHelixParametric.h"
+#include "ViewProviderPrimitive.h"
+#include "ViewProviderPython.h"
+#include "ViewProviderImport.h"
+#include "ViewProviderLineParametric.h"
+#include "ViewProviderMirror.h"
+#include "ViewProviderPlaneParametric.h"
+#include "ViewProviderPointParametric.h"
+#include "ViewProviderPrism.h"
+#include "ViewProviderRegularPolygon.h"
+#include "ViewProviderRuledSurface.h"
+#include "ViewProviderSphereParametric.h"
+#include "ViewProviderSpline.h"
+#include "ViewProviderTorusParametric.h"
 #include "Workbench.h"
 
-#include <Gui/Language/Translator.h>
-
-// #include "Resources/icons/Part_Feature.xpm"
-// #include "Resources/icons/Part_FeatureImport.xpm"
 
 // use a different name to CreateCommand()
 void CreatePartCommands(void);
@@ -101,7 +93,7 @@ private:
 
 PyObject* initModule()
 {
-    return (new Module)->module().ptr();
+    return Base::Interpreter().addModule(new Module);;
 }
 
 } // namespace PartGui
@@ -110,7 +102,7 @@ PyMOD_INIT_FUNC(PartGui)
 {
     if (!Gui::Application::Instance) {
         PyErr_SetString(PyExc_ImportError, "Cannot load Gui module in console application.");
-        PyMOD_Return(0);
+        PyMOD_Return(nullptr);
     }
 
     // load needed modules
@@ -119,7 +111,7 @@ PyMOD_INIT_FUNC(PartGui)
     }
     catch(const Base::Exception& e) {
         PyErr_SetString(PyExc_ImportError, e.what());
-        PyMOD_Return(0);
+        PyMOD_Return(nullptr);
     }
 
     PyObject* partGuiModule = PartGui::initModule();
@@ -137,7 +129,7 @@ PyMOD_INIT_FUNC(PartGui)
         "AttachEngineResources",
         "AttachEngineResources", -1,
         AttacherGui::AttacherGuiPy::Methods,
-        NULL, NULL, NULL, NULL
+        nullptr, nullptr, nullptr, nullptr
     };
     PyObject* pAttachEngineTextsModule = PyModule_Create(&pAttachEngineTextsModuleDef);
 
@@ -216,19 +208,22 @@ PyMOD_INIT_FUNC(PartGui)
         err.ReportException();
     }
 
-
     // register preferences pages
-    (void)new Gui::PrefPageProducer<PartGui::DlgSettingsGeneral>      ( QT_TRANSLATE_NOOP("QObject","Part design") );
-    (void)new Gui::PrefPageProducer<PartGui::DlgSettings3DViewPart>   ( QT_TRANSLATE_NOOP("QObject","Part design") );
-    (void)new Gui::PrefPageProducer<PartGui::DlgSettingsObjectColor>  ( QT_TRANSLATE_NOOP("QObject","Part design") );
-    (void)new Gui::PrefPageProducer<PartGui::DlgImportExportIges>     ( QT_TRANSLATE_NOOP("QObject","Import-Export") );
-    (void)new Gui::PrefPageProducer<PartGui::DlgImportExportStep>     ( QT_TRANSLATE_NOOP("QObject","Import-Export") );
+    Gui::Dialog::DlgPreferencesImp::setGroupData("Part/Part Design", "Part design", QObject::tr("Part and Part Design workbench"));
+    (void)new Gui::PrefPageProducer<PartGui::DlgSettingsGeneral>(QT_TRANSLATE_NOOP("QObject", "Part/Part Design"));
+    (void)new Gui::PrefPageProducer<PartGui::DlgSettings3DViewPart>(QT_TRANSLATE_NOOP("QObject", "Part/Part Design"));
+    (void)new Gui::PrefPageProducer<PartGui::DlgSettingsObjectColor>(QT_TRANSLATE_NOOP("QObject", "Part/Part Design"));
+    (void)new Gui::PrefPageProducer<PartGui::DlgSettingsMeasure>(QT_TRANSLATE_NOOP("QObject", "Part/Part Design"));
+    (void)new Gui::PrefPageProducer<PartGui::DlgImportExportIges>(QT_TRANSLATE_NOOP("QObject", "Import-Export"));
+    (void)new Gui::PrefPageProducer<PartGui::DlgImportExportStep>(QT_TRANSLATE_NOOP("QObject", "Import-Export"));
     Gui::ViewProviderBuilder::add(
         Part::PropertyPartShape::getClassTypeId(),
         PartGui::ViewProviderPart::getClassTypeId());
 
     // add resources and reloads the translators
     loadPartResource();
+
+    Gui::Workbench::addPermanentMenuItem("Part_SectionCut", "Std_ToggleClipPlane");
 
     // register bitmaps
     // Gui::BitmapFactoryInst& rclBmpFactory = Gui::BitmapFactory();

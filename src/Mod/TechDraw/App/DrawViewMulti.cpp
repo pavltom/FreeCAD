@@ -79,7 +79,7 @@ DrawViewMulti::DrawViewMulti()
     static const char *group = "Projection";
 
     //properties that affect Geometry
-    ADD_PROPERTY_TYPE(Sources ,(0),group,App::Prop_None,"3D Shapes to view");
+    ADD_PROPERTY_TYPE(Sources ,(nullptr),group,App::Prop_None,"3D Shapes to view");
     Sources.setScope(App::LinkScope::Global);
     //Source is replaced by Sources in Multi
     Source.setStatus(App::Property::ReadOnly,true);
@@ -94,13 +94,10 @@ DrawViewMulti::~DrawViewMulti()
 
 short DrawViewMulti::mustExecute() const
 {
-    short result = 0;
-    if (!isRestoring()) {
-        result  = (Sources.isTouched());
+    if (!isRestoring() && Sources.isTouched()) {
+        return true;
     }
-    if (result) {
-        return result;
-    }
+
     return TechDraw::DrawViewPart::mustExecute();
 }
 

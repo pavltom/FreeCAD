@@ -20,10 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <Python.h>
 # include <climits>
 # include <sstream>
 #endif
@@ -32,9 +30,8 @@
 #include <Base/Interpreter.h>
 #include <Base/PyObjectBase.h>
 
-#include <CXX/Extensions.hxx>
-#include <CXX/Objects.hxx>
 #include "Server.h"
+
 
 // See http://docs.python.org/2/library/socketserver.html
 /*
@@ -161,7 +158,7 @@ private:
 
         Py::Object pyobj(obj);
         if (pyobj.isNone())
-            Web::Firewall::setInstance(0);
+            Web::Firewall::setInstance(nullptr);
         else
             Web::Firewall::setInstance(new Web::FirewallPython(pyobj));
 
@@ -171,7 +168,7 @@ private:
 
 PyObject* initModule()
 {
-    return (new Module())->module().ptr();
+    return Base::Interpreter().addModule(new Module);
 }
 
 } // namespace Web

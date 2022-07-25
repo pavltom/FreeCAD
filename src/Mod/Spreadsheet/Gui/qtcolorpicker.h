@@ -76,10 +76,10 @@ class QT_QTCOLORPICKER_EXPORT QtColorPicker : public QPushButton
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool colorDialog READ colorDialogEnabled WRITE setColorDialogEnabled)
+    Q_PROPERTY(bool colorDialog READ colorDialogEnabled WRITE setColorDialogEnabled) // clazy:exclude=qproperty-without-notify
 
 public:
-    QtColorPicker(QWidget *parent = 0,
+    QtColorPicker(QWidget *parent = nullptr,
                   int columns = -1, bool enableColorDialog = true);
 
     ~QtColorPicker();

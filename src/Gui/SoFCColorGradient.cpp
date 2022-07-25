@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
@@ -36,10 +35,12 @@
 #endif
 
 #include "SoFCColorGradient.h"
+#include "SoTextLabel.h"
 #include "DlgSettingsColorGradientImp.h"
 #include "MainWindow.h"
 #include "MDIView.h"
 #include "ViewProvider.h"
+
 
 using namespace Gui;
 
@@ -48,7 +49,7 @@ SO_NODE_SOURCE(SoFCColorGradient)
 /*!
   Constructor.
 */
-SoFCColorGradient::SoFCColorGradient() : _bbox(4.0f, -4.0f, 4.5f, 4.0f), _bOutInvisible(false), _precision(3)
+SoFCColorGradient::SoFCColorGradient() : _bbox(5.0f, -4.0f, 5.5f, 4.0f), _precision(3)
 {
     SO_NODE_CONSTRUCTOR(SoFCColorGradient);
     coords = new SoCoordinate3;
@@ -56,7 +57,7 @@ SoFCColorGradient::SoFCColorGradient() : _bbox(4.0f, -4.0f, 4.5f, 4.0f), _bOutIn
     labels = new SoSeparator;
     labels->ref();
 
-    _cColGrad.setStyle(App::ColorGradient::FLOW);
+    _cColGrad.setStyle(App::ColorBarStyle::FLOW);
     setColorModel(0);
     setRange(-0.5f, 0.5f, 1);
 }
@@ -74,7 +75,7 @@ SoFCColorGradient::~SoFCColorGradient()
 // doc from parent
 void SoFCColorGradient::initClass()
 {
-    SO_NODE_INIT_CLASS(SoFCColorGradient,SoFCColorBarBase,"Separator");
+    SO_NODE_INIT_CLASS(SoFCColorGradient, SoFCColorBarBase, "Separator");
 }
 
 void SoFCColorGradient::finish()
@@ -82,21 +83,23 @@ void SoFCColorGradient::finish()
     atexit_cleanup();
 }
 
-void SoFCColorGradient::setMarkerLabel( const SoMFString& label )
+void SoFCColorGradient::setMarkerLabel(const SoMFString& label)
 {
     coinRemoveAllChildren(labels);
 
     int num = label.getNum();
     if (num > 1) {
-        float fStep = 8.0f / ((float)num-1);
+        SbVec2f maxPt = _bbox.getMax();
+        SbVec2f minPt = _bbox.getMin();
+        float fStep = (maxPt[1] - minPt[1]) / ((float)num - 1);
         SoTransform* trans = new SoTransform;
-        trans->translation.setValue(_bbox.getMax()[0] + 0.1f, _bbox.getMax()[1] - 0.05f + fStep, 0.0f);
+        trans->translation.setValue(maxPt[0] + 0.1f, maxPt[1] - 0.05f + fStep, 0.0f);
         labels->addChild(trans);
 
-        for (int i=0; i<num; i++) {
+        for (int i = 0; i < num; i++) {
             SoTransform* trans = new SoTransform;
             SoBaseColor* color = new SoBaseColor;
-            SoText2    * text2 = new SoText2;
+            SoText2    * text2 = new SoColorBarLabel;
 
             trans->translation.setValue(0, -fStep, 0);
             color->rgb.setValue(0, 0, 0);
@@ -106,49 +109,42 @@ void SoFCColorGradient::setMarkerLabel( const SoMFString& label )
             labels->addChild(text2);
         }
     }
+
+    setModified();
 }
 
-void SoFCColorGradient::setViewportSize( const SbVec2s& size )
+void SoFCColorGradient::setViewportSize(const SbVec2s& size)
 {
-    // don't know why the parameter range isn't between [-1,+1]
-    float fRatio = ((float)size[0])/((float)size[1]);
-    float fMinX=  4.0f, fMaxX=4.5f;
-    float fMinY= -4.0f, fMaxY=4.0f;
-
-    if (fRatio > 1.0f) {
-        fMinX = 4.0f * fRatio;
-        fMaxX = fMinX+0.5f;
-    }
-    else if (fRatio < 1.0f) {
-        fMinY = -4.0f / fRatio;
-        fMaxY =  4.0f / fRatio;
-    }
+    float fMinX, fMinY, fMaxX, fMaxY;
+    float boxWidth = getBounds(size, fMinX, fMinY, fMaxX, fMaxY);
 
     // search for the labels
-    int num=0;
-    for (int i=0; i<labels->getNumChildren(); i++) {
+    int num = 0;
+    for (int i = 0; i < labels->getNumChildren(); i++) {
         if (labels->getChild(i)->getTypeId() == SoTransform::getClassTypeId())
             num++;
     }
 
     if (num > 2) {
-        bool first=true;
-        float fStep = (fMaxY-fMinY) / ((float)num-2);
+        bool first = true;
+        float fStep = (fMaxY - fMinY) / ((float)num - 2);
 
-        for (int j=0; j<labels->getNumChildren(); j++) {
+        for (int j = 0; j < labels->getNumChildren(); j++) {
             if (labels->getChild(j)->getTypeId() == SoTransform::getClassTypeId()) {
                 if (first) {
                     first = false;
-                    static_cast<SoTransform*>(labels->getChild(j))->translation.setValue(fMaxX+0.1f,fMaxY-0.05f+fStep,0.0f);
+                    // set the labels with a small space of 0.1f besides the bar
+                    static_cast<SoTransform*>(labels->getChild(j))->translation.setValue(fMaxX + 0.1f - boxWidth, fMaxY - 0.05f + fStep, 0.0f);
                 }
                 else {
-                    static_cast<SoTransform*>(labels->getChild(j))->translation.setValue(0,-fStep,0.0f);
+                    static_cast<SoTransform*>(labels->getChild(j))->translation.setValue(0, -fStep, 0.0f);
                 }
             }
         }
     }
 
-    _bbox.setBounds(fMinX, fMinY, fMaxX, fMaxY);
+    // gradient bar is shifted to the left by width of the labels to assure that labels are fully visible
+    _bbox.setBounds(fMinX - boxWidth, fMinY, fMaxX - boxWidth, fMaxY);
     modifyPoints(_bbox);
 }
 
@@ -157,13 +153,24 @@ void SoFCColorGradient::setRange(float fMin, float fMax, int prec)
     _cColGrad.setRange(fMin, fMax);
 
     SoMFString label;
-
     float eps = std::pow(10.0f, static_cast<float>(-prec));
-    float value = std::min<float>(fabs(fMin), fabs(fMax));
-    std::ios::fmtflags flags = value < eps ? (std::ios::scientific | std::ios::showpoint | std::ios::showpos)
-                                           : (std::ios::fixed | std::ios::showpoint | std::ios::showpos);
+    float value_min = std::min<float>(fabs(fMin), fabs(fMax));
+    float value_max = std::max<float>(fabs(fMin), fabs(fMax));
 
-    int i=0;
+    // format the label the following way:
+    // if Min is smaller than 1e-<precision>,
+    //  or Max greater than 1e+4,
+    //  or (Max - Min) < 1e-<precision> * number of labels - 1 (assures every label shows different number)
+    // -> output in scientific notation
+    // otherwise output "normal" (fixed notation)
+    bool scientific = (value_min < eps && value_min > 0.0f)
+        || (value_max - value_min) < eps * (_cColGrad.getCountColors() - 1)
+        || value_max > 1e4;
+    std::ios::fmtflags flags = scientific ? (std::ios::scientific | std::ios::showpoint | std::ios::showpos)
+                                          : (std::ios::fixed | std::ios::showpoint | std::ios::showpos);
+
+    // write the labels
+    int i = 0;
     std::vector<float> marks = getMarkerValues(fMin, fMax, _cColGrad.getCountColors());
     for (const auto& it : marks) {
         std::stringstream s;
@@ -173,7 +180,7 @@ void SoFCColorGradient::setRange(float fMin, float fMax, int prec)
         label.set1Value(i++, s.str().c_str());
     }
 
-    setMarkerLabel( label );
+    setMarkerLabel(label);
 }
 
 std::vector<float> SoFCColorGradient::getMarkerValues(float fMin, float fMax, int count) const
@@ -181,26 +188,26 @@ std::vector<float> SoFCColorGradient::getMarkerValues(float fMin, float fMax, in
     std::vector<float> labels;
 
     // the middle of the bar is zero
-    if (fMin < 0.0f && fMax > 0.0f && _cColGrad.getStyle() == App::ColorGradient::ZERO_BASED) {
+    if (fMin < 0.0f && fMax > 0.0f && _cColGrad.getStyle() == App::ColorBarStyle::ZERO_BASED) {
         if (count % 2 == 0)
             count++;
         int half = count / 2;
         for (int j = 0; j < half + 1; j++) {
-            float w = (float)j/((float)half);
-            float fValue = (1.0f-w)*fMax;
-            labels.push_back( fValue );
+            float w = (float)j / ((float)half);
+            float fValue = (1.0f - w) * fMax;
+            labels.push_back(fValue);
         }
         for (int k = half + 1; k < count; k++) {
-            float w = (float)(k-half+1)/((float)(count-half));
-            float fValue = w*fMin;
-            labels.push_back( fValue );
+            float w = (float)(k - half + 1) / ((float)(count - half));
+            float fValue = w * fMin;
+            labels.push_back(fValue);
         }
     }
     else { // either not zero based or 0 is not in between [fMin,fMax]
         for (int j = 0; j < count; j++) {
-            float w = (float)j/((float)count-1.0f);
-            float fValue = (1.0f-w)*fMax+w*fMin;
-            labels.push_back( fValue );
+            float w = (float)j / ((float)count - 1.0f);
+            float fValue = (1.0f - w) * fMax + w * fMin;
+            labels.push_back(fValue);
         }
     }
 
@@ -230,9 +237,9 @@ void SoFCColorGradient::setColorModel(std::size_t index)
     rebuildGradient();
 }
 
-void SoFCColorGradient::setColorStyle (App::ColorGradient::TStyle tStyle)
+void SoFCColorGradient::setColorStyle(App::ColorBarStyle tStyle)
 {
-    _cColGrad.setStyle( tStyle );
+    _cColGrad.setStyle(tStyle);
     rebuildGradient();
 }
 
@@ -246,17 +253,17 @@ void SoFCColorGradient::rebuildGradient()
 
     // for uCtColors colors we need 2*(uCtColors-1) facets and therefore an array with
     // 8*(uCtColors-1) face indices
-    SoIndexedFaceSet * faceset = new SoIndexedFaceSet;
+    SoIndexedFaceSet* faceset = new SoIndexedFaceSet;
     faceset->coordIndex.setNum(8 * (uCtColors - 1));
     for (int j = 0; j < uCtColors - 1; j++) {
-        faceset->coordIndex.set1Value(8*j,   2*j);
-        faceset->coordIndex.set1Value(8*j+1, 2*j+3);
-        faceset->coordIndex.set1Value(8*j+2, 2*j+1);
-        faceset->coordIndex.set1Value(8*j+3, SO_END_FACE_INDEX);
-        faceset->coordIndex.set1Value(8*j+4, 2*j);
-        faceset->coordIndex.set1Value(8*j+5, 2*j+2);
-        faceset->coordIndex.set1Value(8*j+6, 2*j+3);
-        faceset->coordIndex.set1Value(8*j+7, SO_END_FACE_INDEX);
+        faceset->coordIndex.set1Value(8 * j, 2 * j);
+        faceset->coordIndex.set1Value(8 * j + 1, 2 * j + 3);
+        faceset->coordIndex.set1Value(8 * j + 2, 2 * j + 1);
+        faceset->coordIndex.set1Value(8 * j + 3, SO_END_FACE_INDEX);
+        faceset->coordIndex.set1Value(8 * j + 4, 2 * j);
+        faceset->coordIndex.set1Value(8 * j + 5, 2 * j + 2);
+        faceset->coordIndex.set1Value(8 * j + 6, 2 * j + 3);
+        faceset->coordIndex.set1Value(8 * j + 7, SO_END_FACE_INDEX);
     }
 
     // set an own transparency type for this color bar only
@@ -266,9 +273,9 @@ void SoFCColorGradient::rebuildGradient()
     //mat->transparency = 0.3f;
     mat->diffuseColor.setNum(2 * uCtColors);
     for (int k = 0; k < uCtColors; k++) {
-        App::Color col = model.colors[uCtColors-k-1];
-        mat->diffuseColor.set1Value(2*k, col.r, col.g, col.b);
-        mat->diffuseColor.set1Value(2*k+1, col.r, col.g, col.b);
+        App::Color col = model.colors[uCtColors - k - 1];
+        mat->diffuseColor.set1Value(2 * k, col.r, col.g, col.b);
+        mat->diffuseColor.set1Value(2 * k + 1, col.r, col.g, col.b);
     }
 
     SoMaterialBinding* matBinding = new SoMaterialBinding;
@@ -285,54 +292,49 @@ void SoFCColorGradient::rebuildGradient()
     addChild(faceset);
 }
 
-bool SoFCColorGradient::isVisible (float fVal) const
+bool SoFCColorGradient::isVisible(float fVal) const
 {
-    if (_bOutInvisible) {
-        float fMin, fMax;
-        _cColGrad.getRange(fMin, fMax);
-        if ((fVal > fMax) || (fVal < fMin))
-            return false;
-        else
-            return true;
+    if (_cColGrad.isOutsideInvisible()) {
+        return !_cColGrad.isOutOfRange(fVal);
     }
 
     return true;
 }
 
-bool SoFCColorGradient::customize()
+void SoFCColorGradient::customize(SoFCColorBarBase* parentNode)
 {
     QWidget* parent = Gui::getMainWindow()->activeWindow();
-    Gui::Dialog::DlgSettingsColorGradientImp dlg(parent);
-
-    dlg.setColorModelNames(_cColGrad.getColorModelNames());
-    dlg.setColorModel(_cColGrad.getColorModelType());
-    dlg.setColorStyle(_cColGrad.getStyle());
-    dlg.setOutGrayed(_cColGrad.isOutsideGrayed());
-    dlg.setOutInvisible(_bOutInvisible);
-    dlg.setNumberOfLabels(_cColGrad.getCountColors());
-    dlg.setNumberOfDecimals(_precision);
-    float fMin, fMax;
-    _cColGrad.getRange(fMin, fMax);
-    dlg.setRange(fMin, fMax);
+    Gui::Dialog::DlgSettingsColorGradientImp dlg(_cColGrad, parent);
+    App::ColorGradientProfile profile = _cColGrad.getProfile();
+    dlg.setNumberOfDecimals(_precision, profile.fMin, profile.fMax);
 
     QPoint pos(QCursor::pos());
-    pos += QPoint((int)(-1.1*dlg.width()),(int)(-0.1*dlg.height()));
-    dlg.move( pos );
+    pos += QPoint(int(-1.1 * dlg.width()), int(-0.1 * dlg.height()));
+    dlg.move(pos);
 
-    if (dlg.exec() == QDialog::Accepted) {
-        _cColGrad.setColorModel(dlg.colorModel());
-        _cColGrad.setStyle(dlg.colorStyle());
-        _cColGrad.setOutsideGrayed(dlg.isOutGrayed());
-        _bOutInvisible = dlg.isOutInvisible();
-        _cColGrad.setCountColors(dlg.numberOfLabels());
-        _precision = dlg.numberOfDecimals();
-        dlg.getRange(fMin, fMax);
-        int dec = dlg.numberOfDecimals();
-        setRange(fMin, fMax, dec);
+    auto applyProfile = [&](const App::ColorGradientProfile& pro, int precision) {
+        _cColGrad.setProfile(pro);
+        setRange(pro.fMin, pro.fMax, precision);
         rebuildGradient();
 
-        return true;
-    }
+        triggerChange(parentNode);
+    };
+    QObject::connect(&dlg, &Gui::Dialog::DlgSettingsColorGradientImp::colorModelChanged,
+                     [&] {
+        try {
+            applyProfile(dlg.getProfile(), dlg.numberOfDecimals());
+        }
+        catch (const Base::Exception& e) {
+            e.ReportException();
+        }
+    });
 
-    return false;
+    if (dlg.exec() != QDialog::Accepted) {
+        int decimals = dlg.numberOfDecimals();
+        if (!profile.isEqual(dlg.getProfile()) || decimals != _precision)
+            applyProfile(profile, _precision);
+    }
+    else {
+        _precision = dlg.numberOfDecimals();
+    }
 }

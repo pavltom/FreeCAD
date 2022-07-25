@@ -53,7 +53,7 @@ DrawViewClip::DrawViewClip(void)
     ADD_PROPERTY_TYPE(Height     ,(100),group,App::Prop_None,"The height of the view area of this clip");
     ADD_PROPERTY_TYPE(Width      ,(100),group,App::Prop_None,"The width of the view area of this clip");
     ADD_PROPERTY_TYPE(ShowFrame  ,(0) ,group,App::Prop_None,"Specifies if the clip frame appears on the page or not");
-    ADD_PROPERTY_TYPE(Views      ,(0) ,group,App::Prop_None,"The Views in this Clip group");
+    ADD_PROPERTY_TYPE(Views      ,(nullptr) ,group,App::Prop_None,"The Views in this Clip group");
     Views.setScope(App::LinkScope::Global);
 
     // hide N/A properties
@@ -122,16 +122,15 @@ App::DocumentObjectExecReturn *DrawViewClip::execute(void)
     return DrawView::execute();
 }
 
+//NOTE: DocumentObject::mustExecute returns 1/0 and not true/false
 short DrawViewClip::mustExecute() const
 {
-    short result = 0;
     if (!isRestoring()) {
-        result = ( Height.isTouched() ||
-                   Width.isTouched()  ||
-                   Views.isTouched());
-    }
-    if (result) {
-        return result;
+        if (Height.isTouched() ||
+            Width.isTouched() ||
+            Views.isTouched()) {
+            return 1;
+        }
     }
     return TechDraw::DrawView::mustExecute();
 }
@@ -151,14 +150,13 @@ std::vector<std::string> DrawViewClip::getChildViewNames()
 
 bool DrawViewClip::isViewInClip(App::DocumentObject* view)
 {
-    bool result = false;
     std::vector<App::DocumentObject*> children = Views.getValues();
     for (std::vector<App::DocumentObject*>::iterator it = children.begin(); it != children.end(); ++it) {
         if ((*it) == view) {
-            result = true;
+            return true;
         }
     }
-    return result;
+    return false;
 }
 
 PyObject *DrawViewClip::getPyObject(void)

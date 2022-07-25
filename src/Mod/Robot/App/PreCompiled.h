@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef ROBOT_PRECOMPILED_H
 #define ROBOT_PRECOMPILED_H
 
@@ -42,18 +41,13 @@
 // standard
 #include <iostream>
 #include <sstream>
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 #include <string>
 #include <map>
 #include <vector>
 #include <set>
 #include <bitset>
-
-#include <Python.h>
-
-
-
 
 #endif // _PreComp_
 #endif

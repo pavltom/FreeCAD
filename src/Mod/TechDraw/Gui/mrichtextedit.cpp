@@ -62,7 +62,7 @@ using namespace TechDraw;
 
 MRichTextEdit::MRichTextEdit(QWidget *parent, QString textIn) : QWidget(parent) {
     setupUi(this);
-    m_lastBlockList = 0;
+    m_lastBlockList = nullptr;
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
     f_textedit->setTabStopWidth(40);
 #else
@@ -201,7 +201,8 @@ MRichTextEdit::MRichTextEdit(QWidget *parent, QString textIn) : QWidget(parent) 
     // font size
 
     QFontDatabase db;
-    for(int size: db.standardSizes()) {
+    const auto sizes = db.standardSizes();
+    for(int size: sizes) {
         f_fontsize->addItem(QString::number(size));
     }
     //TODO: void QComboBox::setEditText(const QString &text) to " " when multiple select
@@ -536,7 +537,7 @@ void MRichTextEdit::slotCursorPositionChanged() {
 
     if (m_lastBlockList && 
         (l == m_lastBlockList || 
-        (l != 0 && m_lastBlockList != 0 && l->format().style() == m_lastBlockList->format().style()) ) ) {
+        (l && m_lastBlockList && l->format().style() == m_lastBlockList->format().style()) ) ) {
         return;
     }
     m_lastBlockList = l;
@@ -745,8 +746,8 @@ bool MRichTextEdit::hasMultipleSizes(void)
             QString asQS = QString::number(currSize,'f',2);
             foundSizes.push_back(asQS);
             auto ret = countMap.insert(std::pair<QString, int>(asQS, 1));
-            if (ret.second == false) {            //already have this size
-                ret.first->second++;              //bump count
+            if (!ret.second) {            //already have this size
+                ret.first->second++;      //bump count
             }
         }
         if (countMap.size() > 1) {

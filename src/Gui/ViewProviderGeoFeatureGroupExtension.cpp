@@ -22,18 +22,20 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
+#include <Inventor/nodes/SoSeparator.h>
 #endif
 
-#include "ViewProviderGeoFeatureGroupExtension.h"
-#include "Command.h"
-#include "Application.h"
-#include "Document.h"
+#include <App/DocumentObject.h>
 #include <App/GeoFeatureGroupExtension.h>
+
+#include "ViewProviderGeoFeatureGroupExtension.h"
+#include "ViewProviderDocumentObject.h"
+#include "Application.h"
 #include "SoFCUnifiedSelection.h"
+
 
 using namespace Gui;
 
@@ -45,12 +47,20 @@ ViewProviderGeoFeatureGroupExtension::ViewProviderGeoFeatureGroupExtension()
 
     pcGroupChildren = new SoFCSelectionRoot;
     pcGroupChildren->ref();
+    pcGroupFront = new SoSeparator();
+    pcGroupFront->ref();
+    pcGroupBack = new SoSeparator();
+    pcGroupBack->ref();
 }
 
 ViewProviderGeoFeatureGroupExtension::~ViewProviderGeoFeatureGroupExtension()
 {
     pcGroupChildren->unref();
-    pcGroupChildren = 0;
+    pcGroupChildren = nullptr;
+    pcGroupFront->unref();
+    pcGroupFront = nullptr;
+    pcGroupBack->unref();
+    pcGroupBack = nullptr;
 }
 
 

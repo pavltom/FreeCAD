@@ -30,28 +30,16 @@
 # include <QMenu>
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <Base/Console.h>
-#include <Base/Parameter.h>
-#include <Base/Exception.h>
-#include <Base/Sequencer.h>
-#include <App/Application.h>
-#include <App/Document.h>
 #include <App/DocumentObject.h>
-
-#include <Gui/Application.h>
 #include <Gui/ActionFunction.h>
-#include <Gui/BitmapFactory.h>
 #include <Gui/Control.h>
-#include <Gui/Command.h>
-#include <Gui/Document.h>
-#include <Gui/MainWindow.h>
 #include <Gui/Selection.h>
 #include <Gui/ViewProviderDocumentObject.h>
 
 #include <Mod/TechDraw/App/LineGroup.h>
 
 #include "PreferencesGui.h"
+#include "QGIViewBalloon.h"
 #include "TaskBalloon.h"
 #include "ViewProviderBalloon.h"
 
@@ -115,26 +103,24 @@ void ViewProviderBalloon::setupContextMenu(QMenu* menu, QObject* receiver, const
     Gui::ActionFunction* func = new Gui::ActionFunction(menu);
     QAction* act = menu->addAction(QObject::tr("Edit %1").arg(QString::fromUtf8(getObject()->Label.getValue())));
     act->setData(QVariant((int)ViewProvider::Default));
-    func->trigger(act, boost::bind(&ViewProviderBalloon::startDefaultEditMode, this));
+    func->trigger(act, std::bind(&ViewProviderBalloon::startDefaultEditMode, this));
 
     ViewProviderDrawingView::setupContextMenu(menu, receiver, member);
 }
 
 bool ViewProviderBalloon::setEdit(int ModNum)
 {
-    if (ModNum == ViewProvider::Default ) {
-        if (Gui::Control().activeDialog())  {
-            return false;
-        }
-        // clear the selection (convenience)
-        Gui::Selection().clearSelection();
-        auto qgivBalloon(dynamic_cast<QGIViewBalloon*>(getQView()));
-        if (qgivBalloon) {
-            Gui::Control().showDialog(new TaskDlgBalloon(qgivBalloon, this));
-        }
-        return true;
-    } else {
+    if (ModNum != ViewProvider::Default ) {
         return ViewProviderDrawingView::setEdit(ModNum);
+    }
+    if (Gui::Control().activeDialog())  {
+        return false;
+    }
+    // clear the selection (convenience)
+    Gui::Selection().clearSelection();
+    auto qgivBalloon(dynamic_cast<QGIViewBalloon*>(getQView()));
+    if (qgivBalloon) {
+        Gui::Control().showDialog(new TaskDlgBalloon(qgivBalloon, this));
     }
     return true;
 }
@@ -151,7 +137,18 @@ void ViewProviderBalloon::unsetEdit(int ModNum)
 
 void ViewProviderBalloon::updateData(const App::Property* p)
 {
-    ViewProviderDrawingView::updateData(p);
+    //Balloon handles X,Y updates differently that other QGIView
+    //call QGIViewBalloon::updateView
+    if (p == &(getViewObject()->X)  ||
+        p == &(getViewObject()->Y) ){
+        QGIView* qgiv = getQView();
+        if (qgiv) {
+            qgiv->updateView(true);
+        }
+    }
+
+    //Skip QGIView X,Y processing - do not call ViewProviderDrawingView
+    Gui::ViewProviderDocumentObject::updateData(p);
 }
 
 void ViewProviderBalloon::onChanged(const App::Property* p)

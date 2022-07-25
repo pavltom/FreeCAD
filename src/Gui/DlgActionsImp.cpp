@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <QDialogButtonBox>
@@ -32,18 +31,16 @@
 # include <QKeySequence>
 # include <QLineEdit>
 # include <QMessageBox>
-# include <QTextStream>
-# include <QVBoxLayout>
 #endif
 
 #include "DlgActionsImp.h"
 #include "ui_DlgActions.h"
 #include "Action.h"
 #include "Application.h"
-#include "Command.h"
 #include "BitmapFactory.h"
-#include "Widgets.h"
+#include "Command.h"
 #include "ui_DlgChooseIcon.h"
+
 
 using namespace Gui::Dialog;
 
@@ -223,8 +220,8 @@ void DlgCustomActionsImp::on_buttonAddAction_clicked()
     }
 
     // search for the command in the manager
-    QByteArray actionName = newActionName().toLatin1();
     CommandManager& rclMan = Application::Instance->commandManager();
+    QByteArray actionName = QString::fromStdString(rclMan.newMacroName()).toLatin1();
     MacroCommand* macro = new MacroCommand(actionName, ui->actionMacros->itemData(ui->actionMacros->currentIndex()).toBool());
     rclMan.addCommand( macro );
 
@@ -271,7 +268,7 @@ void DlgCustomActionsImp::on_buttonAddAction_clicked()
     ui->actionAccel->clear();
 
     // emit signal to notify the container widget
-    addMacroAction(actionName);
+    Q_EMIT addMacroAction(actionName);
 }
 
 void DlgCustomActionsImp::on_buttonReplaceAction_clicked()
@@ -355,7 +352,7 @@ void DlgCustomActionsImp::on_buttonReplaceAction_clicked()
     }
 
     // emit signal to notify the container widget
-    modifyMacroAction(actionName);
+    Q_EMIT modifyMacroAction(actionName);
 
     // call this at the end because it internally invokes the highlight method
     if (macro->getPixmap())
@@ -381,7 +378,7 @@ void DlgCustomActionsImp::on_buttonRemoveAction_clicked()
         if (actionName == (*it2)->getName())
         {
             // emit signal to notify the container widget
-            removeMacroAction(actionName);
+            Q_EMIT removeMacroAction(actionName);
             // remove from manager and delete it immediately
             rclMan.removeCommand(*it2);
             break;
@@ -496,34 +493,6 @@ void DlgCustomActionsImp::on_buttonChoosePixmap_clicked()
     }
 }
 
-QString DlgCustomActionsImp::newActionName()
-{
-    int id = 0;
-    QString sName;
-    bool bUsed;
-
-    CommandManager& rclMan = Application::Instance->commandManager();
-    std::vector<Command*> aclCurMacros = rclMan.getGroupCommands("Macros");
-
-    do
-    {
-        bUsed = false;
-        sName = QString::fromLatin1("Std_Macro_%1").arg( id++ );
-
-        std::vector<Command*>::iterator it;
-        for ( it = aclCurMacros.begin(); it!= aclCurMacros.end(); ++it )
-        {
-            if (sName == QLatin1String((*it)->getName()))
-            {
-                bUsed = true;
-                break;
-            }
-        }
-    } while ( bUsed );
-
-    return sName;
-}
-
 void DlgCustomActionsImp::changeEvent(QEvent *e)
 {
     if (e->type() == QEvent::LanguageChange) {
@@ -632,7 +601,7 @@ void IconFolders::removeFolder()
 
     addButton->setEnabled(true);
     QPushButton* remove = static_cast<QPushButton*>(sender());
-    QLineEdit* edit = 0;
+    QLineEdit* edit = nullptr;
     for (QList< QPair<QLineEdit*, QPushButton*> >::iterator it = buttonMap.begin(); it != buttonMap.end(); ++it) {
         if (it->second == remove) {
             edit = it->first;

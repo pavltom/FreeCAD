@@ -48,12 +48,13 @@
 
 #include "Rez.h"
 #include "ZVALUE.h"
+#include "QGSPage.h"
 #include "TemplateTextField.h"
 #include "QGISVGTemplate.h"
 
 using namespace TechDrawGui;
 
-QGISVGTemplate::QGISVGTemplate(QGraphicsScene *scene)
+QGISVGTemplate::QGISVGTemplate(QGSPage* scene)
     : QGITemplate(scene),
       firstTime(true)
 {
@@ -127,7 +128,7 @@ TechDraw::DrawSVGTemplate * QGISVGTemplate::getSVGTemplate()
     if(pageTemplate && pageTemplate->isDerivedFrom(TechDraw::DrawSVGTemplate::getClassTypeId()))
         return static_cast<TechDraw::DrawSVGTemplate *>(pageTemplate);
     else
-        return 0;
+        return nullptr;
 }
 
 void QGISVGTemplate::draw()

@@ -22,13 +22,11 @@
 
 #include "PreCompiled.h"
 
-#include "Base/Quantity.h"
-#include "Base/Vector3D.h"
-
 // inclusion of the generated files (generated out of QuantityPy.xml)
 #include "QuantityPy.h"
 #include "UnitPy.h"
 #include "QuantityPy.cpp"
+
 
 using namespace Base;
 
@@ -88,7 +86,6 @@ int QuantityPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     PyErr_Clear(); // set by PyArg_ParseTuple()
     PyObject *object;
     if (PyArg_ParseTuple(args,"O!",&(Base::QuantityPy::Type), &object)) {
-        // Note: must be static_cast, not reinterpret_cast
         *self = *(static_cast<Base::QuantityPy*>(object)->getQuantityPtr());
         return 0;
     }
@@ -96,7 +93,6 @@ int QuantityPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     PyErr_Clear(); // set by PyArg_ParseTuple()
     double f = DOUBLE_MAX;
     if (PyArg_ParseTuple(args,"dO!",&f,&(Base::UnitPy::Type), &object)) {
-        // Note: must be static_cast, not reinterpret_cast
         *self = Quantity(f,*(static_cast<Base::UnitPy*>(object)->getUnitPtr()));
         return 0;
     }
@@ -117,8 +113,15 @@ int QuantityPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     int i8=0;
     PyErr_Clear(); // set by PyArg_ParseTuple()
     if (PyArg_ParseTuple(args, "|diiiiiiii", &f,&i1,&i2,&i3,&i4,&i5,&i6,&i7,&i8)) {
-        if (f != DOUBLE_MAX) {
-            *self = Quantity(f,Unit(i1,i2,i3,i4,i5,i6,i7,i8));
+        if (f < DOUBLE_MAX) {
+            *self = Quantity(f,Unit{static_cast<int8_t>(i1),
+                                    static_cast<int8_t>(i2),
+                                    static_cast<int8_t>(i3),
+                                    static_cast<int8_t>(i4),
+                                    static_cast<int8_t>(i5),
+                                    static_cast<int8_t>(i6),
+                                    static_cast<int8_t>(i7),
+                                    static_cast<int8_t>(i8)});
         }
         return 0;
     }
@@ -182,7 +185,6 @@ PyObject* QuantityPy::getValueAs(PyObject *args)
     if (!quant.isValid()) {
         PyObject *object;
         if (PyArg_ParseTuple(args,"O!",&(Base::QuantityPy::Type), &object)) {
-            // Note: must be static_cast, not reinterpret_cast
             quant = * static_cast<Base::QuantityPy*>(object)->getQuantityPtr();
         }
     }
@@ -191,7 +193,6 @@ PyObject* QuantityPy::getValueAs(PyObject *args)
         PyObject *object;
         PyErr_Clear();
         if (PyArg_ParseTuple(args,"O!",&(Base::UnitPy::Type), &object)) {
-            // Note: must be static_cast, not reinterpret_cast
             quant.setUnit(*static_cast<Base::UnitPy*>(object)->getUnitPtr());
             quant.setValue(1.0);
         }
@@ -202,7 +203,6 @@ PyObject* QuantityPy::getValueAs(PyObject *args)
         double value;
         PyErr_Clear();
         if (PyArg_ParseTuple(args,"dO!",&value, &(Base::UnitPy::Type), &object)) {
-            // Note: must be static_cast, not reinterpret_cast
             quant.setUnit(*static_cast<Base::UnitPy*>(object)->getUnitPtr());
             quant.setValue(value);
         }
@@ -220,8 +220,15 @@ PyObject* QuantityPy::getValueAs(PyObject *args)
         int i8=0;
         PyErr_Clear();
         if (PyArg_ParseTuple(args, "d|iiiiiiii", &f,&i1,&i2,&i3,&i4,&i5,&i6,&i7,&i8)) {
-            if (f!=DOUBLE_MAX) {
-                quant = Quantity(f,Unit(i1,i2,i3,i4,i5,i6,i7,i8));
+            if (f < DOUBLE_MAX) {
+                quant = Quantity(f,Unit{static_cast<int8_t>(i1),
+                                        static_cast<int8_t>(i2),
+                                        static_cast<int8_t>(i3),
+                                        static_cast<int8_t>(i4),
+                                        static_cast<int8_t>(i5),
+                                        static_cast<int8_t>(i6),
+                                        static_cast<int8_t>(i7),
+                                        static_cast<int8_t>(i8)});
             }
         }
     }
@@ -280,7 +287,7 @@ PyObject * QuantityPy::number_int_handler (PyObject *self)
     }
 
     QuantityPy* q = static_cast<QuantityPy*>(self);
-    return PyLong_FromLong((long)q->getValue());
+    return PyLong_FromLong(long(q->getValue()));
 }
 
 PyObject * QuantityPy::number_negative_handler (PyObject *self)
@@ -333,7 +340,7 @@ static Quantity &pyToQuantity(Quantity &q, PyObject *pyobj) {
 
 PyObject* QuantityPy::number_add_handler(PyObject *self, PyObject *other)
 {
-    Quantity *pa=0, *pb=0;
+    Quantity *pa=nullptr, *pb=nullptr;
     Quantity a,b;
     PY_TRY {
         if (PyObject_TypeCheck(self, &(QuantityPy::Type)))
@@ -351,7 +358,7 @@ PyObject* QuantityPy::number_add_handler(PyObject *self, PyObject *other)
 
 PyObject* QuantityPy::number_subtract_handler(PyObject *self, PyObject *other)
 {
-    Quantity *pa=0, *pb=0;
+    Quantity *pa=nullptr, *pb=nullptr;
     Quantity a,b;
     PY_TRY {
         if (PyObject_TypeCheck(self, &(QuantityPy::Type)))
@@ -369,7 +376,7 @@ PyObject* QuantityPy::number_subtract_handler(PyObject *self, PyObject *other)
 
 PyObject* QuantityPy::number_multiply_handler(PyObject *self, PyObject *other)
 {
-    Quantity *pa=0, *pb=0;
+    Quantity *pa=nullptr, *pb=nullptr;
     Quantity a,b;
     PY_TRY {
         if (PyObject_TypeCheck(self, &(QuantityPy::Type)))
@@ -387,7 +394,7 @@ PyObject* QuantityPy::number_multiply_handler(PyObject *self, PyObject *other)
 
 PyObject * QuantityPy::number_divide_handler (PyObject *self, PyObject *other)
 {
-    Quantity *pa=0, *pb=0;
+    Quantity *pa=nullptr, *pb=nullptr;
     Quantity a,b;
     PY_TRY {
         if (PyObject_TypeCheck(self, &(QuantityPy::Type)))
@@ -588,8 +595,7 @@ Py::Object QuantityPy::getUnit() const
 
 void QuantityPy::setUnit(Py::Object arg)
 {
-    union PyType_Object pyType = {&(Base::UnitPy::Type)};
-    Py::Type UnitType(pyType.o);
+    Py::Type UnitType(Base::getTypeAsObject(&Base::UnitPy::Type));
     if(!arg.isType(UnitType))
         throw Py::AttributeError("Not yet implemented");
 

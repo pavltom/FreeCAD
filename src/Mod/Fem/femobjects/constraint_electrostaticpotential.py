@@ -47,10 +47,10 @@ class ConstraintElectrostaticPotential(base_fempythonobject.BaseFemPythonObject)
     def add_properties(self, obj):
         if not hasattr(obj, "Potential"):
             obj.addProperty(
-                "App::PropertyFloat",
+                "App::PropertyElectricPotential",
                 "Potential",
                 "Parameter",
-                "Potential"
+                "Electric Potential"
             ),
             obj.Potential = 0.0
 

@@ -58,7 +58,7 @@ UnitTestDialog* UnitTestDialog::instance()
  */
 void UnitTestDialog::destruct ()
 {
-    if (_instance != nullptr) {
+    if (_instance) {
         UnitTestDialog *pTmp = _instance;
         _instance = nullptr;
         delete pTmp;
@@ -138,6 +138,9 @@ void UnitTestDialog::on_treeViewFailure_itemDoubleClicked(QTreeWidgetItem * item
         QStringList lines = text.split(QLatin1Char('\n'));
         lines.erase(lines.begin()+20, lines.end());
         text = lines.join(QLatin1String("\n"));
+    }
+    if (text.size() > 1000) {
+        text = text.left(1000);
     }
 
     msgBox.setText(text);
@@ -303,7 +306,7 @@ void UnitTestDialog::setProgressFraction(float fraction, const QString& color)
 }
 
 /**
- * Emtpies the error listview.
+ * Empties the error listview.
  */
 void UnitTestDialog::clearErrorList()
 {

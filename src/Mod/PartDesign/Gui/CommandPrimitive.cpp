@@ -22,26 +22,25 @@
 
 
 #include "PreCompiled.h"
-#include <Mod/PartDesign/App/Body.h>
-#include <Mod/PartDesign/App/FeaturePrimitive.h>
+
 #ifndef _PreComp_
-# include <Inventor/nodes/SoPickStyle.h>
 # include <QApplication>
 # include <QMessageBox>
 #endif
 
 #include <App/Document.h>
-#include <Gui/Command.h>
 #include <Gui/Action.h>
+#include <Gui/Application.h>
+#include <Gui/BitmapFactory.h>
+#include <Gui/Command.h>
 #include <Gui/Control.h>
 #include <Gui/MainWindow.h>
-#include <Gui/BitmapFactory.h>
-#include <Gui/Application.h>
-#include <Base/Console.h>
+#include <Mod/PartDesign/App/Body.h>
+#include <Mod/PartDesign/App/FeaturePrimitive.h>
 
+#include "DlgActiveBody.h"
 #include "Utils.h"
 #include "WorkflowManager.h"
-#include "DlgActiveBody.h"
 
 using namespace std;
 
@@ -119,7 +118,8 @@ void CmdPrimtiveCompAdditive::activated(int iMsg)
     auto* prm = static_cast<PartDesign::FeaturePrimitive*>(
             pcActiveBody->getDocument()->getObject(FeatName.c_str()));
 
-    if(!prm) return;
+    if(!prm)
+        return;
     FCMD_OBJ_CMD(pcActiveBody,"addObject("<<getObjectCmd(prm)<<")");
     Gui::Command::updateActive();
 

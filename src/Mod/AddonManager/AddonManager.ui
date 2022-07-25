@@ -86,7 +86,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>labelStatusInfo</string>
+        <string notr="true">labelStatusInfo</string>
        </property>
       </widget>
      </item>

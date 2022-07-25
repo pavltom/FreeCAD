@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="App" Version="10.0.0" InternalType="Library">
+  <VirtualDirectory Name="App">
+    <File Name="DrawProjectSplit.h"/>
+    <File Name="HatchLine.cpp"/>
+    <File Name="LineGroup.cpp"/>
+    <File Name="AppTechDraw.cpp"/>
+    <File Name="DrawUtil.h"/>
+    <File Name="DrawViewSpreadsheet.h"/>
+    <File Name="DrawPagePyImp.cpp"/>
+    <File Name="DrawViewClip.h"/>
+    <File Name="DrawViewDimExtentPyImp.cpp"/>
+    <File Name="DrawViewPart.cpp"/>
+    <File Name="DrawProjGroupItem.h"/>
+    <File Name="DrawParametricTemplatePyImp.cpp"/>
+    <File Name="DrawViewDraft.h"/>
+    <File Name="DrawWeldSymbol.cpp"/>
+    <File Name="DrawViewImage.cpp"/>
+    <File Name="DrawViewCollection.cpp"/>
+    <File Name="DrawTileWeld.h"/>
+    <File Name="Geometry.cpp"/>
+    <File Name="Preferences.h"/>
+    <File Name="DrawViewPartPyImp.cpp"/>
+    <File Name="CosmeticExtension.cpp"/>
+    <File Name="PropertyCenterLineList.h"/>
+    <File Name="PropertyCosmeticEdgeList.cpp"/>
+    <File Name="DrawWeldSymbolPyImp.cpp"/>
+    <File Name="DrawWeldSymbol.h"/>
+    <File Name="PropertyCosmeticEdgeList.h"/>
+    <File Name="GeomFormatPyImp.cpp"/>
+    <File Name="PropertyGeomFormatList.cpp"/>
+    <File Name="DrawViewCollection.h"/>
+    <File Name="DrawViewDraft.cpp"/>
+    <File Name="EdgeWalker.cpp"/>
+    <File Name="DrawViewDetail.h"/>
+    <File Name="DrawViewImage.h"/>
+    <File Name="DrawViewClip.cpp"/>
+    <File Name="Preferences.cpp"/>
+    <File Name="PropertyCosmeticVertexList.h"/>
+    <File Name="DrawViewMulti.h"/>
+    <File Name="QDomNodeModel.h"/>
+    <File Name="CenterLinePyImp.cpp"/>
+    <File Name="DrawRichAnnoPyImp.cpp"/>
+    <File Name="LineGroup.h"/>
+    <File Name="DrawRichAnno.h"/>
+    <File Name="DrawViewDimExtent.h"/>
+    <File Name="DrawProjGroupPyImp.cpp"/>
+    <File Name="DrawViewAnnotation.cpp"/>
+    <File Name="DrawRichAnno.cpp"/>
+    <File Name="QDomNodeModel.cpp"/>
+    <File Name="DrawView.cpp"/>
+    <File Name="DrawViewAnnotation.h"/>
+    <File Name="CosmeticExtension.h"/>
+    <File Name="DrawViewClipPyImp.cpp"/>
+    <File Name="AppTechDrawPy.cpp"/>
+    <File Name="DrawSVGTemplate.cpp"/>
+    <File Name="DrawViewDimensionPyImp.cpp"/>
+    <File Name="DrawViewSymbol.h"/>
+    <File Name="ShapeExtractor.h"/>
+    <File Name="DrawParametricTemplate.cpp"/>
+    <File Name="PreCompiled.h"/>
+    <File Name="DrawViewSpreadsheet.cpp"/>
+    <File Name="DrawHatch.h"/>
+    <File Name="DrawProjectSplit.cpp"/>
+    <File Name="DrawDimHelper.h"/>
+    <File Name="DrawPage.cpp"/>
+    <File Name="DrawPage.h"/>
+    <File Name="DrawView.h"/>
+    <File Name="DrawViewAnnotationPyImp.cpp"/>
+    <File Name="DrawHatchPyImp.cpp"/>
+    <File Name="DrawGeomHatchPyImp.cpp"/>
+    <File Name="DrawTilePyImp.cpp"/>
+    <File Name="DrawProjGroup.h"/>
+    <File Name="PropertyGeomFormatList.h"/>
+    <File Name="DrawUtil.cpp"/>
+    <File Name="DrawProjGroupItemPyImp.cpp"/>
+    <File Name="DrawProjGroupItem.cpp"/>
+    <File Name="DrawViewSymbol.cpp"/>
+    <File Name="DrawViewArch.h"/>
+    <File Name="Geometry.h"/>
+    <File Name="DrawViewPyImp.cpp"/>
+    <File Name="DrawGeomHatch.cpp"/>
+    <File Name="DrawTile.cpp"/>
+    <File Name="DrawLeaderLinePyImp.cpp"/>
+    <File Name="DrawHatch.cpp"/>
+    <File Name="PropertyCosmeticVertexList.cpp"/>
+    <File Name="Cosmetic.h"/>
+    <File Name="GeometryObject.h"/>
+    <File Name="DrawTemplate.cpp"/>
+    <File Name="ArrowPropEnum.h"/>
+    <File Name="DrawViewBalloon.h"/>
+    <File Name="GeometryObject.cpp"/>
+    <File Name="DrawTileWeld.cpp"/>
+    <File Name="DrawSVGTemplate.h"/>
+    <File Name="CosmeticVertexPyImp.cpp"/>
+    <File Name="PropertyCenterLineList.cpp"/>
+    <File Name="DrawViewSection.h"/>
+    <File Name="DrawTemplate.h"/>
+    <File Name="DrawLeaderLine.cpp"/>
+    <File Name="DrawViewMulti.cpp"/>
+    <File Name="DrawViewCollectionPyImp.cpp"/>
+    <File Name="DrawViewBalloon.cpp"/>
+    <File Name="EdgeWalker.h"/>
+    <File Name="DrawViewDimension.h"/>
+    <File Name="ArrowPropEnum.cpp"/>
+    <File Name="DrawViewSection.cpp"/>
+    <File Name="LandmarkDimension.cpp"/>
+    <File Name="DrawTemplatePyImp.cpp"/>
+    <File Name="PreCompiled.cpp"/>
+    <File Name="DrawTileWeldPyImp.cpp"/>
+    <File Name="Cosmetic.cpp"/>
+    <File Name="DrawGeomHatch.h"/>
+    <File Name="DrawSVGTemplatePyImp.cpp"/>
+    <File Name="DrawViewPart.h"/>
+    <File Name="LandmarkDimension.h"/>
+    <File Name="DrawDimHelper.cpp"/>
+    <File Name="DrawLeaderLine.h"/>
+    <File Name="DrawViewSymbolPyImp.cpp"/>
+    <File Name="DrawProjGroup.cpp"/>
+    <File Name="DrawViewDimExtent.cpp"/>
+    <File Name="DrawViewDetail.cpp"/>
+    <File Name="CosmeticEdgePyImp.cpp"/>
+    <File Name="DrawViewDimension.cpp"/>
+    <File Name="DrawParametricTemplate.h"/>
+    <File Name="ShapeExtractor.cpp"/>
+    <File Name="DrawTile.h"/>
+    <File Name="DrawViewArch.cpp"/>
+    <File Name="HatchLine.h"/>
+    <File Name="CosmeticExtensionPyImp.cpp"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Dynamic Library">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Debug" Command="FreeCAD" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="/data/src/freecad/freecad-debug/bin" PauseExecWhenProcTerminates="yes" IsGUIProgram="yes" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

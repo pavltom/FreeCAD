@@ -23,11 +23,12 @@
 #ifndef DRAWINGGUI_QGRAPHICSITEMVIEWPART_H
 #define DRAWINGGUI_QGRAPHICSITEMVIEWPART_H
 
-#include <QObject>
 #include <QPainter>
-
+#include <QStyleOptionGraphicsItem>
 #include <Mod/TechDraw/App/Geometry.h>
+
 #include "QGIView.h"
+
 
 namespace TechDraw {
 class DrawViewPart;
@@ -54,7 +55,7 @@ public:
     int type() const override { return Type;}
     virtual void paint( QPainter * painter,
                         const QStyleOptionGraphicsItem * option,
-                        QWidget * widget = 0 ) override;
+                        QWidget * widget = nullptr ) override;
 
 
     void toggleCache(bool state) override;

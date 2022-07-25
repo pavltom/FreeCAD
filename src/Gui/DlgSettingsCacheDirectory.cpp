@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
@@ -32,16 +31,18 @@
 # include <QMessageBox>
 # include <QSettings>
 # include <QUrl>
-# include <climits>
 # include <cmath>
+# include <vector>
 #endif
+
+#include <App/Application.h>
+#include <App/Document.h>
 
 #include "DlgSettingsCacheDirectory.h"
 #include "ui_DlgSettingsCacheDirectory.h"
 #include "DocumentRecovery.h"
 #include "MainWindow.h"
-#include <App/Application.h>
-#include <App/Document.h>
+
 
 using namespace Gui::Dialog;
 
@@ -263,21 +264,8 @@ bool ApplicationCache::performAction(qint64 total)
  */
 qint64 ApplicationCache::size() const
 {
-    // QDirIterator lists some directories twice
-#if 0
-    QDir cache = QString::fromStdString(App::Application::getUserCachePath());
-    QDirIterator it(cache, QDirIterator::Subdirectories);
-    qint64 total = 0;
-    while (it.hasNext()) {
-        it.next();
-        total += it.fileInfo().size();
-    }
-
-    return total;
-#else
     qint64 total = dirSize(QString::fromStdString(App::Application::getUserCachePath()));
     return total;
-#endif
 }
 
 /*!
@@ -313,14 +301,16 @@ qint64 ApplicationCache::dirSize(QString dirPath) const
     QDir dir(dirPath);
 
     QDir::Filters fileFilters = QDir::Files;
-    for (QString filePath : dir.entryList(fileFilters)) {
+    const auto& files = dir.entryList(fileFilters);
+    for (const QString& filePath : files) {
         QFileInfo fi(dir, filePath);
         total += fi.size();
     }
 
     // traverse sub-directories recursively
     QDir::Filters dirFilters = QDir::Dirs | QDir::NoDotAndDotDot;
-    for (QString subDirPath : dir.entryList(dirFilters))
+    const auto& dirs = dir.entryList(dirFilters);
+    for (const QString& subDirPath : dirs)
         total += dirSize(dirPath + QDir::separator() + subDirPath);
     return total;
 }

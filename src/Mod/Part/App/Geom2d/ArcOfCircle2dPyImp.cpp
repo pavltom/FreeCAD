@@ -20,23 +20,21 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp_Circ2d.hxx>
-# include <Geom2d_Circle.hxx>
 # include <GCE2d_MakeArcOfCircle.hxx>
-# include <GCE2d_MakeCircle.hxx>
+# include <Geom2d_Circle.hxx>
 # include <Geom2d_TrimmedCurve.hxx>
+# include <gp_Circ2d.hxx>
 #endif
 
-#include <Mod/Part/App/OCCError.h>
-#include <Mod/Part/App/Geometry.h>
-#include <Mod/Part/App/Geom2d/ArcOfCircle2dPy.h>
-#include <Mod/Part/App/Geom2d/ArcOfCircle2dPy.cpp>
-#include <Mod/Part/App/Geom2d/Circle2dPy.h>
-
 #include <Base/GeometryPyCXX.h>
+
+#include "Geom2d/ArcOfCircle2dPy.h"
+#include "Geom2d/ArcOfCircle2dPy.cpp"
+#include "Geom2d/Circle2dPy.h"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -64,7 +62,7 @@ int ArcOfCircle2dPy::PyInit(PyObject* args, PyObject* /*kwds*/)
         try {
             Handle(Geom2d_Circle) circle = Handle(Geom2d_Circle)::DownCast
                 (static_cast<Circle2dPy*>(o)->getGeom2dCirclePtr()->handle());
-            GCE2d_MakeArcOfCircle arc(circle->Circ2d(), u1, u2, PyObject_IsTrue(sense) ? Standard_True : Standard_False);
+            GCE2d_MakeArcOfCircle arc(circle->Circ2d(), u1, u2, Base::asBoolean(sense));
             if (!arc.IsDone()) {
                 PyErr_SetString(PartExceptionOCCError, gce_ErrorStatusText(arc.Status()));
                 return -1;
@@ -129,7 +127,7 @@ Py::Object ArcOfCircle2dPy::getCircle(void) const
 
 PyObject *ArcOfCircle2dPy::getCustomAttributes(const char* ) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ArcOfCircle2dPy::setCustomAttributes(const char* , PyObject *)

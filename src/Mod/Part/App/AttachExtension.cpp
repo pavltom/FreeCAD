@@ -21,15 +21,10 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
-#ifndef _PreComp_
-#endif
-
-#include "AttachExtension.h"
 
 #include <Base/Console.h>
-#include <App/Application.h>
 
-#include <App/FeaturePythonPyImp.h>
+#include "AttachExtension.h"
 #include "AttachExtensionPy.h"
 
 
@@ -39,12 +34,12 @@ using namespace Attacher;
 EXTENSION_PROPERTY_SOURCE(Part::AttachExtension, App::DocumentObjectExtension)
 
 AttachExtension::AttachExtension()
-   :  _attacher(0)
+   :  _attacher(nullptr)
 {
     EXTENSION_ADD_PROPERTY_TYPE(AttacherType, ("Attacher::AttachEngine3D"), "Attachment",(App::PropertyType)(App::Prop_None),"Class name of attach engine object driving the attachment.");
     this->AttacherType.setStatus(App::Property::Status::Hidden, true);
 
-    EXTENSION_ADD_PROPERTY_TYPE(Support, (0,0), "Attachment",(App::PropertyType)(App::Prop_None),"Support of the 2D geometry");
+    EXTENSION_ADD_PROPERTY_TYPE(Support, (nullptr,nullptr), "Attachment",(App::PropertyType)(App::Prop_None),"Support of the 2D geometry");
 
     EXTENSION_ADD_PROPERTY_TYPE(MapMode, (mmDeactivated), "Attachment", App::Prop_None, "Mode of attachment to other object");
     MapMode.setEditorName("PartGui::PropertyEnumAttacherItem");

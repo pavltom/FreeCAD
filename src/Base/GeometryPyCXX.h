@@ -24,18 +24,18 @@
 #ifndef PY_GEOMETRYPY_H
 #define PY_GEOMETRYPY_H
 
-#include <CXX/Objects.hxx>
 #include <CXX/Extensions.hxx>
 #include <FCGlobal.h>
-#include <Base/Vector3D.h>
+
+#include <Base/BoundBoxPy.h>
 #include <Base/Matrix.h>
 #include <Base/MatrixPy.h>
 #include <Base/Rotation.h>
 #include <Base/RotationPy.h>
 #include <Base/Placement.h>
 #include <Base/PlacementPy.h>
-#include <Base/BoundBoxPy.h>
-#include <Base/Tools2D.h>
+#include <Base/Vector3D.h>
+
 
 namespace Base {
 template <typename T>
@@ -51,12 +51,16 @@ inline Vector3<T> getVectorFromTuple(PyObject* o)
 class BaseExport Vector2dPy : public Py::PythonClass<Vector2dPy>
 {
 public:
+    static Py::PythonType &behaviors();
+    static PyTypeObject *type_object();
+    static bool check( PyObject *p );
+
     static Py::PythonClassObject<Vector2dPy> create(const Vector2d&);
     static Py::PythonClassObject<Vector2dPy> create(double x, double y);
     Vector2dPy(Py::PythonClassInstance *self, Py::Tuple &args, Py::Dict &kwds);
     virtual ~Vector2dPy();
 
-    static void init_type(void);
+    static void init_type();
     Py::Object getattro(const Py::String &name_);
     int setattro(const Py::String &name_, const Py::Object &value);
     virtual Py::Object repr();

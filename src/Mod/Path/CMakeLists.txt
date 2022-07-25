@@ -26,7 +26,6 @@ INSTALL(
 )
 
 SET(PathScripts_SRCS
-    PathCommands.py
     PathScripts/drillableLib.py
     PathScripts/PathAdaptive.py
     PathScripts/PathAdaptiveGui.py
@@ -34,6 +33,7 @@ SET(PathScripts_SRCS
     PathScripts/PathArray.py
     PathScripts/PathCircularHoleBase.py
     PathScripts/PathCircularHoleBaseGui.py
+    PathScripts/PathCamoticsGui.py
     PathScripts/PathComment.py
     PathScripts/PathCopy.py
     PathScripts/PathCustom.py
@@ -142,13 +142,17 @@ SET(PathScripts_SRCS
     PathScripts/PathWaterline.py
     PathScripts/PathWaterlineGui.py
     PathScripts/PostUtils.py
+    PathScripts/PostUtilsArguments.py
+    PathScripts/PostUtilsExport.py
+    PathScripts/PostUtilsParse.py
     PathScripts/__init__.py
 )
 
 SET(Generator_SRCS
     Generators/drill_generator.py
-    Generators/rotation_generator.py
     Generators/helix_generator.py
+    Generators/rotation_generator.py
+    Generators/threadmilling_generator.py
     Generators/toolchange_generator.py
 )
 
@@ -156,19 +160,30 @@ SET(PathScripts_post_SRCS
     PathScripts/post/__init__.py
     PathScripts/post/centroid_post.py
     PathScripts/post/comparams_post.py
-    PathScripts/post/dynapath_post.py
     PathScripts/post/dxf_post.py
+    PathScripts/post/dynapath_post.py
     PathScripts/post/example_pre.py
+    PathScripts/post/fablin_post.py
+    PathScripts/post/fanuc_post.py
     PathScripts/post/gcode_pre.py
     PathScripts/post/grbl_post.py
+    PathScripts/post/heidenhain_post.py
     PathScripts/post/jtech_post.py
+    PathScripts/post/KineticNCBeamicon2_post.py
     PathScripts/post/linuxcnc_post.py
     PathScripts/post/mach3_mach4_post.py
+    PathScripts/post/marlin_post.py
     PathScripts/post/nccad_post.py
     PathScripts/post/opensbp_post.py
     PathScripts/post/opensbp_pre.py
     PathScripts/post/philips_post.py
+    PathScripts/post/refactored_centroid_post.py
+    PathScripts/post/refactored_grbl_post.py
+    PathScripts/post/refactored_linuxcnc_post.py
+    PathScripts/post/refactored_mach3_mach4_post.py
+    PathScripts/post/refactored_test_post.py
     PathScripts/post/rml_post.py
+    PathScripts/post/rrf_post.py
     PathScripts/post/slic3r_pre.py
     PathScripts/post/smoothie_post.py
     PathScripts/post/uccnc_post.py
@@ -214,13 +229,19 @@ SET(Tools_Shape_SRCS
 SET(PathTests_SRCS
     PathTests/__init__.py
     PathTests/boxtest.fcstd
+    PathTests/boxtest1.fcstd
     PathTests/Drilling_1.FCStd
+    PathTests/drill_test1.FCStd
     PathTests/PathTestUtils.py
     PathTests/test_adaptive.fcstd
     PathTests/test_centroid_00.ngc
+    PathTests/test_filenaming.fcstd
     PathTests/test_geomop.fcstd
     PathTests/test_holes00.fcstd
-    PathTests/test_linuxcnc_00.ngc
+    PathTests/TestCentroidPost.py
+    PathTests/TestGrblPost.py
+    PathTests/TestLinuxCNCPost.py
+    PathTests/TestMach3Mach4Post.py
     PathTests/TestPathAdaptive.py
     PathTests/TestPathCore.py
     PathTests/TestPathDeburr.py
@@ -243,6 +264,7 @@ SET(PathTests_SRCS
     PathTests/TestPathStock.py
     PathTests/TestPathToolChangeGenerator.py
     PathTests/TestPathThreadMilling.py
+    PathTests/TestPathThreadMillingGenerator.py
     PathTests/TestPathTool.py
     PathTests/TestPathToolBit.py
     PathTests/TestPathToolController.py
@@ -250,6 +272,11 @@ SET(PathTests_SRCS
     PathTests/TestPathUtil.py
     PathTests/TestPathVcarve.py
     PathTests/TestPathVoronoi.py
+    PathTests/TestRefactoredCentroidPost.py
+    PathTests/TestRefactoredGrblPost.py
+    PathTests/TestRefactoredLinuxCNCPost.py
+    PathTests/TestRefactoredMach3Mach4Post.py
+    PathTests/TestRefactoredTestPost.py
     PathTests/Tools/Bit/test-path-tool-bit-bit-00.fctb
     PathTests/Tools/Library/test-path-tool-bit-library-00.fctl
     PathTests/Tools/Shape/test-path-tool-bit-shape-00.fcstd
@@ -271,8 +298,13 @@ SET(Path_Images
 )
 
 SET(PathData_Threads
-    Data/Threads/metric-internal.csv
-    Data/Threads/imperial-internal.csv
+    Data/Threads/imperial-external-2A.csv
+    Data/Threads/imperial-external-3A.csv
+    Data/Threads/imperial-internal-2B.csv
+    Data/Threads/imperial-internal-3B.csv
+    Data/Threads/metric-external-4G6G.csv
+    Data/Threads/metric-external-6G.csv
+    Data/Threads/metric-internal-6H.csv
 )
 
 SET(Path_Data
@@ -399,4 +431,3 @@ INSTALL(
     DESTINATION
         Mod/Path/Data/Threads
 )
-

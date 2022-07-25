@@ -20,50 +20,43 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
 # include <QApplication>
-# include <QPixmap>
 # include <QTimer>
 # include <Inventor/SoPickedPoint.h>
+# include <Inventor/actions/SoGetBoundingBoxAction.h>
+# include <Inventor/details/SoDetail.h>
+# include <Inventor/events/SoKeyboardEvent.h>
+# include <Inventor/events/SoLocation2Event.h>
+# include <Inventor/events/SoMouseButtonEvent.h>
 # include <Inventor/nodes/SoSeparator.h>
 # include <Inventor/nodes/SoSwitch.h>
-# include <Inventor/details/SoDetail.h>
 # include <Inventor/nodes/SoTransform.h>
-# include <Inventor/nodes/SoCamera.h>
-# include <Inventor/events/SoMouseButtonEvent.h>
-# include <Inventor/events/SoLocation2Event.h>
-# include <Inventor/actions/SoGetMatrixAction.h>
-# include <Inventor/actions/SoSearchAction.h>
-# include <Inventor/actions/SoGetBoundingBoxAction.h>
-# include <boost_bind_bind.hpp>
 #endif
 
-/// Here the FreeCAD includes sorted by Base,App,Gui......
+#include <Base/BoundBox.h>
 #include <Base/Console.h>
 #include <Base/Exception.h>
-#include <Base/BoundBox.h>
 #include <Base/Matrix.h>
-#include <App/PropertyGeo.h>
 
+#include "SoMouseWheelEvent.h"
 #include "ViewProvider.h"
-#include "Application.h"
 #include "ActionFunction.h"
-#include "Document.h"
-#include "ViewProviderPy.h"
+#include "Application.h"
 #include "BitmapFactory.h"
+#include "Document.h"
+#include "SoFCDB.h"
 #include "View3DInventor.h"
 #include "View3DInventorViewer.h"
-#include "SoFCDB.h"
-#include "ViewProviderExtension.h"
-#include "SoFCUnifiedSelection.h"
-#include "ViewProviderLink.h"
 #include "ViewParams.h"
+#include "ViewProviderExtension.h"
+#include "ViewProviderLink.h"
+#include "ViewProviderPy.h"
 
 
-FC_LOG_LEVEL_INIT("ViewProvider",true,true)
+FC_LOG_LEVEL_INIT("ViewProvider", true, true)
 
 using namespace std;
 using namespace Gui;
@@ -95,8 +88,8 @@ void coinRemoveAllChildren(SoGroup *group) {
 PROPERTY_SOURCE_ABSTRACT(Gui::ViewProvider, App::TransactionalObject)
 
 ViewProvider::ViewProvider()
-    : pcAnnotation(0)
-    , pyViewObject(0)
+    : pcAnnotation(nullptr)
+    , pyViewObject(nullptr)
     , overrideMode("As Is")
     , _iActualMode(-1)
     , _iEditMode(-1)
@@ -147,7 +140,7 @@ ViewProvider *ViewProvider::startEditing(int ModNum)
         _iEditMode = ModNum;
         return this;
     }
-    return 0;
+    return nullptr;
 }
 
 int ViewProvider::getEditingMode() const
@@ -204,8 +197,8 @@ void highlight(const HighlightMode& high)
 void ViewProvider::eventCallback(void * ud, SoEventCallback * node)
 {
     const SoEvent * ev = node->getEvent();
-    Gui::View3DInventorViewer* viewer = reinterpret_cast<Gui::View3DInventorViewer*>(node->getUserData());
-    ViewProvider *self = reinterpret_cast<ViewProvider*>(ud);
+    Gui::View3DInventorViewer* viewer = static_cast<Gui::View3DInventorViewer*>(node->getUserData());
+    ViewProvider *self = static_cast<ViewProvider*>(ud);
     assert(self);
 
     try {
@@ -225,7 +218,7 @@ void ViewProvider::eventCallback(void * ud, SoEventCallback * node)
                     // Therefore, we shall ignore ESC while any mouse button is
                     // pressed, until this Coin bug is fixed.
                     if (!press) {
-                        // react only on key release 
+                        // react only on key release
                         // Let first selection mode terminate
                         Gui::Document* doc = Gui::Application::Instance->activeDocument();
                         Gui::View3DInventor* view = static_cast<Gui::View3DInventor*>(doc->getActiveView());
@@ -237,10 +230,10 @@ void ViewProvider::eventCallback(void * ud, SoEventCallback * node)
                                 return;
                             }
                         }
-                        
+
                         Gui::TimerFunction* func = new Gui::TimerFunction();
                         func->setAutoDelete(true);
-                        func->setFunction(boost::bind(&Document::resetEdit, doc));
+                        func->setFunction(std::bind(&Document::resetEdit, doc));
                         QTimer::singleShot(0, func, SLOT(timeout()));
                     }
                 }
@@ -264,6 +257,12 @@ void ViewProvider::eventCallback(void * ud, SoEventCallback * node)
 
             // call the virtual method
             if (self->mouseButtonPressed(button,press,ev->getPosition(),viewer))
+                node->setHandled();
+        }
+        else if (ev->getTypeId().isDerivedFrom(SoMouseWheelEvent::getClassTypeId())) {
+            const SoMouseWheelEvent * const event = (const SoMouseWheelEvent *) ev;
+
+            if (self->mouseWheelEvent(event->getDelta(), event->getPosition(), viewer))
                 node->setHandled();
         }
         // Mouse Movement handling
@@ -405,7 +404,7 @@ SoNode* ViewProvider::getDisplayMaskMode(const char* type) const
         return pcModeSwitch->getChild(it->second);
     }
 
-    return 0;
+    return nullptr;
 }
 
 std::vector<std::string> ViewProvider::getDisplayMaskModes() const
@@ -434,7 +433,7 @@ void ViewProvider::setDisplayMode(const char* ModeName)
 
 const char* ViewProvider::getDefaultDisplayMode() const {
 
-    return 0;
+    return nullptr;
 }
 
 vector<std::string> ViewProvider::getDisplayModes(void) const {
@@ -634,14 +633,13 @@ bool ViewProvider::checkRecursion(SoNode* node)
 
 SoPickedPoint* ViewProvider::getPointOnRay(const SbVec2s& pos, const View3DInventorViewer* viewer) const
 {
-    return viewer->getPointOnRay(pos,const_cast<ViewProvider*>(this));
+    return viewer->getPointOnRay(pos, this);
 }
 
 SoPickedPoint* ViewProvider::getPointOnRay(const SbVec3f& pos,const SbVec3f& dir, const View3DInventorViewer* viewer) const
 {
-    return viewer->getPointOnRay(pos,dir,const_cast<ViewProvider*>(this));
+    return viewer->getPointOnRay(pos, dir, this);
 }
-
 
 std::vector<Base::Vector3d> ViewProvider::getModelPoints(const SoPickedPoint* pp) const
 {
@@ -675,6 +673,14 @@ bool ViewProvider::mouseButtonPressed(int button, bool pressed,
     (void)pressed;
     (void)cursorPos;
     (void)viewer;
+    return false;
+}
+
+bool ViewProvider::mouseWheelEvent(int delta, const SbVec2s &cursorPos, const View3DInventorViewer* viewer)
+{
+    (void) delta;
+    (void) cursorPos;
+    (void) viewer;
     return false;
 }
 
@@ -897,13 +903,14 @@ std::vector< App::DocumentObject* > ViewProvider::claimChildren3D(void) const
     return vec;
 }
 bool ViewProvider::getElementPicked(const SoPickedPoint *pp, std::string &subname) const {
-    if(!isSelectable()) return false;
+    if(!isSelectable())
+        return false;
     auto vector = getExtensionsDerivedFromType<Gui::ViewProviderExtension>();
     for(Gui::ViewProviderExtension* ext : vector) {
         if(ext->extensionGetElementPicked(pp,subname))
             return true;
     }
-    subname = getElement(pp?pp->getDetail():0);
+    subname = getElement(pp?pp->getDetail():nullptr);
     return true;
 }
 
@@ -955,7 +962,7 @@ int ViewProvider::partialRender(const std::vector<std::string> &elements, bool c
         if(hidden)
             element.resize(element.size()-hiddenMarker().size());
         path->truncate(0);
-        SoDetail *det = 0;
+        SoDetail *det = nullptr;
         if(getDetailPath(element.c_str(),path,false,det)) {
             if(!hidden && !det) {
                 FC_LOG("partial render element not found: " << element);
@@ -1021,7 +1028,7 @@ Base::BoundBox3d ViewProvider::getBoundingBox(const char *subname, bool transfor
     SoTempPath path(20);
     path.ref();
     if(subname && subname[0]) {
-        SoDetail *det=0;
+        SoDetail *det=nullptr;
         if(!getDetailPath(subname,&path,true,det)) {
             if(mode < 0)
                 pcModeSwitch->whichChild = mode;

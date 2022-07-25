@@ -43,8 +43,8 @@ class TaskShareView:
         self._uiPath = os.path.join(self._uiPath, "Mod/TechDraw/TechDrawTools/Gui/TaskMoveView.ui")
         self.form = Gui.PySideUic.loadUi(self._uiPath)
 
-        self.form.setWindowTitle(QT_TRANSLATE_NOOP("ShareView", "Share View with another Page"))
-        self.form.lViewName.setText(QT_TRANSLATE_NOOP("ShareView", "View to share"))
+        self.form.setWindowTitle(QT_TRANSLATE_NOOP("TechDraw_ShareView", "Share View with another Page"))
+        self.form.lViewName.setText(QT_TRANSLATE_NOOP("TechDraw_ShareView", "View to share"))
 
         self.form.pbView.clicked.connect(self.pickView)
         self.form.pbFromPage.clicked.connect(self.pickFromPage)
@@ -53,6 +53,8 @@ class TaskShareView:
         self.viewName = ""
         self.fromPageName = ""
         self.toPageName   = ""
+
+        self.dialogOpen = False;
 
     def accept(self):
 #        print ("Accept")
@@ -68,11 +70,14 @@ class TaskShareView:
 
     def pickView(self):
 #        print("pickView")
+        if (self.dialogOpen) :
+            return
         _dlgPath = App.getHomePath()
         _dlgPath = os.path.join(_dlgPath, "Mod/TechDraw/TechDrawTools/Gui/DlgPageChooser.ui")
         dlg = Gui.PySideUic.loadUi(_dlgPath)
-        dlg.lPrompt.setText(QT_TRANSLATE_NOOP("ShareView", "Select View to share from list."))
-        dlg.setWindowTitle(QT_TRANSLATE_NOOP("ShareView", "Select View"))
+        self.dialogOpen = True;
+        dlg.lPrompt.setText(QT_TRANSLATE_NOOP("TechDraw_ShareView", "Select View to share from list."))
+        dlg.setWindowTitle(QT_TRANSLATE_NOOP("TechDraw_ShareView", "Select View"))
 
         views = [x for x in App.ActiveDocument.Objects if x.isDerivedFrom("TechDraw::DrawView")]
         for v in views:
@@ -84,14 +89,18 @@ class TaskShareView:
                 selItem = dlg.lwPages.selectedItems()[0]
                 self.viewName = selItem.data(QtCore.Qt.UserRole)
                 self.form.leView.setText(self.viewName)
+        self.dialogOpen = False
 
     def pickFromPage(self):
 #        print("pickFromPage")
+        if (self.dialogOpen) :
+            return
         _dlgPath = App.getHomePath()
         _dlgPath = os.path.join(_dlgPath, "Mod/TechDraw/TechDrawTools/Gui/DlgPageChooser.ui")
         dlg = Gui.PySideUic.loadUi(_dlgPath)
-        dlg.lPrompt.setText(QT_TRANSLATE_NOOP("ShareView", "Select From Page."))
-        dlg.setWindowTitle(QT_TRANSLATE_NOOP("ShareView", "Select Page"))
+        self.dialogOpen = True;
+        dlg.lPrompt.setText(QT_TRANSLATE_NOOP("TechDraw_ShareView", "Select From Page."))
+        dlg.setWindowTitle(QT_TRANSLATE_NOOP("TechDraw_ShareView", "Select Page"))
 
         pages = [x for x in App.ActiveDocument.Objects if x.isDerivedFrom("TechDraw::DrawPage")]
         for p in pages:
@@ -103,14 +112,19 @@ class TaskShareView:
                 selItem = dlg.lwPages.selectedItems()[0]
                 self.fromPageName = selItem.data(QtCore.Qt.UserRole)
                 self.form.leFromPage.setText(self.fromPageName)
+        self.dialogOpen = False
+
 
     def pickToPage(self):
 #        print("pickToPage")
+        if (self.dialogOpen) :
+            return
         _dlgPath = App.getHomePath()
         _dlgPath = os.path.join(_dlgPath, "Mod/TechDraw/TechDrawTools/Gui/DlgPageChooser.ui")
         dlg = Gui.PySideUic.loadUi(_dlgPath)
-        dlg.lPrompt.setText(QT_TRANSLATE_NOOP("ShareView", "Select To Page."))
-        dlg.setWindowTitle(QT_TRANSLATE_NOOP("ShareView", "Select Page"))
+        self.dialogOpen = True;
+        dlg.lPrompt.setText(QT_TRANSLATE_NOOP("TechDraw_ShareView", "Select To Page."))
+        dlg.setWindowTitle(QT_TRANSLATE_NOOP("TechDraw_ShareView", "Select Page"))
 
         pages = [x for x in App.ActiveDocument.Objects if x.isDerivedFrom("TechDraw::DrawPage")]
         for p in pages:
@@ -122,6 +136,7 @@ class TaskShareView:
                 selItem = dlg.lwPages.selectedItems()[0]
                 self.toPageName = selItem.data(QtCore.Qt.UserRole)
                 self.form.leToPage.setText(self.toPageName)
+        self.dialogOpen = False
 
     def setValues(self, viewName, fromPageName, toPageName):
         self.viewName = viewName

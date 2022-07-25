@@ -23,22 +23,14 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-# include <cassert>
-# include <algorithm>
-# include <functional>
-#endif
-
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <Base/Reader.h>
-#include <Base/Writer.h>
 #include <Base/Console.h>
 #include <Base/Exception.h>
+#include <Base/Reader.h>
+#include <Base/Writer.h>
 
-#include "Application.h"
 #include "Property.h"
 #include "PropertyContainer.h"
-#include "PropertyLinks.h"
+
 
 FC_LOG_LEVEL_INIT("App",true,true)
 
@@ -55,7 +47,7 @@ TYPESYSTEM_SOURCE(App::PropertyContainer,Base::Persistence)
 // Here's the implementation! Description should take place in the header file!
 PropertyContainer::PropertyContainer()
 {
-    propertyData.parentPropertyData = 0;
+    propertyData.parentPropertyData = nullptr;
 }
 
 PropertyContainer::~PropertyContainer()
@@ -85,7 +77,8 @@ App::Property* PropertyContainer::addDynamicProperty(
 Property *PropertyContainer::getPropertyByName(const char* name) const
 {
     auto prop = dynamicProps.getDynamicPropertyByName(name);
-    if(prop) return prop;
+    if(prop)
+        return prop;
     return getPropertyData().getPropertyByName(this,name);
 }
 
@@ -128,28 +121,32 @@ short PropertyContainer::getPropertyType(const char *name) const
 const char* PropertyContainer::getPropertyGroup(const Property* prop) const
 {
     auto group = dynamicProps.getPropertyGroup(prop);
-    if(group) return group;
+    if(group)
+        return group;
     return getPropertyData().getGroup(this,prop);
 }
 
 const char* PropertyContainer::getPropertyGroup(const char *name) const
 {
     auto group = dynamicProps.getPropertyGroup(name);
-    if(group) return group;
+    if(group)
+        return group;
     return getPropertyData().getGroup(this,name);
 }
 
 const char* PropertyContainer::getPropertyDocumentation(const Property* prop) const
 {
     auto doc = dynamicProps.getPropertyDocumentation(prop);
-    if(doc) return doc;
+    if(doc)
+        return doc;
     return getPropertyData().getDocumentation(this,prop);
 }
 
 const char* PropertyContainer::getPropertyDocumentation(const char *name) const
 {
     auto doc = dynamicProps.getPropertyDocumentation(name);
-    if(doc) return doc;
+    if(doc)
+        return doc;
     return getPropertyData().getDocumentation(this,name);
 }
 
@@ -344,7 +341,7 @@ void PropertyContainer::Restore(Base::XMLReader &reader)
         // type and the behaviour would be undefined.
         try {
             auto prop = getPropertyByName(PropName.c_str());
-            if(!prop)
+            if(!prop || prop->getContainer() != this)
                 prop = dynamicProps.restore(*this,PropName.c_str(),TypeName.c_str(),reader);
 
             decltype(Property::StatusBits) status;
@@ -478,7 +475,7 @@ const PropertyData::PropertySpec *PropertyData::findProperty(OffsetBase offsetBa
     auto it = index.find(PropName);
     if(it != index.end())
         return &(*it);
-    return 0;
+    return nullptr;
 }
 
 const PropertyData::PropertySpec *PropertyData::findProperty(OffsetBase offsetBase,const Property* prop) const
@@ -486,14 +483,14 @@ const PropertyData::PropertySpec *PropertyData::findProperty(OffsetBase offsetBa
     merge();
     int diff = offsetBase.getOffsetTo(prop);
     if(diff<0)
-        return 0;
+        return nullptr;
 
     auto &index = propertyData.get<2>();
     auto it = index.find(diff);
     if(it!=index.end())
         return &(*it);
   
-    return 0;
+    return nullptr;
 }
 
 const char* PropertyData::getName(OffsetBase offsetBase,const Property* prop) const
@@ -503,7 +500,7 @@ const char* PropertyData::getName(OffsetBase offsetBase,const Property* prop) co
   if(Spec)
     return Spec->Name;
   else
-    return 0;
+    return nullptr;
 }
 
 short PropertyData::getType(OffsetBase offsetBase,const Property* prop) const
@@ -533,7 +530,7 @@ const char* PropertyData::getGroup(OffsetBase offsetBase,const Property* prop) c
   if(Spec)
     return Spec->Group;
   else
-    return 0;
+    return nullptr;
 }
 
 const char* PropertyData::getGroup(OffsetBase offsetBase,const char* name) const
@@ -543,7 +540,7 @@ const char* PropertyData::getGroup(OffsetBase offsetBase,const char* name) const
   if(Spec)
     return Spec->Group;
   else
-    return 0;
+    return nullptr;
 }
 
 const char* PropertyData::getDocumentation(OffsetBase offsetBase,const Property* prop) const
@@ -553,7 +550,7 @@ const char* PropertyData::getDocumentation(OffsetBase offsetBase,const Property*
   if(Spec)
     return Spec->Docu;
   else
-    return 0;
+    return nullptr;
 }
 
 const char* PropertyData::getDocumentation(OffsetBase offsetBase,const char* name) const
@@ -563,7 +560,7 @@ const char* PropertyData::getDocumentation(OffsetBase offsetBase,const char* nam
   if(Spec)
     return Spec->Docu;
   else
-    return 0;
+    return nullptr;
 }
 
 Property *PropertyData::getPropertyByName(OffsetBase offsetBase,const char* name) const
@@ -573,7 +570,7 @@ Property *PropertyData::getPropertyByName(OffsetBase offsetBase,const char* name
   if(Spec)
     return (Property *) (Spec->Offset + offsetBase.getOffset());
   else
-    return 0;
+    return nullptr;
 }
 
 void PropertyData::getPropertyMap(OffsetBase offsetBase,std::map<std::string,Property*> &Map) const

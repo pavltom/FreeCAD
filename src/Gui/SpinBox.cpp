@@ -20,28 +20,28 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <QDebug>
 # include <climits>
-# include <QStyle>
-# include <QLineEdit>
 # include <QKeyEvent>
+# include <QLineEdit>
 # include <QStyle>
 # include <QStyleOptionSpinBox>
 # include <QStylePainter>
 #endif
 
-#include "SpinBox.h"
-#include "DlgExpressionInput.h"
-#include "Command.h"
-#include <Base/Tools.h>
-#include <App/ExpressionParser.h>
 #include <boost/math/special_functions/round.hpp>
-#include "QuantitySpinBox_p.h"
+
+#include <App/ExpressionParser.h>
 #include <App/PropertyUnits.h>
+#include <Base/Tools.h>
+
+#include "SpinBox.h"
+#include "Command.h"
+#include "DlgExpressionInput.h"
+#include "QuantitySpinBox_p.h"
+
 
 using namespace Gui;
 using namespace App;
@@ -171,7 +171,7 @@ void ExpressionSpinBox::openFormulaDialog()
     PropertyQuantity *  qprop = freecad_dynamic_cast<PropertyQuantity>(getPath().getProperty());
     Unit unit;
 
-    if (qprop != 0)
+    if (qprop)
         unit = qprop->getUnit();
 
     Gui::Dialog::DlgExpressionInput* box = new Gui::Dialog::DlgExpressionInput(getPath(), getExpression(), unit, spinbox);
@@ -275,7 +275,7 @@ class UIntSpinBoxPrivate
 public:
     UnsignedValidator * mValidator;
 
-    UIntSpinBoxPrivate() : mValidator(0)
+    UIntSpinBoxPrivate() : mValidator(nullptr)
     {
     }
     uint mapToUInt( int v ) const
@@ -324,7 +324,7 @@ UIntSpinBox::UIntSpinBox (QWidget* parent)
 UIntSpinBox::~UIntSpinBox()
 {
     delete d->mValidator;
-    delete d; d = 0;
+    delete d; d = nullptr;
 }
 
 void UIntSpinBox::setRange(uint minVal, uint maxVal)
@@ -352,7 +352,7 @@ void UIntSpinBox::setValue(uint value)
 
 void UIntSpinBox::valueChange(int value)
 {
-    valueChanged(d->mapToUInt(value));
+    Q_EMIT valueChanged(d->mapToUInt(value));
 }
 
 uint UIntSpinBox::minimum() const

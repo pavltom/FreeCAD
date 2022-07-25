@@ -26,14 +26,16 @@
 # include <unistd.h>
 #endif
 
+#include <CXX/WrapPython.h>
 #include <memory>
 #include <QString>
 #include "Exception.h"
+
 #include "UnitsApi.h"
+#include "UnitsSchemaCentimeters.h"
 #include "UnitsSchemaInternal.h"
 #include "UnitsSchemaImperial1.h"
 #include "UnitsSchemaMKS.h"
-#include "UnitsSchemaCentimeters.h"
 #include "UnitsSchemaMmMin.h"
 #include "UnitsSchemaFemMilliMeterNewton.h"
 

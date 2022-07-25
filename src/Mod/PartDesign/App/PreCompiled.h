@@ -26,17 +26,6 @@
 
 #include <FCConfig.h>
 
-// Exporting of App classes
-#ifdef FC_OS_WIN32
-# define PartDesignExport __declspec(dllexport)
-# define PartExport  __declspec(dllimport)
-# define MeshExport     __declspec(dllimport)
-#else // for Linux
-# define PartDesignExport
-# define PartExport
-# define MeshExport
-#endif
-
 #ifdef _MSC_VER
 // disable warning triggered by use of Part::FaceMaker
 // see forum thread "Warning C4275 non-dll class used as base for dll class"
@@ -49,8 +38,8 @@
 // standard
 #include <iostream>
 #include <sstream>
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 #include <string>
 #include <map>
 #include <vector>
@@ -58,8 +47,7 @@
 #include <bitset>
 
 #include <cstring>
-
-# include <math.h>
+#include <cmath>
 
 // QT
 #include <QObject>
@@ -110,12 +98,7 @@
 # include <TopoDS.hxx>
 # include <Precision.hxx>
 
-#if OCC_VERSION_HEX >= 0x060800
 # include <OSD_OpenFile.hxx>
-#endif
-
-
-#include <Python.h>
 
 #endif // _PreComp_
 #endif

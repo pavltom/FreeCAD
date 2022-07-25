@@ -34,6 +34,7 @@
 #include <Base/Console.h>
 #include <Base/Vector3D.h>
 #include <Base/Converter.h>
+#include <Base/Interpreter.h>
 #include <Base/VectorPy.h>
 #include <Base/GeometryPyCXX.h>
 #include <Mod/Part/App/TopoShapePy.h>
@@ -159,7 +160,7 @@ private:
             if (msg) {str += msg;}
             else     {str += "No OCCT Exception Message";}
             Base::Console().Error("%s\n", str.c_str());
-            throw Py::Exception(Base::BaseExceptionFreeCADError, str);
+            throw Py::Exception(Base::PyExc_FC_GeneralError, str);
         }
         catch (const Base::Exception &e) {
             std::string str;
@@ -196,24 +197,24 @@ private:
         auto exText( "List of Tuples of three or two floats needed as second parameter!" );
 
         if (!PyList_Check(pcListObj))
-            throw Py::Exception(Base::BaseExceptionFreeCADError, exText);
+            throw Py::TypeError(exText);
 
         int nSize = PyList_Size(pcListObj);
         for (int i=0; i<nSize;++i) {
             PyObject* item = PyList_GetItem(pcListObj, i);
             if (!PyTuple_Check(item))
-                throw Py::Exception(Base::BaseExceptionFreeCADError, exText);
+                throw Py::TypeError(exText);
 
             int nTSize = PyTuple_Size(item);
             if (nTSize != 2 && nTSize != 3)
-                throw Py::Exception(Base::BaseExceptionFreeCADError, exText);
+                throw Py::ValueError(exText);
 
             Base::Vector3f vec(0,0,0);
 
             for(int l = 0; l < nTSize;l++) {
                 PyObject* item2 = PyTuple_GetItem(item, l);
                 if (!PyFloat_Check(item2))
-                    throw Py::Exception(Base::BaseExceptionFreeCADError, exText);
+                    throw Py::TypeError(exText);
                 vec[l] = (float)PyFloat_AS_DOUBLE(item2);
             }
             poly.push_back(vec);
@@ -253,7 +254,7 @@ private:
     }
     Py::Object projectShapeOnMesh(const Py::Tuple& args, const Py::Dict& kwds)
     {
-        static char* kwds_maxdist[] = {"Shape", "Mesh", "MaxDistance", NULL};
+        static char* kwds_maxdist[] = {"Shape", "Mesh", "MaxDistance", nullptr};
         PyObject *s, *m;
         double maxDist;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(),
@@ -271,7 +272,7 @@ private:
             proj.projectToMesh(shape, maxDist, polylines);
 
             Py::List list;
-            for (auto it : polylines) {
+            for (const auto& it : polylines) {
                 Py::List poly;
                 for (auto jt : it.points) {
                     Py::Vector v(jt);
@@ -283,7 +284,7 @@ private:
             return list;
         }
 
-        static char* kwds_dir[] = {"Shape", "Mesh", "Direction", NULL};
+        static char* kwds_dir[] = {"Shape", "Mesh", "Direction", nullptr};
         PyErr_Clear();
         PyObject *v;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(),
@@ -303,7 +304,7 @@ private:
             std::vector<MeshProjection::PolyLine> polylines;
             proj.projectParallelToMesh(shape, dir, polylines);
             Py::List list;
-            for (auto it : polylines) {
+            for (const auto& it : polylines) {
                 Py::List poly;
                 for (auto jt : it.points) {
                     Py::Vector v(jt);
@@ -315,7 +316,7 @@ private:
             return list;
         }
 
-        static char* kwds_poly[] = {"Polygons", "Mesh", "Direction", NULL};
+        static char* kwds_poly[] = {"Polygons", "Mesh", "Direction", nullptr};
         PyErr_Clear();
         PyObject *seq;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(),
@@ -353,7 +354,7 @@ private:
             proj.projectParallelToMesh(polylinesIn, dir, polylines);
 
             Py::List list;
-            for (auto it : polylines) {
+            for (const auto& it : polylines) {
                 Py::List poly;
                 for (auto jt : it.points) {
                     Py::Vector v(jt);
@@ -478,13 +479,13 @@ private:
         PyObject *shape;
 
         static char* kwds_lindeflection[] = {"Shape", "LinearDeflection", "AngularDeflection",
-                                             "Relative", "Segments", "GroupColors", NULL};
+                                             "Relative", "Segments", "GroupColors", nullptr};
         PyErr_Clear();
         double lindeflection=0;
         double angdeflection=0.5;
         PyObject* relative = Py_False;
         PyObject* segment = Py_False;
-        PyObject* groupColors = 0;
+        PyObject* groupColors = nullptr;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O!d|dO!O!O", kwds_lindeflection,
                                         &(Part::TopoShapePy::Type), &shape, &lindeflection,
                                         &angdeflection, &(PyBool_Type), &relative,
@@ -494,8 +495,8 @@ private:
             mesher.setDeflection(lindeflection);
             mesher.setAngularDeflection(angdeflection);
             mesher.setRegular(true);
-            mesher.setRelative(PyObject_IsTrue(relative) ? true : false);
-            mesher.setSegments(PyObject_IsTrue(segment) ? true : false);
+            mesher.setRelative(Base::asBoolean(relative));
+            mesher.setSegments(Base::asBoolean(segment));
             if (groupColors) {
                 Py::Sequence list(groupColors);
                 std::vector<uint32_t> colors;
@@ -515,7 +516,7 @@ private:
             return Py::asObject(new Mesh::MeshPy(mesher.createMesh()));
         }
 
-        static char* kwds_maxLength[] = {"Shape", "MaxLength",NULL};
+        static char* kwds_maxLength[] = {"Shape", "MaxLength",nullptr};
         PyErr_Clear();
         double maxLength=0;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O!d", kwds_maxLength,
@@ -527,7 +528,7 @@ private:
             return Py::asObject(new Mesh::MeshPy(mesher.createMesh()));
         }
 
-        static char* kwds_maxArea[] = {"Shape", "MaxArea",NULL};
+        static char* kwds_maxArea[] = {"Shape", "MaxArea",nullptr};
         PyErr_Clear();
         double maxArea=0;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O!d", kwds_maxArea,
@@ -539,7 +540,7 @@ private:
             return Py::asObject(new Mesh::MeshPy(mesher.createMesh()));
         }
 
-        static char* kwds_localLen[] = {"Shape", "LocalLength",NULL};
+        static char* kwds_localLen[] = {"Shape", "LocalLength",nullptr};
         PyErr_Clear();
         double localLen=0;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O!d", kwds_localLen,
@@ -551,7 +552,7 @@ private:
             return Py::asObject(new Mesh::MeshPy(mesher.createMesh()));
         }
 
-        static char* kwds_deflection[] = {"Shape", "Deflection",NULL};
+        static char* kwds_deflection[] = {"Shape", "Deflection",nullptr};
         PyErr_Clear();
         double deflection=0;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O!d", kwds_deflection,
@@ -563,7 +564,7 @@ private:
             return Py::asObject(new Mesh::MeshPy(mesher.createMesh()));
         }
 
-        static char* kwds_minmaxLen[] = {"Shape", "MinLength","MaxLength",NULL};
+        static char* kwds_minmaxLen[] = {"Shape", "MinLength","MaxLength",nullptr};
         PyErr_Clear();
         double minLen=0, maxLen=0;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O!dd", kwds_minmaxLen,
@@ -575,7 +576,7 @@ private:
             return Py::asObject(new Mesh::MeshPy(mesher.createMesh()));
         }
 
-        static char* kwds_fineness[] = {"Shape", "Fineness", "SecondOrder", "Optimize", "AllowQuad", "MinLength", "MaxLength", NULL};
+        static char* kwds_fineness[] = {"Shape", "Fineness", "SecondOrder", "Optimize", "AllowQuad", "MinLength", "MaxLength", nullptr};
         PyErr_Clear();
         int fineness=0, secondOrder=0, optimize=1, allowquad=0;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O!i|iiidd", kwds_fineness,
@@ -596,7 +597,7 @@ private:
         }
 
         static char* kwds_user[] = {"Shape", "GrowthRate", "SegPerEdge", "SegPerRadius", "SecondOrder",
-                                    "Optimize", "AllowQuad", "MinLength", "MaxLength", NULL };
+                                    "Optimize", "AllowQuad", "MinLength", "MaxLength", nullptr };
         PyErr_Clear();
         double growthRate=0, nbSegPerEdge=0, nbSegPerRadius=0;
         if (PyArg_ParseTupleAndKeywords(args.ptr(), kwds.ptr(), "O!|dddiiidd", kwds_user,
@@ -631,13 +632,13 @@ private:
             return Py::asObject(new Mesh::MeshPy(mesher.createMesh()));
         }
 
-        throw Py::Exception(Base::BaseExceptionFreeCADError,"Wrong arguments");
+        throw Py::TypeError("Wrong arguments");
     }
 };
 
 PyObject* initModule()
 {
-    return (new Module)->module().ptr();
+    return Base::Interpreter().addModule(new Module);
 }
 
 } // namespace MeshPart

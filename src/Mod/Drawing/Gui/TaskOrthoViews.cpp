@@ -30,14 +30,13 @@
 #include "TaskOrthoViews.h"
 #include "ui_TaskOrthoViews.h"
 
+#include <App/Document.h>
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
 #include <Gui/Control.h>
 #include <Mod/Part/App/PartFeature.h>
 #include <Mod/Drawing/App/FeaturePage.h>
-
-#include <boost_bind_bind.hpp>
 
 
 using namespace Gui;
@@ -52,12 +51,7 @@ namespace bp = boost::placeholders;
 #endif
 
 
-#if _MSC_VER <= 1700
-// maybe in the c++ standard later, older compiler don't have round()
-double round(double r) {
-    return (r > 0.0) ? floor(r + 0.5) : ceil(r - 0.5);
-}
-#endif  // _MSC_VER < 1500
+
 
 void pagesize(string & page_template, int dims[4], int block[4])
 {
@@ -269,8 +263,8 @@ void orthoview::set_projection(const gp_Ax2& cs)
 
 OrthoViews::OrthoViews(App::Document* doc, const char * pagename, const char * partname)
 {
-    horiz = 0;
-    vert = 0;
+    horiz = nullptr;
+    vert = nullptr;
 
     parent_doc = doc;
     parent_doc->openTransaction("Create view");
@@ -1324,7 +1318,7 @@ TaskDlgOrthoViews::TaskDlgOrthoViews()
 {
     widget = new TaskOrthoViews();
     taskbox = new Gui::TaskView::TaskBox(
-        Gui::BitmapFactory().pixmap("actions/drawing-orthoviews"), widget->windowTitle(), true, 0);
+        Gui::BitmapFactory().pixmap("actions/drawing-orthoviews"), widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

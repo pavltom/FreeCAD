@@ -21,26 +21,30 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
-#include "Range.h"
-#include <Base/Exception.h>
-#include <assert.h>
-#include <string.h>
-#include <sstream>
+#ifndef _PreComp_
 #include <boost/regex.hpp>
+#include <cassert>
+#include <sstream>
+#include <string>
+#endif
+
+#include <Base/Exception.h>
+#include "Range.h"
+
 
 using namespace App;
 
 const int App::CellAddress::MAX_ROWS = 16384;
 const int App::CellAddress::MAX_COLUMNS = 26 * 26 + 26;
 
-Range::Range(const char * range)
+Range::Range(const char * range, bool normalize)
 {
     std::string from;
     std::string to;
 
-    assert(range != NULL);
+    assert(range);
 
-    if (strchr(range, ':') == NULL) {
+    if (!strchr(range, ':')) {
         from = range;
         to = range;
     }
@@ -58,28 +62,42 @@ Range::Range(const char * range)
     row_end = end.row();
     col_end = end.col();
 
+    if (normalize)
+        this->normalize();
     row_curr = row_begin;
     col_curr = col_begin;
 }
 
-Range::Range(int _row_begin, int _col_begin, int _row_end, int _col_end)
-    : row_curr(_row_begin)
-    , col_curr(_col_begin)
-    , row_begin(_row_begin)
+Range::Range(int _row_begin, int _col_begin, int _row_end, int _col_end, bool normalize)
+    : row_begin(_row_begin)
     , col_begin(_col_begin)
     , row_end(_row_end)
     , col_end(_col_end)
 {
+    if (normalize)
+        this->normalize();
+    row_curr = row_begin;
+    col_curr = col_begin;
 }
 
-Range::Range(const CellAddress &from, const CellAddress &to)
-    : row_curr(from.row())
-    , col_curr(from.col())
-    , row_begin(from.row())
+Range::Range(const CellAddress &from, const CellAddress &to, bool normalize)
+    : row_begin(from.row())
     , col_begin(from.col())
     , row_end(to.row())
     , col_end(to.col())
 {
+    if (normalize)
+        this->normalize();
+    row_curr = row_begin;
+    col_curr = col_begin;
+}
+
+void Range::normalize()
+{
+    if (row_begin > row_end)
+        std::swap(row_begin, row_end);
+    if (col_begin > col_end)
+        std::swap(col_begin, col_end);
 }
 
 bool Range::next()
@@ -203,7 +221,7 @@ int App::validColumn(const std::string &colstr)
 
 App::CellAddress App::stringToAddress(const char * strAddress, bool silent)
 {
-    assert(strAddress != 0);
+    assert(strAddress);
 
     static boost::regex e("(\\$?[A-Z]{1,2})(\\$?[0-9]{1,5})");
     boost::cmatch cm;
@@ -243,13 +261,13 @@ std::string App::CellAddress::toString(Cell cell) const
         if (_absCol && flags.testFlag(Cell::Absolute))
             s << '$';
         if (col() < 26) {
-            s << (char)('A' + col());
+            s << static_cast<char>('A' + col());
         }
         else {
             int colnum = col() - 26;
 
-            s << (char)('A' + (colnum / 26));
-            s << (char)('A' + (colnum % 26));
+            s << static_cast<char>('A' + (colnum / 26));
+            s << static_cast<char>('A' + (colnum % 26));
         }
     }
 

@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="Gui" Version="10.0.0" InternalType="Library">
+  <VirtualDirectory Name="Gui">
+    <File Name="QEnhancedSvgGenerator.cpp"/>
+    <File Name="QEnhancedSvgGenerator.h"/>
+    <File Name="TaskProjGroup.h"/>
+    <File Name="TaskSectionView.cpp"/>
+    <File Name="QGIViewAnnotation.cpp"/>
+    <File Name="TaskDimension.h"/>
+    <File Name="QGIDrawingTemplate.h"/>
+    <File Name="QGIDimLines.cpp"/>
+    <File Name="QGISectionLine.cpp"/>
+    <File Name="TaskDetail.h"/>
+    <File Name="QGIVertex.h"/>
+    <File Name="DlgTemplateField.cpp"/>
+    <File Name="QGCustomClip.h"/>
+    <File Name="TaskLeaderLine.cpp"/>
+    <File Name="CommandCreateDims.cpp"/>
+    <File Name="QGMText.cpp"/>
+    <File Name="TaskCosmeticLine.h"/>
+    <File Name="QGIViewClip.h"/>
+    <File Name="DlgPrefsTechDrawHLRImp.h"/>
+    <File Name="PreferencesGui.cpp"/>
+    <File Name="QGICenterLine.h"/>
+    <File Name="QGDisplayArea.cpp"/>
+    <File Name="QGIViewImage.h"/>
+    <File Name="QGICMark.cpp"/>
+    <File Name="QGICaption.h"/>
+    <File Name="ViewProviderWeld.h"/>
+    <File Name="TaskSectionView.h"/>
+    <File Name="DlgPrefsTechDrawAnnotationImp.h"/>
+    <File Name="Command.cpp"/>
+    <File Name="QGCustomImage.h"/>
+    <File Name="QGIDecoration.h"/>
+    <File Name="Workbench.cpp"/>
+    <File Name="DlgPrefsTechDrawHLRImp.cpp"/>
+    <File Name="QGIViewSpreadsheet.cpp"/>
+    <File Name="ViewProviderLeader.cpp"/>
+    <File Name="ViewProviderCosmeticExtension.cpp"/>
+    <File Name="QGIProjGroup.cpp"/>
+    <File Name="QGIViewSymbol.h"/>
+    <File Name="ViewProviderDrawingView.cpp"/>
+    <File Name="TaskLineDecor.cpp"/>
+    <File Name="QGIViewBalloon.h"/>
+    <File Name="ViewProviderTile.h"/>
+    <File Name="QGIViewPart.cpp"/>
+    <File Name="AppTechDrawGuiPy.cpp"/>
+    <File Name="ViewProviderViewSection.h"/>
+    <File Name="DlgPrefsTechDrawColorsImp.cpp"/>
+    <File Name="DlgPrefsTechDrawScaleImp.cpp"/>
+    <File Name="ViewProviderHatch.h"/>
+    <File Name="ViewProviderTemplate.h"/>
+    <File Name="QGIMatting.h"/>
+    <File Name="TaskDetail.cpp"/>
+    <File Name="QGIRichAnno.h"/>
+    <File Name="QGIMatting.cpp"/>
+    <File Name="Grabber3d.h"/>
+    <File Name="CommandDecorate.cpp"/>
+    <File Name="ViewProviderAnnotation.h"/>
+    <File Name="QGIView.cpp"/>
+    <File Name="ViewProviderProjGroup.h"/>
+    <File Name="mrichtextedit.cpp"/>
+    <File Name="QGIProjGroup.h"/>
+    <File Name="TaskBalloon.cpp"/>
+    <File Name="TaskActiveView.cpp"/>
+    <File Name="Rez.h"/>
+    <File Name="QGEPath.h"/>
+    <File Name="QGTracker.h"/>
+    <File Name="QGIViewDimension.cpp"/>
+    <File Name="ViewProviderImage.h"/>
+    <File Name="DlgPrefsTechDrawAnnotationImp.cpp"/>
+    <File Name="ViewProviderLeader.h"/>
+    <File Name="TaskRichAnno.h"/>
+    <File Name="TaskGeomHatch.h"/>
+    <File Name="ViewProviderSymbol.cpp"/>
+    <File Name="QGIViewAnnotation.h"/>
+    <File Name="Workbench.h"/>
+    <File Name="QGITemplate.cpp"/>
+    <File Name="mrichtextedit.h"/>
+    <File Name="QGEPath.cpp"/>
+    <File Name="DlgPrefsTechDrawDimensionsImp.cpp"/>
+    <File Name="QGIArrow.h"/>
+    <File Name="TaskLineDecor.h"/>
+    <File Name="QGIViewSpreadsheet.h"/>
+    <File Name="QGIViewDimension.h"/>
+    <File Name="ViewProviderProjGroupItem.h"/>
+    <File Name="QGICMark.h"/>
+    <File Name="ViewProviderSpreadsheet.h"/>
+    <File Name="ViewProviderDimension.h"/>
+    <File Name="DlgPrefsTechDrawAdvancedImp.h"/>
+    <File Name="QGISVGTemplate.cpp"/>
+    <File Name="TaskLeaderLine.h"/>
+    <File Name="ViewProviderWeld.cpp"/>
+    <File Name="QGIHighlight.h"/>
+    <File Name="QGIWeldSymbol.cpp"/>
+    <File Name="QGIHighlight.cpp"/>
+    <File Name="QGIViewBalloon.cpp"/>
+    <File Name="DlgPrefsTechDrawAdvancedImp.cpp"/>
+    <File Name="TaskHatch.h"/>
+    <File Name="TaskCosVertex.h"/>
+    <File Name="QGIDimLines.h"/>
+    <File Name="QGCustomRect.cpp"/>
+    <File Name="QGICenterLine.cpp"/>
+    <File Name="QGIViewSymbol.cpp"/>
+    <File Name="ViewProviderAnnotation.cpp"/>
+    <File Name="QGIViewImage.cpp"/>
+    <File Name="QGIGhostHighlight.h"/>
+    <File Name="QGIEdge.cpp"/>
+    <File Name="PreCompiled.h"/>
+    <File Name="ViewProviderSymbol.h"/>
+    <File Name="DrawGuiStd.h"/>
+    <File Name="QGCustomLabel.cpp"/>
+    <File Name="ViewProviderViewClip.h"/>
+    <File Name="QGCustomSvg.cpp"/>
+    <File Name="ViewProviderViewSection.cpp"/>
+    <File Name="ViewProviderSpreadsheet.cpp"/>
+    <File Name="QGISectionLine.h"/>
+    <File Name="ViewProviderGeomHatch.cpp"/>
+    <File Name="ViewProviderTemplate.cpp"/>
+    <File Name="QGIVertex.cpp"/>
+    <File Name="ViewProviderPage.h"/>
+    <File Name="DrawGuiUtil.h"/>
+    <File Name="QGIDrawingTemplate.cpp"/>
+    <File Name="QGCustomBorder.cpp"/>
+    <File Name="TaskActiveView.h"/>
+    <File Name="Grabber3d.cpp"/>
+    <File Name="DlgPrefsTechDrawGeneralImp.cpp"/>
+    <File Name="ViewProviderRichAnno.h"/>
+    <File Name="ViewProviderBalloon.cpp"/>
+    <File Name="ViewProviderHatch.cpp"/>
+    <File Name="ZVALUE.h"/>
+    <File Name="QGIViewSection.cpp"/>
+    <File Name="TaskLinkDim.cpp"/>
+    <File Name="QGIViewCollection.cpp"/>
+    <File Name="ViewProviderDimension.cpp"/>
+    <File Name="ViewProviderRichAnno.cpp"/>
+    <File Name="ViewProviderViewClip.cpp"/>
+    <File Name="QGILeaderLine.h"/>
+    <File Name="ViewProviderViewPart.h"/>
+    <File Name="QGIFace.h"/>
+    <File Name="QGIUserTypes.h"/>
+    <File Name="QGDisplayArea.h"/>
+    <File Name="QGIViewCollection.h"/>
+    <File Name="TaskCenterLine.cpp"/>
+    <File Name="SymbolChooser.cpp"/>
+    <File Name="MDIViewPage.cpp"/>
+    <File Name="TaskBalloon.h"/>
+    <File Name="AppTechDrawGui.cpp"/>
+    <File Name="QGIWeldSymbol.h"/>
+    <File Name="TaskDimension.cpp"/>
+    <File Name="TaskWeldingSymbol.h"/>
+    <File Name="QGIViewSection.h"/>
+    <File Name="PreferencesGui.h"/>
+    <File Name="ViewProviderImage.cpp"/>
+    <File Name="TaskCenterLine.h"/>
+    <File Name="QGVPage.h"/>
+    <File Name="DlgPrefsTechDrawDimensionsImp.h"/>
+    <File Name="QGIArrow.cpp"/>
+    <File Name="QGCustomClip.cpp"/>
+    <File Name="QGIGhostHighlight.cpp"/>
+    <File Name="QGIFace.cpp"/>
+    <File Name="TaskGeomHatch.cpp"/>
+    <File Name="TaskRichAnno.cpp"/>
+    <File Name="QGIDecoration.cpp"/>
+    <File Name="ViewProviderProjGroup.cpp"/>
+    <File Name="ViewProviderBalloon.h"/>
+    <File Name="Rez.cpp"/>
+    <File Name="QGTracker.cpp"/>
+    <File Name="QGIViewPart.h"/>
+    <File Name="ViewProviderGeomHatch.h"/>
+    <File Name="ViewProviderPage.cpp"/>
+    <File Name="TaskCosmeticLine.cpp"/>
+    <File Name="QGCustomSvg.h"/>
+    <File Name="DlgPrefsTechDrawGeneralImp.h"/>
+    <File Name="QGISVGTemplate.h"/>
+    <File Name="TaskLinkDim.h"/>
+    <File Name="QGILeaderLine.cpp"/>
+    <File Name="QGITemplate.h"/>
+    <File Name="TemplateTextField.cpp"/>
+    <File Name="QGIPrimPath.h"/>
+    <File Name="QGCustomText.cpp"/>
+    <File Name="QGVPage.cpp"/>
+    <File Name="QGMText.h"/>
+    <File Name="ViewProviderProjGroupItem.cpp"/>
+    <File Name="ViewProviderDrawingView.h"/>
+    <File Name="TaskProjGroup.cpp"/>
+    <File Name="QGCustomText.h"/>
+    <File Name="SymbolChooser.h"/>
+    <File Name="CommandAnnotate.cpp"/>
+    <File Name="QGIRichAnno.cpp"/>
+    <File Name="DrawGuiUtil.cpp"/>
+    <File Name="QGCustomRect.h"/>
+    <File Name="QGIPrimPath.cpp"/>
+    <File Name="PreCompiled.cpp"/>
+    <File Name="QGIViewClip.cpp"/>
+    <File Name="QGCustomBorder.h"/>
+    <File Name="QGCustomLabel.h"/>
+    <File Name="mtextedit.h"/>
+    <File Name="QGCustomImage.cpp"/>
+    <File Name="TaskHatch.cpp"/>
+    <File Name="ViewProviderCosmeticExtension.h"/>
+    <File Name="TaskCosVertex.cpp"/>
+    <File Name="TaskWeldingSymbol.cpp"/>
+    <File Name="DlgPrefsTechDrawColorsImp.h"/>
+    <File Name="DlgPrefsTechDrawScaleImp.h"/>
+    <File Name="QGITile.cpp"/>
+    <File Name="QGITile.h"/>
+    <File Name="MDIViewPage.h"/>
+    <File Name="QGICaption.cpp"/>
+    <File Name="ViewProviderViewPart.cpp"/>
+    <File Name="QGIView.h"/>
+    <File Name="QGIEdge.h"/>
+    <File Name="TemplateTextField.h"/>
+    <File Name="DlgTemplateField.h"/>
+    <File Name="mtextedit.cpp"/>
+    <File Name="ViewProviderTile.cpp"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Dynamic Library">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

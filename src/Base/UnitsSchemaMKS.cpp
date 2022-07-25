@@ -27,10 +27,9 @@
 #endif
 
 #include <QString>
-#include "Exception.h"
-#include "UnitsApi.h"
+
 #include "UnitsSchemaMKS.h"
-#include <cmath>
+
 
 using namespace Base;
 
@@ -300,7 +299,7 @@ QString UnitsSchemaMKS::schemaTranslate(const Quantity &quant, double &factor, Q
     }
     else if (unit == Unit::ElectricalConductance) {
         if (UnitValue < 1e-9) {
-            unitString = QString::fromLatin1("\xC2\xB5S");
+            unitString = QString::fromUtf8("\xC2\xB5S");
             factor = 1e-12;
         }
         else if (UnitValue < 1e-6) {
@@ -457,7 +456,7 @@ QString UnitsSchemaMKS::schemaTranslate(const Quantity &quant, double &factor, Q
         factor = 0.001;
     }
     else if (unit == Unit::KinematicViscosity) {
-        unitString = QString::fromLatin1("m^2/s)");
+        unitString = QString::fromLatin1("m^2/s");
         factor = 1e6;
     }
     else {

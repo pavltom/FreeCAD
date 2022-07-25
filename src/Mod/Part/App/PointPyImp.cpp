@@ -20,27 +20,21 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <BRepBuilderAPI_MakeVertex.hxx>
-# include <gp.hxx>
-# include <Geom_CartesianPoint.hxx>
 # include <GC_MakeLine.hxx>
-# include <GC_MakeSegment.hxx>
-# include <Precision.hxx>
+# include <Geom_CartesianPoint.hxx>
 # include <TopoDS_Vertex.hxx>
 #endif
 
 #include <Base/VectorPy.h>
-#include <Base/GeometryPyCXX.h>
 
-#include "Geometry.h"
 #include "PointPy.h"
 #include "PointPy.cpp"
 #include "OCCError.h"
-#include "TopoShape.h"
 #include "TopoShapeVertexPy.h"
+
 
 using namespace Part;
 
@@ -111,7 +105,7 @@ PyObject* PointPy::toShape(PyObject *args)
     try {
         if (!this_point.IsNull()) {
             if (!PyArg_ParseTuple(args, ""))
-                return 0;
+                return nullptr;
 
             BRepBuilderAPI_MakeVertex mkBuilder(this_point->Pnt());
             const TopoDS_Vertex& sh = mkBuilder.Vertex();
@@ -121,11 +115,11 @@ PyObject* PointPy::toShape(PyObject *args)
     catch (Standard_Failure& e) {
 
         PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
-        return 0;
+        return nullptr;
     }
 
     PyErr_SetString(PartExceptionOCCError, "Geometry is not a point");
-    return 0;
+    return nullptr;
 }
 
 Py::Float PointPy::getX(void) const
@@ -191,7 +185,7 @@ void PointPy::setZ(Py::Float Z)
 
 PyObject *PointPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int PointPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

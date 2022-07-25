@@ -23,15 +23,14 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <QComboBox>
 # include <QFontDatabase>
-# include <QHeaderView>
 #endif
 
 #include "DlgEditorImp.h"
 #include "ui_DlgEditor.h"
-#include "PrefWidgets.h"
 #include "PythonEditor.h"
+#include "Tools.h"
+
 
 using namespace Gui;
 using namespace Gui::Dialog;
@@ -133,7 +132,7 @@ DlgSettingsEditorImp::DlgSettingsEditorImp( QWidget* parent )
     QStringList labels; labels << tr("Items");
     ui->displayItems->setHeaderLabels(labels);
     ui->displayItems->header()->hide();
-    for (QVector<QPair<QString, unsigned int> >::ConstIterator it = d->colormap.begin(); it != d->colormap.end(); ++it) {
+    for (QVector<QPair<QString, unsigned int> >::Iterator it = d->colormap.begin(); it != d->colormap.end(); ++it) {
         QTreeWidgetItem* item = new QTreeWidgetItem(ui->displayItems);
         item->setText(0, tr((*it).first.toLatin1()));
     }
@@ -171,6 +170,17 @@ void DlgSettingsEditorImp::on_colorButton_changed()
     pythonSyntax->setColor( d->colormap[index].first, col );
 }
 
+void DlgSettingsEditorImp::setEditorTabWidth(int tabWidth)
+{
+    QFontMetrics metric(font());
+    int fontSize = QtTools::horizontalAdvance(metric, QLatin1Char('0'));
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+    ui->textEdit1->setTabStopWidth(tabWidth * fontSize);
+#else
+    ui->textEdit1->setTabStopDistance(tabWidth * fontSize);
+#endif
+}
+
 void DlgSettingsEditorImp::saveSettings()
 {
     ui->EnableLineNumber->onSave();
@@ -183,13 +193,15 @@ void DlgSettingsEditorImp::saveSettings()
 
     // Saves the color map
     ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("Editor");
-    for (QVector<QPair<QString, unsigned int> >::ConstIterator it = d->colormap.begin(); it != d->colormap.end(); ++it) {
+    for (QVector<QPair<QString, unsigned int> >::Iterator it = d->colormap.begin(); it != d->colormap.end(); ++it) {
         unsigned long col = static_cast<unsigned long>((*it).second);
         hGrp->SetUnsigned((*it).first.toLatin1(), col);
     }
 
     hGrp->SetInt( "FontSize", ui->fontSize->value() );
     hGrp->SetASCII( "Font", ui->fontFamily->currentText().toLatin1() );
+
+    setEditorTabWidth(ui->tabSize->value());
 }
 
 void DlgSettingsEditorImp::loadSettings()
@@ -202,17 +214,20 @@ void DlgSettingsEditorImp::loadSettings()
     ui->radioTabs->onRestore();
     ui->radioSpaces->onRestore();
 
+    setEditorTabWidth(ui->tabSize->value());
     ui->textEdit1->setPlainText(QString::fromLatin1(
         "# Short Python sample\n"
         "import sys\n"
-        "def foo(begin, end):\n"
-        "	i=begin\n"
-        "	while (i<end):\n"
-        "		print i\n"
-        "		i=i+1\n"
-        "		print \"Text\"\n"
         "\n"
-        "foo(0, 20))\n"));
+        "def foo(begin, end):\n"
+        "	i = begin\n"
+        "	while i < end:\n"
+        "		print(i)\n"
+        "		i = i + 1\n"
+        "		print(\"Text\")\n"
+        "	return None\n"
+        "\n"
+        "foo(0, 20)\n"));
 
     // Restores the color map
     ParameterGrp::handle hGrp = WindowParameter::getDefaultParameter()->GetGroup("Editor");
@@ -250,7 +265,7 @@ void DlgSettingsEditorImp::changeEvent(QEvent *e)
 {
     if (e->type() == QEvent::LanguageChange) {
         int index = 0;
-        for (QVector<QPair<QString, unsigned int> >::ConstIterator it = d->colormap.begin(); it != d->colormap.end(); ++it)
+        for (QVector<QPair<QString, unsigned int> >::Iterator it = d->colormap.begin(); it != d->colormap.end(); ++it)
             ui->displayItems->topLevelItem(index++)->setText(0, tr((*it).first.toLatin1()));
         ui->retranslateUi(this);
     } else {

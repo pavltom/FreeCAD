@@ -6,18 +6,14 @@
  ***************************************************************************/
 
 #include "taskheader_p.h"
-#include "actionpanelscheme.h"
-#include "actionlabel.h"
 
-#include <QtCore/QVariant>
-#include <QtCore/QEvent>
-#include <QtCore/QTimer>
-
-#include <QHBoxLayout>
-#include <QPainter>
-#include <QMouseEvent>
 #include <QApplication>
+#include <QEvent>
+#include <QHBoxLayout>
+#include <QMouseEvent>
+#include <QPainter>
 #include <QStyle>
+#include <QTimer>
 
 
 namespace QSint
@@ -196,20 +192,6 @@ void TaskHeader::fold()
 {
   if (myExpandable) {
     Q_EMIT activated();
-    // Toggling the 'm_fold' member here may lead to inconsistencies with its ActionGroup.
-    // Thus, the method setFold() was added and called from ActionGroup when required.
-#if 0
-    m_fold = !m_fold;
-    changeIcons();
-    if (myButton) {
-      myButton->setProperty("fold", m_fold);
-      if (myButton->style()) {
-        myButton->style()->unpolish(myButton);
-        myButton->style()->polish(myButton);
-        myButton->update();
-      }
-    }
-#endif
   }
 }
 

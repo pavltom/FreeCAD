@@ -23,6 +23,7 @@
 #ifndef TASKCHECKGEOMETRY_H
 #define TASKCHECKGEOMETRY_H
 
+#include <functional>
 #include <tuple>
 #include <BRepCheck_Analyzer.hxx>
 #include <BRepCheck_Status.hxx>
@@ -39,6 +40,7 @@ class SoSeparator;
 class SoSwitch;
 class QCheckBox;
 class QTextEdit;
+class QTreeView;
 
 namespace PartGui {
 
@@ -72,14 +74,14 @@ void goSetupResultInvalidCurveSurface(ResultEntry *entry);
 void goSetupResultInvalidSameParameterFlag(ResultEntry *entry);
 void goSetupResultUnorientableShapeFace(ResultEntry *entry);
 
-typedef boost::function<void (ResultEntry *entry)> ResultFunction;
+typedef std::function<void (ResultEntry *entry)> ResultFunction;
 typedef std::tuple<TopAbs_ShapeEnum, BRepCheck_Status, ResultFunction> FunctionMapType;
 
 class ResultModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    ResultModel(QObject *parent = 0);
+    ResultModel(QObject *parent = nullptr);
     ~ResultModel();
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
     QModelIndex parent(const QModelIndex &child) const;
@@ -100,7 +102,7 @@ class TaskCheckGeometryResults : public QWidget
 {
     Q_OBJECT
 public:
-    TaskCheckGeometryResults(QWidget *parent = 0);
+    TaskCheckGeometryResults(QWidget *parent = nullptr);
     ~TaskCheckGeometryResults();
     QString getShapeContentString();
     void goCheck();

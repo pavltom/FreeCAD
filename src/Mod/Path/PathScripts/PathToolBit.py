@@ -286,6 +286,9 @@ class ToolBit(object):
                 break
         if doc is None:
             p = findToolShape(p, path if path else obj.File)
+            if p is None:
+                raise FileNotFoundError
+
             if not path and p != obj.BitShape:
                 obj.BitShape = p
             PathLog.debug("ToolBit {} using shape file: {}".format(obj.Label, p))
@@ -369,8 +372,11 @@ class ToolBit(object):
                 self._setupProperty(obj, prop, attributes)
                 propNames.append(prop)
         if not propNames:
-            PathLog.error("Did not find a PropertyBag in {} - not a ToolBit shape?".format(
-                        docName))
+            PathLog.error(
+                "Did not find a PropertyBag in {} - not a ToolBit shape?".format(
+                    docName
+                )
+            )
 
         # has to happen last because it could trigger op.execute evaluations
         obj.BitPropertyNames = propNames
@@ -479,6 +485,9 @@ class ToolBitFactory(object):
 
     def CreateFrom(self, path, name="ToolBit"):
         PathLog.track(name, path)
+
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"{path} not found")
         try:
             data = Declaration(path)
             bit = Factory.CreateFromAttrs(data, name, path)

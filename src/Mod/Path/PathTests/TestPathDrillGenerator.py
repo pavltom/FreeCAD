@@ -114,3 +114,65 @@ class TestPathDrillGenerator(PathTestUtils.PathTestBase):
         # dwelltime should be a float
         args = {"edge": e, "dwelltime": 1}
         self.assertRaises(ValueError, generator.generate, **args)
+
+    def test40(self):
+        """Specifying retract height should set R parameter to specified value"""
+        v1 = FreeCAD.Vector(0, 0, 10)
+        v2 = FreeCAD.Vector(0, 0, 0)
+
+        e = Part.makeLine(v1, v2)
+
+        result = generator.generate(e, retractheight=20.0)
+
+        command = result[0]
+
+        self.assertTrue(command.Parameters["R"] == 20.0)
+
+    def test41(self):
+        """Not specifying retract height should set R parameter to Z position of start point"""
+        v1 = FreeCAD.Vector(0, 0, 10)
+        v2 = FreeCAD.Vector(0, 0, 0)
+
+        e = Part.makeLine(v1, v2)
+
+        result = generator.generate(e)
+
+        command = result[0]
+
+        self.assertTrue(command.Parameters["R"] == 10.0)
+
+    def test42(self):
+        """Non-float retract height should raise ValueError"""
+        v1 = FreeCAD.Vector(0, 0, 10)
+        v2 = FreeCAD.Vector(0, 0, 0)
+
+        e = Part.makeLine(v1, v2)
+
+        args = {"edge": e, "retractheight": 1}
+        self.assertRaises(ValueError, generator.generate, **args)
+        args = {"edge": e, "retractheight": "1"}
+        self.assertRaises(ValueError, generator.generate, **args)
+
+    def test50(self):
+        """Test Error if dwell and peck"""
+        v1 = FreeCAD.Vector(0, 0, 10)
+        v2 = FreeCAD.Vector(0, 0, 0)
+
+        e = Part.makeLine(v1, v2)
+
+        # dwelltime should be a float
+        args = {"edge": e, "dwelltime": 1.0, "peckdepth": 1.0}
+        self.assertRaises(ValueError, generator.generate, **args)
+
+    def test60(self):
+        """Test chipBreak"""
+        v1 = FreeCAD.Vector(0, 0, 10)
+        v2 = FreeCAD.Vector(0, 0, 0)
+
+        e = Part.makeLine(v1, v2)
+
+        args = {"edge": e, "peckdepth": 1.0, "chipBreak": True}
+        result = generator.generate(**args)
+        command = result[0]
+
+        self.assertTrue(command.Name == "G73")

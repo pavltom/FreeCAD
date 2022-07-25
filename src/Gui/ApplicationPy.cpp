@@ -20,54 +20,53 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
 # include <QApplication>
-# include <qfileinfo.h>
-# include <qdir.h>
+# include <QDir>
 # include <QPrinter>
 # include <QFileInfo>
 # include <Inventor/SoInput.h>
 # include <Inventor/actions/SoGetPrimitiveCountAction.h>
 # include <Inventor/nodes/SoSeparator.h>
+# include <xercesc/util/TranscodingException.hpp>
+# include <xercesc/util/XMLString.hpp>
 #endif
 
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/TranscodingException.hpp>
 #include <boost/regex.hpp>
 
-#include "Action.h"
-#include "Application.h"
-#include "BitmapFactory.h"
-#include "Command.h"
-#include "Document.h"
-#include "MainWindow.h"
-#include "MainWindowPy.h"
-#include "Macro.h"
-#include "EditorView.h"
-#include "PythonEditor.h"
-#include "SoFCDB.h"
-#include "View3DInventor.h"
-#include "SplitView3DInventor.h"
-#include "ViewProvider.h"
-#include "WaitCursor.h"
-#include "PythonWrapper.h"
-#include "WidgetFactory.h"
-#include "Workbench.h"
-#include "WorkbenchManager.h"
-#include "Language/Translator.h"
-#include "DownloadManager.h"
-#include "DlgPreferencesImp.h"
-#include "DocumentObserverPython.h"
 #include <App/DocumentObjectPy.h>
 #include <App/DocumentPy.h>
 #include <App/PropertyFile.h>
 #include <Base/Interpreter.h>
 #include <Base/Console.h>
 #include <CXX/Objects.hxx>
-#include <Inventor/MarkerBitmaps.h>
+
+#include "Application.h"
+#include "BitmapFactory.h"
+#include "Command.h"
+#include "DlgPreferencesImp.h"
+#include "Document.h"
+#include "DocumentObserverPython.h"
+#include "DownloadManager.h"
+#include "EditorView.h"
+#include "Macro.h"
+#include "MainWindow.h"
+#include "MainWindowPy.h"
+#include "PythonEditor.h"
+#include "PythonWrapper.h"
+#include "SoFCDB.h"
+#include "SplitView3DInventor.h"
+#include "View3DInventor.h"
+#include "ViewProvider.h"
+#include "WaitCursor.h"
+#include "WidgetFactory.h"
+#include "Workbench.h"
+#include "WorkbenchManager.h"
+#include "Inventor/MarkerBitmaps.h"
+#include "Language/Translator.h"
+
 
 using namespace Gui;
 
@@ -464,7 +463,7 @@ PyObject* Gui::Application::sActivateView(PyObject * /*self*/, PyObject *args)
         return nullptr;
 
     Base::Type type = Base::Type::fromName(typeStr);
-    Instance->activateView(type, PyObject_IsTrue(create) ? true : false);
+    Instance->activateView(type, Base::asBoolean(create));
 
     Py_Return;
 }
@@ -832,7 +831,7 @@ PyObject* Application::sSendActiveView(PyObject * /*self*/, PyObject *args)
 
     const char* ppReturn = nullptr;
     if (!Instance->sendMsgToActiveView(psCommandStr,&ppReturn)) {
-        if (!PyObject_IsTrue(suppress))
+        if (!Base::asBoolean(suppress))
             Base::Console().Warning("Unknown view command: %s\n",psCommandStr);
     }
 
@@ -853,7 +852,7 @@ PyObject* Application::sSendFocusView(PyObject * /*self*/, PyObject *args)
 
     const char* ppReturn = nullptr;
     if (!Instance->sendMsgToFocusView(psCommandStr,&ppReturn)) {
-        if (!PyObject_IsTrue(suppress))
+        if (!Base::asBoolean(suppress))
             Base::Console().Warning("Unknown view command: %s\n",psCommandStr);
     }
 
@@ -1008,7 +1007,7 @@ PyObject* Application::sActivateWorkbenchHandler(PyObject * /*self*/, PyObject *
     catch (const Base::Exception& e) {
         std::stringstream err;
         err << psKey << ": " << e.what();
-        PyErr_SetString(Base::BaseExceptionFreeCADError, err.str().c_str());
+        PyErr_SetString(e.getPyExceptionType(), err.str().c_str());
         return nullptr;
     }
     catch (const XERCES_CPP_NAMESPACE_QUALIFIER TranscodingException& e) {
@@ -1026,7 +1025,7 @@ PyObject* Application::sActivateWorkbenchHandler(PyObject * /*self*/, PyObject *
     catch (...) {
         std::stringstream err;
         err << "Unknown C++ exception raised in activateWorkbench('" << psKey << "')";
-        PyErr_SetString(Base::BaseExceptionFreeCADError, err.str().c_str());
+        PyErr_SetString(Base::PyExc_FC_GeneralError, err.str().c_str());
         return nullptr;
     }
 }
@@ -1241,7 +1240,7 @@ PyObject* Application::sAddIcon(PyObject * /*self*/, PyObject *args)
     PyBuffer_Release(&content);
 
     if (icon.isNull()) {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, "Invalid icon added to application");
+        PyErr_SetString(Base::PyExc_FC_GeneralError, "Invalid icon added to application");
         return nullptr;
     }
 
@@ -1354,11 +1353,11 @@ PyObject* Application::sAddCommand(PyObject * /*self*/, PyObject *args)
         }
     }
     catch (const Base::Exception& e) {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, e.what());
+        e.setPyException();
         return nullptr;
     }
     catch (...) {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, "Unknown C++ exception raised in Application::sAddCommand()");
+        PyErr_SetString(Base::PyExc_FC_GeneralError, "Unknown C++ exception raised in Application::sAddCommand()");
         return nullptr;
     }
 
@@ -1381,7 +1380,7 @@ PyObject* Application::sRunCommand(PyObject * /*self*/, PyObject *args)
         Py_Return;
     }
     else {
-        PyErr_Format(Base::BaseExceptionFreeCADError, "No such command '%s'", pName);
+        PyErr_Format(Base::PyExc_FC_GeneralError, "No such command '%s'", pName);
         return nullptr;
     }
 }
@@ -1496,14 +1495,14 @@ PyObject* Application::sCreateViewer(PyObject * /*self*/, PyObject *args)
         return nullptr;
     }
     else if (num_of_views == 1) {
-        View3DInventor* viewer = new View3DInventor(0, 0);
+        View3DInventor* viewer = new View3DInventor(nullptr, nullptr);
         if (title)
             viewer->setWindowTitle(QString::fromUtf8(title));
         Gui::getMainWindow()->addWindow(viewer);
         return viewer->getPyObject();
     }
     else {
-        SplitView3DInventor* viewer = new SplitView3DInventor(num_of_views, 0, 0);
+        SplitView3DInventor* viewer = new SplitView3DInventor(num_of_views, nullptr, nullptr);
         if (title)
             viewer->setWindowTitle(QString::fromUtf8(title));
         Gui::getMainWindow()->addWindow(viewer);
@@ -1641,7 +1640,7 @@ PyObject* Application::sCoinRemoveAllChildren(PyObject * /*self*/, PyObject *arg
     PY_TRY {
         void* ptr = nullptr;
         Base::Interpreter().convertSWIGPointerObj("pivy.coin","_p_SoGroup", pynode, &ptr, 0);
-        coinRemoveAllChildren(reinterpret_cast<SoGroup*>(ptr));
+        coinRemoveAllChildren(static_cast<SoGroup*>(ptr));
         Py_Return;
     }
     PY_CATCH;

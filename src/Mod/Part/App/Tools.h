@@ -20,26 +20,28 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef PART_TOOLS_H
 #define PART_TOOLS_H
 
 #include <Base/Converter.h>
+#include <Base/Placement.h>
+#include <Mod/Part/PartGlobal.h>
+
+#include <gp_Dir.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Vec.hxx>
-#include <gp_Dir.hxx>
 #include <gp_XYZ.hxx>
 #include <Geom_Surface.hxx>
 #include <Poly_Polygon3D.hxx>
 #include <Poly_Triangle.hxx>
 #include <Poly_Triangulation.hxx>
-#include <TColStd_ListOfTransient.hxx>
 #include <TColgp_Array1OfDir.hxx>
+#include <TColStd_ListOfTransient.hxx>
 #include <TopLoc_Location.hxx>
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Face.hxx>
 #include <vector>
-#include <Mod/Part/PartGlobal.h>
+
 
 class gp_Lin;
 class gp_Pln;
@@ -206,7 +208,7 @@ public:
      * \param done
      */
     static void getNormal(const Handle(Geom_Surface)& surf, double u, double v, const Standard_Real tol, gp_Dir& dir, Standard_Boolean& done);
-     /* \brief getNormal
+    /*! \brief getNormal
      * Returns the normal at the given parameters on the face and the state of the calculation.
      * The orientation is taken into account
      * \param face
@@ -217,6 +219,12 @@ public:
      * \param done
      */
     static void getNormal(const TopoDS_Face& face, double u, double v, const Standard_Real tol, gp_Dir& dir, Standard_Boolean& done);
+    /*!
+     * \brief fromPlacement
+     * Converts a placement into a TopLoc_Location
+     * \return TopLoc_Location
+     */
+    static TopLoc_Location fromPlacement(const Base::Placement&);
 };
 
 } //namespace Part

@@ -20,24 +20,23 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
 # include <QMenu>
 # include <QPlainTextEdit>
-# include <boost_bind_bind.hpp>
 #endif
 
+#include <App/Application.h>
 #include <Base/Type.h>
-#include <Gui/ViewProviderDocumentObject.h>
-#include <Gui/TextDocumentEditorView.h>
-#include <Gui/MainWindow.h>
-#include <Gui/Document.h>
-#include <Gui/ActionFunction.h>
-#include <Gui/PythonEditor.h>
 
 #include "ViewProviderTextDocument.h"
+#include "ActionFunction.h"
+#include "Document.h"
+#include "MainWindow.h"
+#include "PythonEditor.h"
+#include "TextDocumentEditorView.h"
+#include "ViewProviderDocumentObject.h"
 
 
 using namespace Gui;
@@ -75,7 +74,7 @@ void ViewProviderTextDocument::setupContextMenu(QMenu* menu, QObject* receiver, 
 {
     Gui::ActionFunction* func = new Gui::ActionFunction(menu);
     QAction* act = menu->addAction(QObject::tr("Edit text"));
-    func->trigger(act, boost::bind(&ViewProviderTextDocument::doubleClicked, this));
+    func->trigger(act, std::bind(&ViewProviderTextDocument::doubleClicked, this));
 
     ViewProviderDocumentObject::setupContextMenu(menu, receiver, member);
 }

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="App" Version="10.0.0" InternalType="Library">
+  <VirtualDirectory Name="App">
+    <File Name="DocumentObjectGroup.h"/>
+    <File Name="PropertyContainer.h"/>
+    <File Name="ObjectIdentifier.cpp"/>
+    <File Name="InventorObject.cpp"/>
+    <File Name="PropertyPythonObject.h"/>
+    <File Name="DocumentObjectFileIncluded.cpp"/>
+    <File Name="Property.h"/>
+    <File Name="InventorObject.h"/>
+    <File Name="GroupExtension.h"/>
+    <File Name="lex.ExpressionParser.c"/>
+    <File Name="GeoFeatureGroupExtension.h"/>
+    <File Name="AutoTransaction.h"/>
+    <File Name="Enumeration.cpp"/>
+    <File Name="ComplexGeoDataPyImp.cpp"/>
+    <File Name="Placement.cpp"/>
+    <File Name="PropertyUnits.cpp"/>
+    <File Name="DocumentObjectPyImp.cpp"/>
+    <File Name="DocumentObserver.h"/>
+    <File Name="GroupExtension.cpp"/>
+    <File Name="OriginFeature.cpp"/>
+    <File Name="ExtensionContainer.h"/>
+    <File Name="GeoFeature.h"/>
+    <File Name="PropertyLinks.h"/>
+    <File Name="FeatureTest.h"/>
+    <File Name="DocumentObserverPython.h"/>
+    <File Name="DocumentPyImp.cpp"/>
+    <File Name="ObjectIdentifier.h"/>
+    <File Name="OriginGroupExtension.h"/>
+    <File Name="DocumentObjectGroup.cpp"/>
+    <File Name="Extension.cpp"/>
+    <File Name="Document.cpp"/>
+    <File Name="PropertyStandard.h"/>
+    <File Name="DocumentObject.h"/>
+    <File Name="FeaturePythonPyImp.h"/>
+    <File Name="Material.cpp"/>
+    <File Name="ExpressionParser.tab.h"/>
+    <File Name="OriginGroupExtension.cpp"/>
+    <File Name="FeaturePython.h"/>
+    <File Name="MeasureDistance.h"/>
+    <File Name="Application.h"/>
+    <File Name="FeatureCustom.h"/>
+    <File Name="DocumentObject.cpp"/>
+    <File Name="Path.cpp"/>
+    <File Name="Property.cpp"/>
+    <File Name="TextDocument.h"/>
+    <File Name="Part.h"/>
+    <File Name="Document.h"/>
+    <File Name="MergeDocuments.cpp"/>
+    <File Name="ExtensionPyImp.cpp"/>
+    <File Name="Annotation.h"/>
+    <File Name="ExpressionParser.h"/>
+    <File Name="FeatureTest.cpp"/>
+    <File Name="FeaturePython.cpp"/>
+    <File Name="PropertyFile.cpp"/>
+    <File Name="Enumeration.h"/>
+    <File Name="GeoFeaturePyImp.cpp"/>
+    <File Name="ComplexGeoData.cpp"/>
+    <File Name="TransactionalObject.cpp"/>
+    <File Name="MeasureDistance.cpp"/>
+    <File Name="Expression.h"/>
+    <File Name="PropertyUnits.h"/>
+    <File Name="Origin.h"/>
+    <File Name="Annotation.cpp"/>
+    <File Name="Application.cpp"/>
+    <File Name="ColorModel.h"/>
+    <File Name="GeoFeatureGroupExtensionPyImp.cpp"/>
+    <File Name="Link.h"/>
+    <File Name="VRMLObject.h"/>
+    <File Name="PropertyExpressionEngine.cpp"/>
+    <File Name="PreCompiled.h"/>
+    <File Name="Part.cpp"/>
+    <File Name="PartPyImp.cpp"/>
+    <File Name="GeoFeature.cpp"/>
+    <File Name="DynamicProperty.h"/>
+    <File Name="Path.h"/>
+    <File Name="OriginFeature.h"/>
+    <File Name="Material.h"/>
+    <File Name="ExtensionContainer.cpp"/>
+    <File Name="MaterialObject.cpp"/>
+    <File Name="VRMLObject.cpp"/>
+    <File Name="MergeDocuments.h"/>
+    <File Name="Expression.cpp"/>
+    <File Name="PropertyGeo.cpp"/>
+    <File Name="ApplicationPy.cpp"/>
+    <File Name="Range.cpp"/>
+    <File Name="DocumentObjectExtension.h"/>
+    <File Name="DocumentObjectFileIncluded.h"/>
+    <File Name="TextDocument.cpp"/>
+    <File Name="DocumentObserverPython.cpp"/>
+    <File Name="ComplexGeoData.h"/>
+    <File Name="GroupExtensionPyImp.cpp"/>
+    <File Name="PropertyFile.h"/>
+    <File Name="PropertyGeo.h"/>
+    <File Name="PropertyStandard.cpp"/>
+    <File Name="ExpressionVisitors.h"/>
+    <File Name="TransactionalObject.h"/>
+    <File Name="Origin.cpp"/>
+    <File Name="DocumentObjectExtension.cpp"/>
+    <File Name="AutoTransaction.cpp"/>
+    <File Name="PropertyContainerPyImp.cpp"/>
+    <File Name="PropertyExpressionEngine.h"/>
+    <File Name="ExtensionContainerPyImp.cpp"/>
+    <File Name="LinkBaseExtensionPyImp.cpp"/>
+    <File Name="ColorModel.cpp"/>
+    <File Name="PropertyPythonObject.cpp"/>
+    <File Name="MaterialObject.h"/>
+    <File Name="Branding.h"/>
+    <File Name="Extension.h"/>
+    <File Name="Link.cpp"/>
+    <File Name="Branding.cpp"/>
+    <File Name="DocumentObjectGroupPyImp.cpp"/>
+    <File Name="DocumentObserver.cpp"/>
+    <File Name="Placement.h"/>
+    <File Name="DocumentObjectExtensionPyImp.cpp"/>
+    <File Name="ExpressionParser.tab.c"/>
+    <File Name="PropertyLinks.cpp"/>
+    <File Name="Transactions.h"/>
+    <File Name="PreCompiled.cpp"/>
+    <File Name="DynamicProperty.cpp"/>
+    <File Name="MaterialPyImp.cpp"/>
+    <File Name="Range.h"/>
+    <File Name="Transactions.cpp"/>
+    <File Name="PropertyContainer.cpp"/>
+    <File Name="OriginGroupExtensionPyImp.cpp"/>
+    <File Name="GeoFeatureGroupExtension.cpp"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Dynamic Library">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Debug" Command="/data/src/freecad/freecad-debug/bin/FreeCAD" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="/data/src/freecad/freecad-debug/bin" PauseExecWhenProcTerminates="no" IsGUIProgram="yes" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

@@ -20,12 +20,10 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
 # include <sstream>
-# include <limits>
 # include <Inventor/fields/SoMFString.h>
 # include <Inventor/nodes/SoBaseColor.h>
 # include <Inventor/nodes/SoCoordinate3.h>
@@ -35,8 +33,8 @@
 # include <Inventor/nodes/SoTransform.h>
 #endif
 
-#include "ViewProvider.h"
 #include "SoFCColorLegend.h"
+#include "ViewProvider.h"
 
 
 using namespace Gui;
@@ -192,21 +190,11 @@ void SoFCColorLegend::setMarkerValue(const SoMFString& value)
 
 void SoFCColorLegend::setViewportSize(const SbVec2s& size)
 {
-    // don't know why the parameter range isn't between [-1,+1]
-    float fRatio = static_cast<float>(size[0]) / static_cast<float>(size[1]);
-    float fMinX =  4.0f, fMaxX = 4.5f;
-    float fMinY = -4.0f, fMaxY = 4.0f;
+    float fMinX, fMinY, fMaxX, fMaxY;
+    float boxWidth = getBounds(size, fMinX, fMinY, fMaxX, fMaxY);
 
-    if (fRatio > 1.0f) {
-        fMinX = 4.0f * fRatio;
-        fMaxX = fMinX + 0.5f;
-    }
-    else if (fRatio < 1.0f) {
-        fMinY = -4.0f / fRatio;
-        fMaxY =  4.0f / fRatio;
-    }
-
-    _bbox.setBounds(fMinX, fMinY, fMaxX, fMaxY);
+    // legend bar is shifted to the left by width of the labels to assure that labels are fully visible
+    _bbox.setBounds(fMinX - boxWidth, fMinY, fMaxX - boxWidth, fMaxY);
 
     arrangeLabels(_bbox);
     arrangeValues(_bbox);
@@ -257,6 +245,8 @@ void SoFCColorLegend::setLegendLabels(const App::ColorLegend& legend, int prec)
 
     setMarkerLabel(labels);
     setMarkerValue(values);
+
+    setModified();
 }
 
 void SoFCColorLegend::modifyPoints(const SbBox2f& box)

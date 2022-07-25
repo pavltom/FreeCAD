@@ -20,24 +20,20 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp_Circ.hxx>
-# include <Geom_Circle.hxx>
 # include <GC_MakeArcOfCircle.hxx>
-# include <GC_MakeCircle.hxx>
+# include <Geom_Circle.hxx>
 # include <Geom_TrimmedCurve.hxx>
 #endif
 
-#include "Geometry.h"
-#include <Mod/Part/App/ArcOfCirclePy.h>
-#include <Mod/Part/App/ArcOfCirclePy.cpp>
-#include <Mod/Part/App/CirclePy.h>
+#include <Base/VectorPy.h>
+
+#include "ArcOfCirclePy.h"
+#include "ArcOfCirclePy.cpp"
+#include "CirclePy.h"
 #include "OCCError.h"
 
-#include <Base/GeometryPyCXX.h>
-#include <Base/VectorPy.h>
 
 using namespace Part;
 
@@ -84,7 +80,7 @@ int ArcOfCirclePy::PyInit(PyObject* args, PyObject* /*kwds*/)
         try {
             Handle(Geom_Circle) circle = Handle(Geom_Circle)::DownCast
                 (static_cast<CirclePy*>(o)->getGeomCirclePtr()->handle());
-            GC_MakeArcOfCircle arc(circle->Circ(), u1, u2, PyObject_IsTrue(sense) ? Standard_True : Standard_False);
+            GC_MakeArcOfCircle arc(circle->Circ(), u1, u2, Base::asBoolean(sense));
             if (!arc.IsDone()) {
                 PyErr_SetString(PartExceptionOCCError, gce_ErrorStatusText(arc.Status()));
                 return -1;
@@ -150,7 +146,7 @@ Py::Object ArcOfCirclePy::getCircle(void) const
 
 PyObject *ArcOfCirclePy::getCustomAttributes(const char* ) const
 {
-    return 0;
+    return nullptr;
 }
 
 int ArcOfCirclePy::setCustomAttributes(const char* , PyObject *)

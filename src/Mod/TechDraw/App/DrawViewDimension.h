@@ -22,14 +22,15 @@
 
 #ifndef _TechDraw_DrawViewDimension_h_
 #define _TechDraw_DrawViewDimension_h_
+
 #include <tuple>
 
-# include <App/DocumentObject.h>
-# include <App/FeaturePython.h>
-# include <App/PropertyLinks.h>
-# include <Base/UnitsApi.h>
+#include <App/DocumentObject.h>
+#include <App/PropertyLinks.h>
+#include <Base/UnitsApi.h>
 
 #include "DrawView.h"
+
 
 class TopoDS_Shape;
 
@@ -58,6 +59,20 @@ struct anglePoints
         ends.second = Base::Vector3d(0.0,0.0,0.0);
         vertex      = Base::Vector3d(0.0,0.0,0.0);
     }
+
+    anglePoints(const anglePoints& ap)
+        : ends(ap.ends)
+        , vertex(ap.vertex)
+    {
+
+    }
+
+    anglePoints& operator= (const anglePoints& ap)
+    {
+        ends = ap.ends;
+        vertex = ap.vertex;
+        return *this;
+    }
 };
 
 struct arcPoints
@@ -83,6 +98,29 @@ struct arcPoints
          arcCW = false;
     }
 
+    arcPoints(const arcPoints& ap)
+        : isArc(ap.isArc)
+        , radius(ap.radius)
+        , center(ap.center)
+        , onCurve(ap.onCurve)
+        , arcEnds(ap.arcEnds)
+        , midArc(ap.midArc)
+        , arcCW(ap.arcCW)
+    {
+
+    }
+
+    arcPoints& operator= (const arcPoints& ap)
+    {
+        isArc = ap.isArc;
+        radius = ap.radius;
+        center = ap.center;
+        onCurve = ap.onCurve;
+        arcEnds = ap.arcEnds;
+        midArc = ap.midArc;
+        arcCW = ap.arcCW;
+        return *this;
+    }
 };
 
 class TechDrawExport DrawViewDimension : public TechDraw::DrawView
@@ -145,7 +183,9 @@ public:
     virtual std::string getFormattedToleranceValue(int partial);
     virtual std::pair<std::string, std::string> getFormattedToleranceValues(int partial = 0);
     virtual std::string getFormattedDimensionValue(int partial = 0);
-    virtual std::string formatValue(qreal value, QString qFormatSpec, int partial = 0);
+    virtual std::string formatValue(qreal value, QString qFormatSpec, int partial = 0, bool isDim = true);
+
+    virtual bool haveTolerance(void);
 
     virtual double getDimValue();
     QStringList getPrefixSuffixSpec(QString fSpec);
@@ -194,6 +234,10 @@ protected:
                             TopoDS_Shape s2) const;
     pointPair   m_linearPoints;
     pointPair   m_arrowPositions;
+
+    void resetLinear(void);
+    void resetAngular(void);
+    void resetArc(void);
 
 private:
     static const char* TypeEnums[];

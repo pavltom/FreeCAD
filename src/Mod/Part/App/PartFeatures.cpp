@@ -20,30 +20,30 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <BRepFill.hxx>
-# include <BRepAdaptor_Curve.hxx>
+# include <memory>
 # include <BRepAdaptor_CompCurve.hxx>
-# include <BRepLib_MakeWire.hxx>
-# include <Geom_BSplineSurface.hxx>
-# include <TopoDS.hxx>
-# include <TopoDS_Face.hxx>
-# include <TopoDS_Shell.hxx>
-# include <TopTools_HSequenceOfShape.hxx>
+# include <BRepAdaptor_Curve.hxx>
+# include <BRepBuilderAPI_Copy.hxx>
 # include <BRepBuilderAPI_MakeWire.hxx>
+# include <BRepFill.hxx>
+# include <BRepLib_MakeWire.hxx>
 # include <BRepOffsetAPI_MakePipeShell.hxx>
+# include <Geom_BSplineSurface.hxx>
+# include <Precision.hxx>
 # include <ShapeAnalysis.hxx>
 # include <ShapeAnalysis_FreeBounds.hxx>
-# include <TopTools_ListIteratorOfListOfShape.hxx>
-# include <TopoDS_Iterator.hxx>
 # include <TopExp_Explorer.hxx>
 # include <TopoDS.hxx>
-# include <Precision.hxx>
-# include <memory>
+# include <TopoDS_Face.hxx>
+# include <TopoDS_Iterator.hxx>
+# include <TopoDS_Shell.hxx>
+# include <TopTools_HSequenceOfShape.hxx>
+# include <TopTools_ListIteratorOfListOfShape.hxx>
 #endif
 
+#include <App/Link.h>
 
 #include "PartFeatures.h"
 
@@ -52,12 +52,12 @@ using namespace Part;
 
 PROPERTY_SOURCE(Part::RuledSurface, Part::Feature)
 
-const char* RuledSurface::OrientationEnums[]    = {"Automatic","Forward","Reversed",NULL};
+const char* RuledSurface::OrientationEnums[]    = {"Automatic","Forward","Reversed",nullptr};
 
 RuledSurface::RuledSurface()
 {
-    ADD_PROPERTY_TYPE(Curve1,(0),"Ruled Surface",App::Prop_None,"Curve of ruled surface");
-    ADD_PROPERTY_TYPE(Curve2,(0),"Ruled Surface",App::Prop_None,"Curve of ruled surface");
+    ADD_PROPERTY_TYPE(Curve1,(nullptr),"Ruled Surface",App::Prop_None,"Curve of ruled surface");
+    ADD_PROPERTY_TYPE(Curve2,(nullptr),"Ruled Surface",App::Prop_None,"Curve of ruled surface");
     ADD_PROPERTY_TYPE(Orientation,((long)0),"Ruled Surface",App::Prop_None,"Orientation of ruled surface");
     Orientation.setEnums(OrientationEnums);
 }
@@ -82,22 +82,24 @@ App::DocumentObjectExecReturn* RuledSurface::getShape(const App::PropertyLinkSub
                                                       TopoDS_Shape& shape) const
 {
     App::DocumentObject* obj = link.getValue();
-    if (!(obj && obj->getTypeId().isDerivedFrom(Part::Feature::getClassTypeId())))
+    const Part::TopoShape part = Part::Feature::getTopoShape(obj);
+    if (part.isNull()) {
         return new App::DocumentObjectExecReturn("No shape linked.");
+    }
 
     // if no explicit sub-shape is selected use the whole part
     const std::vector<std::string>& element = link.getSubValues();
     if (element.empty()) {
-        shape = static_cast<Part::Feature*>(obj)->Shape.getValue();
+        shape = part.getShape();
         return nullptr;
     }
     else if (element.size() != 1) {
         return new App::DocumentObjectExecReturn("Not exactly one sub-shape linked.");
     }
 
-    const Part::TopoShape& part = static_cast<Part::Feature*>(obj)->Shape.getValue();
     if (!part.getShape().IsNull()) {
         if (!element[0].empty()) {
+            //shape = Part::Feature::getTopoShape(obj, element[0].c_str(), true /*need element*/).getShape();
             shape = part.getSubShape(element[0].c_str());
         }
         else {
@@ -117,12 +119,14 @@ App::DocumentObjectExecReturn *RuledSurface::execute(void)
         // get the first input shape
         TopoDS_Shape S1;
         ret = getShape(Curve1, S1);
-        if (ret) return ret;
+        if (ret)
+            return ret;
 
         // get the second input shape
         TopoDS_Shape S2;
         ret = getShape(Curve2, S2);
-        if (ret) return ret;
+        if (ret)
+            return ret;
 
         // check for expected type
         if (S1.IsNull() || S2.IsNull())
@@ -138,16 +142,9 @@ App::DocumentObjectExecReturn *RuledSurface::execute(void)
         //
         // if both shapes are sub-elements of one common shape then the fill algorithm
         // leads to problems if the shape has set a placement
-        // The workaround is to reset the placement before calling BRepFill and then
-        // applying the placement to the output shape
-        TopLoc_Location Loc;
-        if (Curve1.getValue() == Curve2.getValue()) {
-            Loc = S1.Location();
-            if (!Loc.IsIdentity() && Loc == S2.Location()) {
-                S1.Location(TopLoc_Location());
-                S2.Location(TopLoc_Location());
-            }
-        }
+        // The workaround is to copy the sub-shape
+        S1 = BRepBuilderAPI_Copy(S1).Shape();
+        S2 = BRepBuilderAPI_Copy(S2).Shape();
 
         // make both shapes to have the same type
         Standard_Boolean isWire = Standard_False;
@@ -232,20 +229,6 @@ App::DocumentObjectExecReturn *RuledSurface::execute(void)
             ruledShape = BRepFill::Shell(TopoDS::Wire(S1), TopoDS::Wire(S2));
         }
 
-        // re-apply the placement in case we reset it
-        if (!Loc.IsIdentity())
-            ruledShape.Move(Loc);
-        Loc = ruledShape.Location();
-
-        if (!Loc.IsIdentity()) {
-            // reset the placement of the shape because the Placement
-            // property will be changed
-            ruledShape.Location(TopLoc_Location());
-            Base::Matrix4D transform;
-            TopoShape::convertToMatrix(Loc.Transformation(), transform);
-            this->Placement.setValue(Base::Placement(transform));
-        }
-
         this->Shape.setValue(ruledShape);
         return App::DocumentObject::StdReturn;
     }
@@ -266,7 +249,7 @@ PROPERTY_SOURCE(Part::Loft, Part::Feature)
 
 Loft::Loft()
 {
-    ADD_PROPERTY_TYPE(Sections,(0),"Loft",App::Prop_None,"List of sections");
+    ADD_PROPERTY_TYPE(Sections,(nullptr),"Loft",App::Prop_None,"List of sections");
     Sections.setSize(0);
     ADD_PROPERTY_TYPE(Solid,(false),"Loft",App::Prop_None,"Create solid");
     ADD_PROPERTY_TYPE(Ruled,(false),"Loft",App::Prop_None,"Ruled surface");
@@ -376,15 +359,15 @@ App::DocumentObjectExecReturn *Loft::execute(void)
 
 // ----------------------------------------------------------------------------
 
-const char* Part::Sweep::TransitionEnums[]= {"Transformed","Right corner", "Round corner",NULL};
+const char* Part::Sweep::TransitionEnums[]= {"Transformed","Right corner", "Round corner",nullptr};
 
 PROPERTY_SOURCE(Part::Sweep, Part::Feature)
 
 Sweep::Sweep()
 {
-    ADD_PROPERTY_TYPE(Sections,(0),"Sweep",App::Prop_None,"List of sections");
+    ADD_PROPERTY_TYPE(Sections,(nullptr),"Sweep",App::Prop_None,"List of sections");
     Sections.setSize(0);
-    ADD_PROPERTY_TYPE(Spine,(0),"Sweep",App::Prop_None,"Path to sweep along");
+    ADD_PROPERTY_TYPE(Spine,(nullptr),"Sweep",App::Prop_None,"Path to sweep along");
     ADD_PROPERTY_TYPE(Solid,(false),"Sweep",App::Prop_None,"Create solid");
     ADD_PROPERTY_TYPE(Frenet,(false),"Sweep",App::Prop_None,"Frenet");
     ADD_PROPERTY_TYPE(Transition,(long(1)),"Sweep",App::Prop_None,"Transition mode");
@@ -427,7 +410,7 @@ App::DocumentObjectExecReturn *Sweep::execute(void)
             if (!subedge.empty()) {
                 BRepBuilderAPI_MakeWire mkWire;
                 for (std::vector<std::string>::const_iterator it = subedge.begin(); it != subedge.end(); ++it) {
-                    TopoDS_Shape subshape = shape.getSubShape(it->c_str());
+                    TopoDS_Shape subshape = Feature::getTopoShape(spine, it->c_str(), true /*need element*/).getShape();
                     mkWire.Add(TopoDS::Edge(subshape));
                 }
                 path = mkWire.Wire();
@@ -581,14 +564,14 @@ App::DocumentObjectExecReturn *Sweep::execute(void)
 
 // ----------------------------------------------------------------------------
 
-const char* Part::Thickness::ModeEnums[]= {"Skin","Pipe", "RectoVerso",NULL};
-const char* Part::Thickness::JoinEnums[]= {"Arc","Tangent", "Intersection",NULL};
+const char* Part::Thickness::ModeEnums[]= {"Skin","Pipe", "RectoVerso",nullptr};
+const char* Part::Thickness::JoinEnums[]= {"Arc","Tangent", "Intersection",nullptr};
 
 PROPERTY_SOURCE(Part::Thickness, Part::Feature)
 
 Thickness::Thickness()
 {
-    ADD_PROPERTY_TYPE(Faces,(0),"Thickness",App::Prop_None,"Faces to be removed");
+    ADD_PROPERTY_TYPE(Faces,(nullptr),"Thickness",App::Prop_None,"Faces to be removed");
     ADD_PROPERTY_TYPE(Value,(1.0),"Thickness",App::Prop_None,"Thickness value");
     ADD_PROPERTY_TYPE(Mode,(long(0)),"Thickness",App::Prop_None,"Mode");
     Mode.setEnums(ModeEnums);
@@ -677,7 +660,7 @@ PROPERTY_SOURCE(Part::Refine, Part::Feature)
 
 Refine::Refine()
 {
-    ADD_PROPERTY_TYPE(Source,(0),"Refine",App::Prop_None,"Source shape");
+    ADD_PROPERTY_TYPE(Source,(nullptr),"Refine",App::Prop_None,"Source shape");
 }
 
 App::DocumentObjectExecReturn *Refine::execute(void)
@@ -702,21 +685,26 @@ PROPERTY_SOURCE(Part::Reverse, Part::Feature)
 
 Reverse::Reverse()
 {
-    ADD_PROPERTY_TYPE(Source, (0), "Reverse", App::Prop_None, "Source shape");
+    ADD_PROPERTY_TYPE(Source, (nullptr), "Reverse", App::Prop_None, "Source shape");
 }
 
 App::DocumentObjectExecReturn* Reverse::execute(void)
 {
-    Part::Feature* source = Source.getValue<Part::Feature*>();
-    if (!source)
+    App::DocumentObject* source = Source.getValue<App::DocumentObject*>();
+    Part::TopoShape topoShape = Part::Feature::getShape(source);
+    if (topoShape.isNull())
         return new App::DocumentObjectExecReturn("No part object linked.");
 
     try {
-        TopoDS_Shape myShape = source->Shape.getValue();
-        if (!myShape.IsNull())
+        TopoDS_Shape myShape = topoShape.getShape();
+        if (!myShape.IsNull()){
             this->Shape.setValue(myShape.Reversed());
-        this->Placement.setValue(source->Placement.getValue());
-        return App::DocumentObject::StdReturn;
+            Base::Placement p;
+            p.fromMatrix(topoShape.getTransform());
+            this->Placement.setValue(p);
+            return App::DocumentObject::StdReturn;
+        }
+        return new App::DocumentObjectExecReturn("Shape is null.");
     }
     catch (Standard_Failure & e) {
         return new App::DocumentObjectExecReturn(e.GetMessageString());

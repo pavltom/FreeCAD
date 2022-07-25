@@ -36,8 +36,13 @@ class DlgSettingsFemElmerImp : public Gui::Dialog::PreferencePage
     Q_OBJECT
 
 public:
-    DlgSettingsFemElmerImp( QWidget* parent = 0 );
+    DlgSettingsFemElmerImp( QWidget* parent = nullptr );
     ~DlgSettingsFemElmerImp();
+
+protected Q_SLOTS:
+    void onfileNameChanged(QString FileName);
+    void onfileNameChangedMT(QString FileName);
+    void onCoresValueChanged(int cores);
 
 protected:
     void saveSettings();
@@ -46,6 +51,7 @@ protected:
 
 private:
     std::unique_ptr<Ui_DlgSettingsFemElmerImp> ui;
+    unsigned int processor_count;
 };
 
 } // namespace FemGui

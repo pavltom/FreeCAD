@@ -20,15 +20,14 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_DIALOG_DLGPROPERTYLINK_H
 #define GUI_DIALOG_DLGPROPERTYLINK_H
 
 #include <QDialog>
-#include <QAbstractItemView>
-#include <QTimer>
-#include <QPushButton>
 #include <QPointer>
+#include <QPushButton>
+#include <QTimer>
+#include "Selection.h"
 
 #define FC_XLINK_VALUE_INDEX 5
 
@@ -40,7 +39,7 @@ class DlgPropertyLink : public QDialog, public Gui::SelectionObserver
     Q_OBJECT
 
 public:
-    DlgPropertyLink(QWidget* parent = 0);
+    DlgPropertyLink(QWidget* parent = nullptr);
     ~DlgPropertyLink();
 
     void accept();
@@ -50,7 +49,7 @@ public:
 
     void init(const App::DocumentObjectT &prop, bool tryFilter=true);
 
-    static QString linksToPython(QList<App::SubObjectT> links);
+    static QString linksToPython(const QList<App::SubObjectT>& links);
 
     static QList<App::SubObjectT> getLinksFromProperty(const App::PropertyLinkBase *prop);
 
@@ -92,7 +91,7 @@ private:
     void filterObjects();
     void filterItem(QTreeWidgetItem *item);
     bool filterType(QTreeWidgetItem *item);
-    QTreeWidgetItem *findItem(App::DocumentObject *obj, const char *subname=0, bool *found=nullptr);
+    QTreeWidgetItem *findItem(App::DocumentObject *obj, const char *subname=nullptr, bool *found=nullptr);
     void itemSearch(const QString &text, bool select);
     QList<App::SubObjectT> getLinkFromItem(QTreeWidgetItem *, bool needSubName=true) const;
 

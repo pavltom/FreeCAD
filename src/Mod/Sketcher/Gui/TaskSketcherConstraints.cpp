@@ -34,7 +34,6 @@
 # include <QPainter>
 # include <QPixmapCache>
 # include <QStringListModel>
-# include <boost_bind_bind.hpp>
 #endif
 
 #include "TaskSketcherConstraints.h"
@@ -48,9 +47,11 @@
 #include <Base/Tools.h>
 #include <App/Application.h>
 #include <App/Document.h>
+#include <App/Expression.h>
 #include <Gui/Application.h>
 #include <Gui/Document.h>
 #include <Gui/Selection.h>
+#include <Gui/SelectionObject.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/ViewProvider.h>
 #include <Gui/CommandT.h>
@@ -147,7 +148,7 @@ public:
             case Sketcher::Weight:
             case Sketcher::Diameter:
             case Sketcher::Angle:
-                name = QString::fromLatin1("%1 (%2)").arg(name).arg(constraint->getPresentationValue().getUserString());
+                name = QString::fromLatin1("%1 (%2)").arg(name, constraint->getPresentationValue().getUserString());
                 break;
             case Sketcher::SnellsLaw: {
                 double v = constraint->getPresentationValue().getValue();
@@ -513,10 +514,10 @@ void ConstraintView::contextMenuEvent (QContextMenuEvent* event)
         ,QKeySequence(Qt::Key_F2)
 #endif
         );
-    rename->setEnabled(item != 0);
+    rename->setEnabled(item != nullptr);
 
     QAction* center = menu.addAction(tr("Center sketch"), this, SLOT(centerSelectedItems()));
-    center->setEnabled(item != 0);
+    center->setEnabled(item != nullptr);
 
     QAction* remove = menu.addAction(tr("Delete"), this, SLOT(deleteSelectedItems()),
         QKeySequence(QKeySequence::Delete));
@@ -536,7 +537,7 @@ void ConstraintView::updateDrivingStatus()
 
     ConstraintItem *it = dynamic_cast<ConstraintItem*>(item);
     if (it) {
-        onUpdateDrivingStatus(item, !it->isDriving());
+        Q_EMIT onUpdateDrivingStatus(item, !it->isDriving());
     }
 }
 
@@ -546,7 +547,7 @@ void ConstraintView::updateActiveStatus()
 
     ConstraintItem *it = dynamic_cast<ConstraintItem*>(item);
     if (it) {
-        onUpdateActiveStatus(item, !it->isActive());
+        Q_EMIT onUpdateActiveStatus(item, !it->isActive());
     }
 }
 
@@ -562,7 +563,7 @@ void ConstraintView::hideConstraints()
 
 void ConstraintView::modifyCurrentItem()
 {
-    /*emit*/itemActivated(currentItem());
+    Q_EMIT itemActivated(currentItem());
 }
 
 void ConstraintView::renameCurrentItem()
@@ -581,7 +582,8 @@ void ConstraintView::centerSelectedItems()
 void ConstraintView::deleteSelectedItems()
 {
     App::Document* doc = App::GetApplication().getActiveDocument();
-    if (!doc) return;
+    if (!doc)
+        return;
 
     doc->openTransaction("Delete constraint");
     std::vector<Gui::SelectionObject> sel = Gui::Selection().getSelectionEx(doc->getName());
@@ -634,7 +636,7 @@ void ConstraintView::swapNamedOfSelectedItems()
 // ----------------------------------------------------------------------------
 
 TaskSketcherConstraints::TaskSketcherConstraints(ViewProviderSketch *sketchView) :
-    TaskBox(Gui::BitmapFactory().pixmap("document-new"), tr("Constraints"), true, 0),
+    TaskBox(Gui::BitmapFactory().pixmap("document-new"), tr("Constraints"), true, nullptr),
     sketchView(sketchView), inEditMode(false),
     ui(new Ui_TaskSketcherConstraints)
 {
@@ -706,7 +708,7 @@ TaskSketcherConstraints::TaskSketcherConstraints(ViewProviderSketch *sketchView)
         );
 
     QObject::connect(
-        ui->visibilityButton->actions()[0], SIGNAL(changed()),
+        qAsConst(ui->visibilityButton)->actions()[0], SIGNAL(changed()),
         this                     , SLOT  (on_visibilityButton_trackingaction_changed())
         );
 
@@ -761,7 +763,7 @@ void TaskSketcherConstraints::updateAssociatedConstraintsFilter()
     assert(sketchView);
 
     std::vector<Gui::SelectionObject> selection;
-    selection = Gui::Selection().getSelectionEx(0, Sketcher::SketchObject::getClassTypeId());
+    selection = Gui::Selection().getSelectionEx(nullptr, Sketcher::SketchObject::getClassTypeId());
 
     // only one sketch with its subelements are allowed to be selected
     if (selection.size() != 1) {
@@ -824,6 +826,11 @@ void TaskSketcherConstraints::on_multipleFilterButton_clicked(bool)
 
         // if tracking, it will call slotConstraintChanged via update mechanism as Multi Filter affects not only visibility, but also filtered list content, if not tracking will still update the list to match the multi-filter.
         updateList();
+    }
+    else
+    {
+        // restore previous filter if Multiple filter dialog is canceled
+        ui->comboBoxFilter->setCurrentIndex(filterindex);
     }
 }
 
@@ -1072,8 +1079,8 @@ void TaskSketcherConstraints::on_visualisationTrackingFilter_stateChanged(int st
     {
         QSignalBlocker block(this);
 
-        if(ui->visibilityButton->actions()[0]->isChecked() != (state == Qt::Checked))
-            ui->visibilityButton->actions()[0]->setChecked(state);
+        if (qAsConst(ui->visibilityButton)->actions()[0]->isChecked() != (state == Qt::Checked))
+            qAsConst(ui->visibilityButton)->actions()[0]->setChecked(state);
     }
 
     if(state == Qt::Checked)
@@ -1086,7 +1093,7 @@ void TaskSketcherConstraints::on_visibilityButton_trackingaction_changed()
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Sketcher");
     bool visibilityTracksFilter = hGrp->GetBool("VisualisationTrackingFilter",false);
 
-    bool bstate = ui->visibilityButton->actions()[0]->isChecked();
+    bool bstate = qAsConst(ui->visibilityButton)->actions()[0]->isChecked();
 
     if(visibilityTracksFilter != bstate) {
         hGrp->SetBool("VisualisationTrackingFilter", bstate);
@@ -1137,7 +1144,8 @@ void TaskSketcherConstraints::on_listWidgetConstraints_itemSelectionChanged(void
 void TaskSketcherConstraints::on_listWidgetConstraints_itemActivated(QListWidgetItem *item)
 {
     ConstraintItem *it = dynamic_cast<ConstraintItem*>(item);
-    if (!it) return;
+    if (!it)
+        return;
 
     // if its the right constraint
     if (it->isDimensional()) {
@@ -1151,7 +1159,8 @@ void TaskSketcherConstraints::on_listWidgetConstraints_updateDrivingStatus(QList
 {
     Q_UNUSED(status);
     ConstraintItem *citem = dynamic_cast<ConstraintItem*>(item);
-    if (!citem) return;
+    if (!citem)
+        return;
 
     Gui::Application::Instance->commandManager().runCommandByName("Sketcher_ToggleDrivingConstraint");
     slotConstraintsChanged();
@@ -1161,7 +1170,8 @@ void TaskSketcherConstraints::on_listWidgetConstraints_updateActiveStatus(QListW
 {
     Q_UNUSED(status);
     ConstraintItem *citem = dynamic_cast<ConstraintItem*>(item);
-    if (!citem) return;
+    if (!citem)
+        return;
 
     Gui::Application::Instance->commandManager().runCommandByName("Sketcher_ToggleActiveConstraint");
     slotConstraintsChanged();
@@ -1420,7 +1430,7 @@ void TaskSketcherConstraints::slotConstraintsChanged(void)
     for (int i = 0; i <  ui->listWidgetConstraints->count(); ++i) {
         ConstraintItem * it = dynamic_cast<ConstraintItem*>(ui->listWidgetConstraints->item(i));
 
-        assert(it != 0);
+        assert(it);
 
         it->ConstraintNbr = i;
         it->value = QVariant();

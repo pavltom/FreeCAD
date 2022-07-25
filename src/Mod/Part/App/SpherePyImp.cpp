@@ -20,12 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <gp_Circ.hxx>
-# include <gp_Sphere.hxx>
-# include <Geom_Circle.hxx>
 # include <Geom_SphericalSurface.hxx>
 # include <Standard_Failure.hxx>
 #endif
@@ -33,11 +29,10 @@
 #include <Base/GeometryPyCXX.h>
 #include <Base/VectorPy.h>
 
-#include "Geometry.h"
-#include "CirclePy.h"
 #include "SpherePy.h"
 #include "SpherePy.cpp"
 #include "OCCError.h"
+
 
 using namespace Part;
 
@@ -183,7 +178,7 @@ void SpherePy::setAxis(Py::Object arg)
 
 PyObject *SpherePy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int SpherePy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

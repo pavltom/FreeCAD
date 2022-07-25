@@ -2,7 +2,7 @@
 
 # ***************************************************************************
 # *                                                                         *
-# *   Copyright (c) 2021 Chris Hennes <chennes@pioneerlibrarysystem.org>    *
+# *   Copyright (c) 2022 FreeCAD Project Association                        *
 # *                                                                         *
 # *   This program is free software; you can redistribute it and/or modify  *
 # *   it under the terms of the GNU Lesser General Public License (LGPL)    *
@@ -21,6 +21,7 @@
 # *   USA                                                                   *
 # *                                                                         *
 # ***************************************************************************
+from posixpath import normpath
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
@@ -29,11 +30,22 @@ from PySide2.QtWidgets import *
 import os
 
 import FreeCAD
+import FreeCADGui
 
 import addonmanager_utilities as utils
 from addonmanager_workers import GetMacroDetailsWorker, CheckSingleUpdateWorker
-from AddonManagerRepo import AddonManagerRepo
+from Addon import Addon
 import NetworkManager
+from change_branch import ChangeBranchDialog
+
+have_git = False
+try:
+    import git
+
+    if hasattr(git, "Repo"):
+        have_git = True
+except ImportError:
+    pass
 
 from typing import Optional
 
@@ -59,12 +71,12 @@ except Exception:
 class PackageDetails(QWidget):
 
     back = Signal()
-    install = Signal(AddonManagerRepo)
-    uninstall = Signal(AddonManagerRepo)
-    update = Signal(AddonManagerRepo)
-    execute = Signal(AddonManagerRepo)
-    update_status = Signal(AddonManagerRepo)
-    check_for_update = Signal(AddonManagerRepo)
+    install = Signal(Addon)
+    uninstall = Signal(Addon)
+    update = Signal(Addon)
+    execute = Signal(Addon)
+    update_status = Signal(Addon)
+    check_for_update = Signal(Addon)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -83,6 +95,9 @@ class PackageDetails(QWidget):
         self.ui.buttonCheckForUpdate.clicked.connect(
             lambda: self.check_for_update.emit(self.repo)
         )
+        self.ui.buttonChangeBranch.clicked.connect(self.change_branch_clicked)
+        self.ui.buttonEnable.clicked.connect(self.enable_clicked)
+        self.ui.buttonDisable.clicked.connect(self.disable_clicked)
         if HAS_QTWEBENGINE:
             self.ui.webView.loadStarted.connect(self.load_started)
             self.ui.webView.loadProgress.connect(self.load_progress)
@@ -95,7 +110,7 @@ class PackageDetails(QWidget):
                 self.ui.loadingLabel.show()
                 self.ui.webView.hide()
 
-    def show_repo(self, repo: AddonManagerRepo, reload: bool = False) -> None:
+    def show_repo(self, repo: Addon, reload: bool = False) -> None:
 
         # If this is the same repo we were already showing, we do not have to do the
         # expensive refetch unless reload is true
@@ -121,24 +136,20 @@ class PackageDetails(QWidget):
                     self.worker.requestInterruption()
                     self.worker.wait()
 
-            if repo.repo_type == AddonManagerRepo.RepoType.MACRO:
+            if repo.repo_type == Addon.Kind.MACRO:
                 self.show_macro(repo)
                 self.ui.buttonExecute.show()
-            elif repo.repo_type == AddonManagerRepo.RepoType.WORKBENCH:
+            elif repo.repo_type == Addon.Kind.WORKBENCH:
                 self.show_workbench(repo)
                 self.ui.buttonExecute.hide()
-            elif repo.repo_type == AddonManagerRepo.RepoType.PACKAGE:
+            elif repo.repo_type == Addon.Kind.PACKAGE:
                 self.show_package(repo)
                 self.ui.buttonExecute.hide()
 
-        if self.status_update_thread is not None:
-            if not self.status_update_thread.isFinished():
-                self.status_update_thread.requestInterruption()
-                self.status_update_thread.wait()
-
-        if repo.status() == AddonManagerRepo.UpdateStatus.UNCHECKED:
-            self.status_update_thread = QThread()
-            self.status_update_worker = CheckSingleUpdateWorker(repo, self)
+        if repo.status() == Addon.Status.UNCHECKED:
+            if not self.status_update_thread:
+                self.status_update_thread = QThread()
+            self.status_update_worker = CheckSingleUpdateWorker(repo)
             self.status_update_worker.moveToThread(self.status_update_thread)
             self.status_update_thread.finished.connect(
                 self.status_update_worker.deleteLater
@@ -152,7 +163,9 @@ class PackageDetails(QWidget):
 
     def display_repo_status(self, status):
         repo = self.repo
-        if status != AddonManagerRepo.UpdateStatus.NOT_INSTALLED:
+        self.set_change_branch_button_state()
+        self.set_disable_button_state()
+        if status != Addon.Status.NOT_INSTALLED:
 
             version = repo.installed_version
             date = ""
@@ -183,11 +196,14 @@ class PackageDetails(QWidget):
                     translate("AddonsInstaller", "Installed") + ". "
                 )
 
-            if status == AddonManagerRepo.UpdateStatus.UPDATE_AVAILABLE:
+            if status == Addon.Status.UPDATE_AVAILABLE:
                 if repo.metadata:
                     installed_version_string += (
                         "<b>"
-                        + translate("AddonsInstaller", "Update available to version")
+                        + translate(
+                            "AddonsInstaller",
+                            "On branch {}, update available to version",
+                        ).format(repo.branch)
                         + " "
                     )
                     installed_version_string += repo.metadata.Version
@@ -209,19 +225,41 @@ class PackageDetails(QWidget):
                         )
                         + ".</b>"
                     )
-            elif status == AddonManagerRepo.UpdateStatus.NO_UPDATE_AVAILABLE:
-                installed_version_string += (
-                    translate("AddonsInstaller", "This is the latest version available")
-                    + "."
-                )
-            elif status == AddonManagerRepo.UpdateStatus.PENDING_RESTART:
+            elif status == Addon.Status.NO_UPDATE_AVAILABLE:
+                detached_head = False
+                branch = repo.branch
+                if have_git and repo.repo_type != Addon.Kind.MACRO:
+                    basedir = FreeCAD.getUserAppDataDir()
+                    moddir = os.path.join(basedir, "Mod", repo.name)
+                    if os.path.exists(os.path.join(moddir, ".git")):
+                        gitrepo = git.Repo(moddir)
+                        branch = gitrepo.head.ref.name
+                        detached_head = gitrepo.head.is_detached
+
+                if detached_head:
+                    installed_version_string += (
+                        translate(
+                            "AddonsInstaller",
+                            "Git tag '{}' checked out, no updates possible",
+                        ).format(branch)
+                        + "."
+                    )
+                else:
+                    installed_version_string += (
+                        translate(
+                            "AddonsInstaller",
+                            "This is the latest version available for branch {}",
+                        ).format(branch)
+                        + "."
+                    )
+            elif status == Addon.Status.PENDING_RESTART:
                 installed_version_string += (
                     translate(
                         "AddonsInstaller", "Updated, please restart FreeCAD to use"
                     )
                     + "."
                 )
-            elif status == AddonManagerRepo.UpdateStatus.UNCHECKED:
+            elif status == Addon.Status.UNCHECKED:
 
                 pref = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
                 autocheck = pref.GetBool("AutoCheck", False)
@@ -237,7 +275,7 @@ class PackageDetails(QWidget):
 
             installed_version_string += "</h3>"
             self.ui.labelPackageDetails.setText(installed_version_string)
-            if repo.status() == AddonManagerRepo.UpdateStatus.UPDATE_AVAILABLE:
+            if repo.status() == Addon.Status.UPDATE_AVAILABLE:
                 self.ui.labelPackageDetails.setStyleSheet(
                     "color:" + utils.attention_color_string()
                 )
@@ -253,7 +291,9 @@ class PackageDetails(QWidget):
                 basedir = FreeCAD.getUserAppDataDir()
                 moddir = os.path.join(basedir, "Mod", repo.name)
             installationLocationString = (
-                translate("AddonsInstaller", "Installation location") + ": " + moddir
+                translate("AddonsInstaller", "Installation location")
+                + ": "
+                + os.path.normpath(moddir)
             )
 
             self.ui.labelInstallationLocation.setText(installationLocationString)
@@ -262,30 +302,35 @@ class PackageDetails(QWidget):
             self.ui.labelPackageDetails.hide()
             self.ui.labelInstallationLocation.hide()
 
-        if status == AddonManagerRepo.UpdateStatus.NOT_INSTALLED:
+        if status == Addon.Status.NOT_INSTALLED:
             self.ui.buttonInstall.show()
             self.ui.buttonUninstall.hide()
             self.ui.buttonUpdate.hide()
             self.ui.buttonCheckForUpdate.hide()
-        elif status == AddonManagerRepo.UpdateStatus.NO_UPDATE_AVAILABLE:
+        elif status == Addon.Status.NO_UPDATE_AVAILABLE:
             self.ui.buttonInstall.hide()
             self.ui.buttonUninstall.show()
             self.ui.buttonUpdate.hide()
             self.ui.buttonCheckForUpdate.hide()
-        elif status == AddonManagerRepo.UpdateStatus.UPDATE_AVAILABLE:
+        elif status == Addon.Status.UPDATE_AVAILABLE:
             self.ui.buttonInstall.hide()
             self.ui.buttonUninstall.show()
             self.ui.buttonUpdate.show()
             self.ui.buttonCheckForUpdate.hide()
-        elif status == AddonManagerRepo.UpdateStatus.UNCHECKED:
+        elif status == Addon.Status.UNCHECKED:
             self.ui.buttonInstall.hide()
             self.ui.buttonUninstall.show()
             self.ui.buttonUpdate.hide()
             self.ui.buttonCheckForUpdate.show()
-        elif status == AddonManagerRepo.UpdateStatus.PENDING_RESTART:
+        elif status == Addon.Status.PENDING_RESTART:
             self.ui.buttonInstall.hide()
             self.ui.buttonUninstall.show()
             self.ui.buttonUpdate.hide()
+            self.ui.buttonCheckForUpdate.hide()
+        elif status == Addon.Status.CANNOT_CHECK:
+            self.ui.buttonInstall.hide()
+            self.ui.buttonUninstall.show()
+            self.ui.buttonUpdate.show()
             self.ui.buttonCheckForUpdate.hide()
 
         required_version = self.requires_newer_freecad()
@@ -313,9 +358,22 @@ class PackageDetails(QWidget):
             self.ui.labelWarningInfo.show()
             self.ui.labelWarningInfo.setText(
                 "<h1>"
-                + translate("AddonsInstaller", "WARNING: This addon requires FreeCAD ") 
+                + translate("AddonsInstaller", "WARNING: This addon requires FreeCAD ")
                 + required_version
                 + "</h1>"
+            )
+            self.ui.labelWarningInfo.setStyleSheet(
+                "color:" + utils.warning_color_string()
+            )
+        elif repo.is_disabled():
+            self.ui.labelWarningInfo.show()
+            self.ui.labelWarningInfo.setText(
+                "<h2>"
+                + translate(
+                    "AddonsInstaller",
+                    "WARNING: This addon is currently installed, but disabled. Use the 'enable' button to re-enable.",
+                )
+                + "</h2>"
             )
             self.ui.labelWarningInfo.setStyleSheet(
                 "color:" + utils.warning_color_string()
@@ -326,15 +384,14 @@ class PackageDetails(QWidget):
 
     def requires_newer_freecad(self) -> Optional[str]:
         # If it's not installed, check to see if it's for a newer version of FreeCAD
-        if (
-            self.repo.status() == AddonManagerRepo.UpdateStatus.NOT_INSTALLED
-            and self.repo.metadata
-        ):
+        if self.repo.status() == Addon.Status.NOT_INSTALLED and self.repo.metadata:
             # Only hide if ALL content items require a newer version, otherwise
             # it's possible that this package actually provides versions of itself
             # for newer and older versions
 
-            first_supported_version = self.repo.metadata.getFirstSupportedFreeCADVersion()
+            first_supported_version = (
+                self.repo.metadata.getFirstSupportedFreeCADVersion()
+            )
             if first_supported_version is not None:
                 required_version = first_supported_version.split(".")
                 fc_major = int(FreeCAD.Version()[0])
@@ -347,7 +404,51 @@ class PackageDetails(QWidget):
                         return first_supported_version
         return None
 
-    def show_workbench(self, repo: AddonManagerRepo) -> None:
+    def set_change_branch_button_state(self):
+        """The change branch button is only available for installed Addons that have a .git directory
+        and in runs where the GitPython import is available."""
+
+        self.ui.buttonChangeBranch.hide()
+
+        pref = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
+        show_switcher = pref.GetBool("ShowBranchSwitcher", False)
+        if not show_switcher:
+            return
+
+        # Is this repo installed? If not, return.
+        if self.repo.status() == Addon.Status.NOT_INSTALLED:
+            return
+
+        # Is it a Macro? If so, return:
+        if self.repo.repo_type == Addon.Kind.MACRO:
+            return
+
+        # Can we actually switch branches? If not, return.
+        if not have_git:
+            return
+
+        # Is there a .git subdirectory? If not, return.
+        basedir = FreeCAD.getUserAppDataDir()
+        path_to_git = os.path.join(basedir, "Mod", self.repo.name, ".git")
+        if not os.path.isdir(path_to_git):
+            return
+
+        # If all four above checks passed, then it's possible for us to switch
+        # branches, if there are any besides the one we are on: show the button
+        self.ui.buttonChangeBranch.show()
+
+    def set_disable_button_state(self):
+        self.ui.buttonEnable.hide()
+        self.ui.buttonDisable.hide()
+        status = self.repo.status()
+        if status != Addon.Status.NOT_INSTALLED:
+            disabled = self.repo.is_disabled()
+            if disabled:
+                self.ui.buttonEnable.show()
+            else:
+                self.ui.buttonDisable.show()
+
+    def show_workbench(self, repo: Addon) -> None:
         """loads information of a given workbench"""
         url = utils.get_readme_html_url(repo)
         if HAS_QTWEBENGINE:
@@ -358,7 +459,7 @@ class PackageDetails(QWidget):
             text = readme_data.data().decode("utf8")
             self.ui.textBrowserReadMe.setHtml(text)
 
-    def show_package(self, repo: AddonManagerRepo) -> None:
+    def show_package(self, repo: Addon) -> None:
         """Show the details for a package (a repo with a package.xml metadata file)"""
 
         readme_url = None
@@ -378,20 +479,47 @@ class PackageDetails(QWidget):
             text = readme_data.data().decode("utf8")
             self.ui.textBrowserReadMe.setHtml(text)
 
-    def show_macro(self, repo: AddonManagerRepo) -> None:
+    def show_macro(self, repo: Addon) -> None:
         """loads information of a given macro"""
 
-        if HAS_QTWEBENGINE:
-            self.ui.webView.load(QUrl(repo.macro.url))
-            self.ui.urlBar.setText(repo.macro.url)
+        if not repo.macro.url:
+            # We need to populate the macro information... may as well do it while the user reads the wiki page
+            self.worker = GetMacroDetailsWorker(repo)
+            self.worker.readme_updated.connect(self.macro_readme_updated)
+            self.worker.start()
         else:
-            readme_data = NetworkManager.AM_NETWORK_MANAGER.blocking_get(repo.macro.url)
-            text = readme_data.data().decode("utf8")
-            self.ui.textBrowserReadMe.setHtml(text)
+            self.macro_readme_updated()
 
-        # We need to populate the macro information... may as well do it while the user reads the wiki page
-        self.worker = GetMacroDetailsWorker(repo)
-        self.worker.start()
+    def macro_readme_updated(self):
+        url = self.repo.macro.wiki
+        if not url:
+            url = self.repo.macro.url
+
+        if HAS_QTWEBENGINE:
+            if url:
+                self.ui.webView.load(QUrl(url))
+                self.ui.urlBar.setText(url)
+            else:
+                self.ui.urlBar.setText(
+                    "("
+                    + translate(
+                        "AddonsInstaller", "No URL or wiki page provided by this macro"
+                    )
+                    + ")"
+                )
+        else:
+            if url:
+                readme_data = NetworkManager.AM_NETWORK_MANAGER.blocking_get(url)
+                text = readme_data.data().decode("utf8")
+                self.ui.textBrowserReadMe.setHtml(text)
+            else:
+                self.ui.textBrowserReadMe.setHtml(
+                    "("
+                    + translate(
+                        "AddonsInstaller", "No URL or wiki page provided by this macro"
+                    )
+                    + ")"
+                )
 
     def run_javascript(self):
         """Modify the page for a README to optimize for viewing in a smaller window"""
@@ -492,6 +620,81 @@ class PackageDetails(QWidget):
         html = f"<html><body><p>{m}</p></body></html>"
         self.ui.webView.setHtml(html)
 
+    def change_branch_clicked(self) -> None:
+        basedir = FreeCAD.getUserAppDataDir()
+        path_to_repo = os.path.join(basedir, "Mod", self.repo.name)
+        change_branch_dialog = ChangeBranchDialog(path_to_repo, self)
+        change_branch_dialog.branch_changed.connect(self.branch_changed)
+        change_branch_dialog.exec()
+
+    def enable_clicked(self) -> None:
+        self.repo.enable()
+        self.repo.set_status(Addon.Status.PENDING_RESTART)
+        self.set_disable_button_state()
+        self.update_status.emit(self.repo)
+        self.ui.labelWarningInfo.show()
+        self.ui.labelWarningInfo.setText(
+            "<h3>"
+            + translate(
+                "AddonsInstaller",
+                "This Addon will be enabled next time you restart FreeCAD.",
+            )
+            + "</h3>"
+        )
+        self.ui.labelWarningInfo.setStyleSheet("color:" + utils.bright_color_string())
+
+    def disable_clicked(self) -> None:
+        self.repo.disable()
+        self.repo.set_status(Addon.Status.PENDING_RESTART)
+        self.set_disable_button_state()
+        self.update_status.emit(self.repo)
+        self.ui.labelWarningInfo.show()
+        self.ui.labelWarningInfo.setText(
+            "<h3>"
+            + translate(
+                "AddonsInstaller",
+                "This Addon will be disabled next time you restart FreeCAD.",
+            )
+            + "</h3>"
+        )
+        self.ui.labelWarningInfo.setStyleSheet(
+            "color:" + utils.attention_color_string()
+        )
+
+    def branch_changed(self, name: str) -> None:
+        QMessageBox.information(
+            self,
+            translate("AddonsInstaller", "Success"),
+            translate(
+                "AddonsInstaller",
+                "Branch change succeeded, please restart to use the new version.",
+            ),
+        )
+        # See if this branch has a package.xml file:
+        basedir = FreeCAD.getUserAppDataDir()
+        path_to_metadata = os.path.join(basedir, "Mod", self.repo.name, "package.xml")
+        if os.path.isfile(path_to_metadata):
+            self.repo.load_metadata_file(path_to_metadata)
+            self.repo.installed_version = self.repo.metadata.Version
+        else:
+            self.repo.repo_type = Addon.Kind.WORKBENCH
+            self.repo.metadata = None
+            self.repo.installed_version = None
+        self.repo.updated_timestamp = QDateTime.currentDateTime().toSecsSinceEpoch()
+        self.repo.branch = name
+        self.repo.set_status(Addon.Status.PENDING_RESTART)
+
+        installed_version_string = "<h3>"
+        installed_version_string += translate(
+            "AddonsInstaller", "Changed to git ref '{}' -- please restart to use Addon."
+        ).format(name)
+        installed_version_string += "</h3>"
+        self.ui.labelPackageDetails.setText(installed_version_string)
+        self.ui.labelPackageDetails.setStyleSheet(
+            "color:" + utils.attention_color_string()
+        )
+        self.update_status.emit(self.repo)
+
 
 if HAS_QTWEBENGINE:
 
@@ -570,10 +773,25 @@ class Ui_PackageDetails(object):
 
         self.layoutDetailsBackButton.addWidget(self.buttonCheckForUpdate)
 
+        self.buttonChangeBranch = QPushButton(PackageDetails)
+        self.buttonChangeBranch.setObjectName("buttonChangeBranch")
+
+        self.layoutDetailsBackButton.addWidget(self.buttonChangeBranch)
+
         self.buttonExecute = QPushButton(PackageDetails)
         self.buttonExecute.setObjectName("buttonExecute")
 
         self.layoutDetailsBackButton.addWidget(self.buttonExecute)
+
+        self.buttonDisable = QPushButton(PackageDetails)
+        self.buttonDisable.setObjectName("buttonDisable")
+
+        self.layoutDetailsBackButton.addWidget(self.buttonDisable)
+
+        self.buttonEnable = QPushButton(PackageDetails)
+        self.buttonEnable.setObjectName("buttonEnable")
+
+        self.layoutDetailsBackButton.addWidget(self.buttonEnable)
 
         self.verticalLayout_2.addLayout(self.layoutDetailsBackButton)
 
@@ -662,6 +880,15 @@ class Ui_PackageDetails(object):
         )
         self.buttonExecute.setText(
             QCoreApplication.translate("AddonsInstaller", "Run Macro", None)
+        )
+        self.buttonChangeBranch.setText(
+            QCoreApplication.translate("AddonsInstaller", "Change Branch", None)
+        )
+        self.buttonEnable.setText(
+            QCoreApplication.translate("AddonsInstaller", "Enable", None)
+        )
+        self.buttonDisable.setText(
+            QCoreApplication.translate("AddonsInstaller", "Disable", None)
         )
         self.buttonBack.setToolTip(
             QCoreApplication.translate(

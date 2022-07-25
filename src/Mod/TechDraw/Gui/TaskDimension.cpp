@@ -24,9 +24,9 @@
 
 #ifndef _PreComp_
 #include <cmath>
+#include <QMessageBox>
 #endif // #ifndef _PreComp_
 
-# include <QMessageBox>
 
 #include <Base/Console.h>
 
@@ -36,6 +36,7 @@
 #include <Gui/Document.h>
 #include <Gui/MainWindow.h>
 #include <Gui/Selection.h>
+#include <Gui/SelectionObject.h>
 #include <Gui/ViewProvider.h>
 
 #include <App/Application.h>
@@ -118,7 +119,7 @@ TaskDimension::TaskDimension(QGIViewDimension *parent, ViewProviderDimension *di
     connect(ui->cbArbitraryTolerances, SIGNAL(stateChanged(int)), this, SLOT(onArbitraryTolerancesChanged()));
 
     // Display Style
-    if (dimensionVP != nullptr) {
+    if (dimensionVP) {
         ui->cbArrowheads->setChecked(dimensionVP->FlipArrowheads.getValue());
         connect(ui->cbArrowheads, SIGNAL(stateChanged(int)), this, SLOT(onFlipArrowheadsChanged()));
         ui->dimensionColor->setColor(dimensionVP->Color.getValue().asValue<QColor>());
@@ -376,7 +377,7 @@ std::pair<double, bool> TaskDimension::getAngleFromSelection()
     result.first = 0.0;
     result.second = true;
     std::vector<Gui::SelectionObject> selection = Gui::Selection().getSelectionEx();
-    TechDraw::DrawViewPart * objFeat = 0;
+    TechDraw::DrawViewPart * objFeat = nullptr;
     std::vector<std::string> SubNames;
     if (!selection.empty()) {
         objFeat = static_cast<TechDraw::DrawViewPart*> (selection.front().getObject());
@@ -418,7 +419,7 @@ TaskDlgDimension::TaskDlgDimension(QGIViewDimension *parent, ViewProviderDimensi
     TaskDialog()
 {
     widget  = new TaskDimension(parent, dimensionVP);
-    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("TechDraw_Dimension"), widget->windowTitle(), true, 0);
+    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("TechDraw_Dimension"), widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
     setAutoCloseOnTransactionChange(true);

@@ -31,11 +31,6 @@
 #   undef _XOPEN_SOURCE
 #endif // (re-)defined in pyconfig.h
 
-
-#include <Python.h>
-#include <CXX/Extensions.hxx>
-
-
 #ifdef FC_OS_MACOSX
 #undef toupper
 #undef tolower
@@ -46,11 +41,11 @@
 #undef isalnum
 #endif
 
-// Std. configurations
+#include <CXX/Extensions.hxx>
+#include <list>
 #include <string>
-#include <map>
-
 #include "Exception.h"
+
 
 /** Helper macro to obtain callable from an object
  *
@@ -92,7 +87,6 @@ namespace Base {
     using std::vector;
 
 
-
 class BaseExport PyException : public Exception
 {
 public:
@@ -122,14 +116,14 @@ protected:
     PyObject *_exceptionType;
 };
 
-inline Py::Object pyCall(PyObject *callable, PyObject *args=0) {
+inline Py::Object pyCall(PyObject *callable, PyObject *args=nullptr) {
     PyObject *result = PyObject_CallObject(callable, args);
     if(!result)
         throw Py::Exception();
     return Py::asObject(result);
 }
 
-inline Py::Object pyCallWithKeywords(PyObject *callable, PyObject *args, PyObject *kwds=0) {
+inline Py::Object pyCallWithKeywords(PyObject *callable, PyObject *args, PyObject *kwds=nullptr) {
     PyObject *result = PyObject_Call(callable, args, kwds);
     if(!result)
         throw Py::Exception();
@@ -247,6 +241,10 @@ public:
     /// Add an additional python path
     void addPythonPath(const char* Path);
     static void addType(PyTypeObject* Type,PyObject* Module, const char * Name);
+    /// Add a module and return a PyObject to it
+    PyObject* addModule(Py::ExtensionModuleBase*);
+    /// Clean-up registered modules
+    void cleanupModules();
     //@}
 
     /** @name Cleanup
@@ -285,6 +283,7 @@ public:
     PyObject* createSWIGPointerObj(const char* Modole, const char* TypeName, void* Pointer, int own);
     bool convertSWIGPointerObj(const char* Module, const char* TypeName, PyObject* obj, void** ptr, int flags);
     void cleanupSWIG(const char* TypeName);
+    PyTypeObject* getSWIGPointerTypeObj(const char* Module, const char* TypeName);
     //@}
 
     /** @name methods for debugging facility
@@ -313,11 +312,12 @@ public:
 
 protected:
     // singleton
-    static InterpreterSingleton *_pcSingelton;
+    static InterpreterSingleton *_pcSingleton;
 
 private:
     std::string _cDebugFileName;
     PyThreadState* _global;
+    std::list<Py::ExtensionModuleBase*> _modules;
 };
 
 

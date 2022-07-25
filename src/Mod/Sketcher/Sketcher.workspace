@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Workspace Name="Sketcher" Database="" Version="10.0.0">
+  <Project Name="App" Path="App/App.project" Active="Yes"/>
+  <Project Name="Gui" Path="Gui/Gui.project"/>
+  <BuildMatrix>
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
+      <Environment/>
+      <Project Name="App" ConfigName="Debug"/>
+      <Project Name="Gui" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release" Selected="yes">
+      <Environment/>
+      <Project Name="App" ConfigName="Release"/>
+      <Project Name="Gui" ConfigName="Release"/>
+    </WorkspaceConfiguration>
+  </BuildMatrix>
+</CodeLite_Workspace>

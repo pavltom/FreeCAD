@@ -53,7 +53,7 @@
 
 #include <Mod/TechDraw/Gui/ui_TaskCosVertex.h>
 
-#include "DrawGuiStd.h"
+#include "QGSPage.h"
 #include "QGVPage.h"
 #include "QGIView.h"
 #include "QGIPrimPath.h"
@@ -96,7 +96,7 @@ TaskCosVertex::TaskCosVertex(TechDraw::DrawViewPart* baseFeat,
     Gui::ViewProvider* vp = activeGui->getViewProvider(m_basePage);
     ViewProviderPage* vpp = static_cast<ViewProviderPage*>(vp);
     m_mdi = vpp->getMDIViewPage();
-    m_scene = m_mdi->m_scene;
+    m_scene = m_mdi->getQGSPage();
     m_view = m_mdi->getQGVPage();
 
     setUiPrimary();
@@ -130,11 +130,11 @@ void TaskCosVertex::setUiPrimary()
 //    Base::Console().Message("TCV::setUiPrimary()\n");
     setWindowTitle(QObject::tr("New Cosmetic Vertex"));
 
-    if (m_baseFeat != nullptr) {
+    if (m_baseFeat) {
         std::string baseName = m_baseFeat->getNameInDocument();
         ui->leBaseView->setText(Base::Tools::fromStdString(baseName));
     }
-    ui->pbTracker->setText(QString::fromUtf8("Point Picker"));
+    ui->pbTracker->setText(tr("Point Picker"));
     ui->pbTracker->setEnabled(true);
     ui->dsbX->setEnabled(true);
     ui->dsbY->setEnabled(true);
@@ -178,7 +178,7 @@ void TaskCosVertex::onTrackerClicked(bool b)
 
     if (m_pbTrackerState == TRACKERCANCEL) {
         m_pbTrackerState = TRACKERPICK;
-        ui->pbTracker->setText(QString::fromUtf8("Pick Points"));
+        ui->pbTracker->setText(tr("Pick Points"));
         enableTaskButtons(true);
 
         setEditCursor(Qt::ArrowCursor);
@@ -195,7 +195,7 @@ void TaskCosVertex::onTrackerClicked(bool b)
     QString msg = tr("Pick a point for cosmetic vertex");
     getMainWindow()->statusBar()->show();
     Gui::getMainWindow()->showMessage(msg, 3000);
-    ui->pbTracker->setText(QString::fromUtf8("Escape picking"));
+    ui->pbTracker->setText(tr("Escape picking"));
     ui->pbTracker->setEnabled(true);
     m_pbTrackerState = TRACKERCANCEL;
     enableTaskButtons(false);
@@ -208,7 +208,7 @@ void TaskCosVertex::startTracker(void)
         return;
     }
 
-    if (m_tracker == nullptr) {
+    if (!m_tracker) {
         m_tracker = new QGTracker(m_scene, m_trackerMode);
         QObject::connect(
             m_tracker, SIGNAL(drawingFinished(std::vector<QPointF>, QGIView*)),
@@ -242,9 +242,9 @@ void TaskCosVertex::onTrackerFinished(std::vector<QPointF> pts, QGIView* qgParen
 
     DrawViewPart* dvp = m_baseFeat;
     DrawProjGroupItem* dpgi = dynamic_cast<DrawProjGroupItem*>(dvp);
-    if (dpgi != nullptr) {
+    if (dpgi) {
         DrawProjGroup* dpg = dpgi->getPGroup();
-        if (dpg == nullptr) {
+        if (!dpg) {
             Base::Console().Message("TCV:onTrackerFinished - projection group is confused\n");
             //TODO::throw something.
             return;
@@ -264,7 +264,7 @@ void TaskCosVertex::onTrackerFinished(std::vector<QPointF> pts, QGIView* qgParen
     m_tracker->sleep(true);
     m_inProgressLock = false;
     m_pbTrackerState = TRACKERPICK;
-    ui->pbTracker->setText(QString::fromUtf8("Pick Points"));
+    ui->pbTracker->setText(tr("Pick Points"));
     ui->pbTracker->setEnabled(true);
     enableTaskButtons(true);
     setEditCursor(Qt::ArrowCursor);
@@ -275,8 +275,7 @@ void TaskCosVertex::onTrackerFinished(std::vector<QPointF> pts, QGIView* qgParen
 void TaskCosVertex::removeTracker(void)
 {
 //    Base::Console().Message("TCV::removeTracker()\n");
-    if ((m_tracker != nullptr) &&
-        (m_tracker->scene() != nullptr)) {
+    if (m_tracker && m_tracker->scene()) {
         m_scene->removeItem(m_tracker);
         delete m_tracker;
         m_tracker = nullptr;
@@ -285,8 +284,8 @@ void TaskCosVertex::removeTracker(void)
 
 void TaskCosVertex::setEditCursor(QCursor c)
 {
-    if (m_baseFeat != nullptr) {
-        QGIView* qgivBase = m_view->findQViewForDocObj(m_baseFeat);
+    if (m_baseFeat) {
+        QGIView* qgivBase = m_scene->findQViewForDocObj(m_baseFeat);
         qgivBase->setCursor(c);
     }
 }
@@ -319,7 +318,8 @@ void TaskCosVertex::enableTaskButtons(bool b)
 bool TaskCosVertex::accept()
 {
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_basePage->getDocument());
-    if (!doc) return false;
+    if (!doc)
+        return false;
 
     removeTracker();
     double x = ui->dsbX->value().getValue();
@@ -339,11 +339,12 @@ bool TaskCosVertex::accept()
 bool TaskCosVertex::reject()
 {
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_basePage->getDocument());
-    if (!doc) return false;
+    if (!doc)
+        return false;
 
     removeTracker();
     m_trackerMode = QGTracker::TrackerMode::None;
-    if (m_mdi != nullptr) {
+    if (m_mdi) {
         m_mdi->setContextMenuPolicy(m_saveContextPolicy);
     }
 
@@ -360,8 +361,8 @@ TaskDlgCosVertex::TaskDlgCosVertex(TechDraw::DrawViewPart* baseFeat,
     : TaskDialog()
 {
     widget  = new TaskCosVertex(baseFeat, page);
-    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/techdraw-LeaderLine"),
-                                             widget->windowTitle(), true, 0);
+    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_CosmeticVertex"),
+                                             widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

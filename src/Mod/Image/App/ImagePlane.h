@@ -20,7 +20,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef Image_ImagePlane_H
 #define Image_ImagePlane_H
 

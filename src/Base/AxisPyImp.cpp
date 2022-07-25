@@ -22,7 +22,6 @@
 
 #include "PreCompiled.h"
 
-#include "Axis.h"
 #include "GeometryPyCXX.h"
 
 // inclusion of the generated files (generated out of AxisPy.xml)
@@ -37,7 +36,7 @@ using namespace Base;
 // returns a string which represents the object e.g. when printed in python
 std::string AxisPy::representation() const
 {
-    AxisPy::PointerType ptr = reinterpret_cast<AxisPy::PointerType>(_pcTwinPointer);
+    AxisPy::PointerType ptr = getAxisPtr();
     std::stringstream str;
     str << "Axis [Base=(";
     str << ptr->getBase().x << ","<< ptr->getBase().y << "," << ptr->getBase().z;
@@ -70,7 +69,7 @@ int AxisPy::PyInit(PyObject* args, PyObject* /*kwd*/)
 
     PyErr_Clear();
     PyObject* d;
-    if (PyArg_ParseTuple(args, "O!O", &(Base::VectorPy::Type), &o,
+    if (PyArg_ParseTuple(args, "O!O!", &(Base::VectorPy::Type), &o,
                                       &(Base::VectorPy::Type), &d)) {
         // NOTE: The first parameter defines the base (origin) and the second the direction.
         *getAxisPtr() = Base::Axis(static_cast<Base::VectorPy*>(o)->value(),
@@ -78,7 +77,7 @@ int AxisPy::PyInit(PyObject* args, PyObject* /*kwd*/)
         return 0;
     }
 
-    PyErr_SetString(Base::BaseExceptionFreeCADError, "empty parameter list, axis or base and direction expected");
+    PyErr_SetString(PyExc_TypeError, "empty parameter list, axis or base and direction expected");
     return -1;
 }
 

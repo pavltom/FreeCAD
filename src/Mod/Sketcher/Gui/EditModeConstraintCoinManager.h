@@ -115,6 +115,11 @@ public:
     void rebuildConstraintNodes(void);
     //@}
 
+    /** @name change constraints selectability*/
+    //@{
+    void setConstraintSelectability(bool enabled = true);
+    //@}
+
     std::set<int> detectPreselectionConstr( const SoPickedPoint *Point,
                                             const SbVec2s &cursorPos);
 
@@ -220,10 +225,10 @@ private:
                             //! Gets populated with bounding boxes (in icon
                             //! image coordinates) for the icon at left, then
                             //! labels for different constraints.
-                            std::vector<QRect> *boundingBoxes = NULL,
+                            std::vector<QRect> *boundingBoxes = nullptr,
                             //! If not NULL, gets set to the number of pixels
                             //! that the text extends below the icon base.
-                            int *vPad = NULL);
+                            int *vPad = nullptr);
 
     /// Copies a QImage constraint icon into a SoImage*
     /*! Used by drawTypicalConstraintIcon() and drawMergedConstraintIcons() */

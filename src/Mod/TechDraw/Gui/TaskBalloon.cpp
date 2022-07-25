@@ -44,8 +44,6 @@
 #include <Mod/TechDraw/App/DrawPage.h>
 #include <Mod/TechDraw/App/ArrowPropEnum.h>
 
-#include <Mod/TechDraw/Gui/ui_TaskBalloon.h>
-
 #include "DrawGuiUtil.h"
 #include "QGIViewBalloon.h"
 #include "ViewProviderBalloon.h"
@@ -97,7 +95,7 @@ TaskBalloon::TaskBalloon(QGIViewBalloon *parent, ViewProviderBalloon *balloonVP)
     // negative kink length is allowed, thus no minimum
     ui->qsbKinkLength->setUnit(Base::Unit::Length);
 
-    if (balloonVP != nullptr) {
+    if (balloonVP) {
         ui->textColor->setColor(balloonVP->Color.getValue().asValue<QColor>());
         connect(ui->textColor, SIGNAL(changed()), this, SLOT(onColorChanged()));
         ui->qsbFontSize->setValue(balloonVP->Fontsize.getValue());
@@ -214,7 +212,7 @@ TaskDlgBalloon::TaskDlgBalloon(QGIViewBalloon *parent, ViewProviderBalloon *ball
     TaskDialog()
 {
     widget  = new TaskBalloon(parent, balloonVP);
-    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("TechDraw_Balloon"), widget->windowTitle(), true, 0);
+    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("TechDraw_Balloon"), widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
     setAutoCloseOnTransactionChange(true);

@@ -23,14 +23,11 @@
 #ifndef _Preferences_h_
 #define _Preferences_h_
 
+#include <Mod/TechDraw/TechDrawGlobal.h>
+
 #include <string>
 
-//#include <QString>
-//#include <QFont>
-
-//class QFont;
 class QString;
-//class QColor;
 
 namespace App
 {
@@ -67,9 +64,21 @@ static QString     defaultTemplate();
 static QString     defaultTemplateDir();
 static std::string lineGroupFile();
 
-
-
 static const double DefaultFontSizeInMM;
+
+static std::string  formatSpec();
+static int          altDecimals();
+
+static int         mattingStyle();
+
+static std::string svgFile();
+static std::string patFile();
+
+static std::string bitmapFill(void);
+
+static double      GapISO();
+static double      GapASME();
+
 };
 
 } //end namespace TechDraw

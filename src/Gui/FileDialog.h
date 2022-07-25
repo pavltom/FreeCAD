@@ -24,10 +24,10 @@
 #ifndef GUI_FILEDIALOG_H
 #define GUI_FILEDIALOG_H
 
+#include <QCompleter>
 #include <QFileDialog>
 #include <QFileIconProvider>
 #include <QFileSystemModel>
-#include <QCompleter>
 #include <QPointer>
 #include <FCGlobal.h>
 
@@ -60,14 +60,14 @@ class GuiExport FileDialog : public QFileDialog
     Q_OBJECT
 
 public:
-    static QString getOpenFileName( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(),
-                                    const QString & filter = QString(), QString * selectedFilter = 0, Options options = Options() );
-    static QString getSaveFileName( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(),
-                                    const QString & filter = QString(), QString * selectedFilter = 0, Options options = Options() );
-    static QString getExistingDirectory( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(),
+    static QString getOpenFileName( QWidget * parent = nullptr, const QString & caption = QString(), const QString & dir = QString(),
+                                    const QString & filter = QString(), QString * selectedFilter = nullptr, Options options = Options() );
+    static QString getSaveFileName( QWidget * parent = nullptr, const QString & caption = QString(), const QString & dir = QString(),
+                                    const QString & filter = QString(), QString * selectedFilter = nullptr, Options options = Options() );
+    static QString getExistingDirectory( QWidget * parent = nullptr, const QString & caption = QString(), const QString & dir = QString(),
                                          Options options = ShowDirsOnly );
-    static QStringList getOpenFileNames( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(),
-                                         const QString & filter = QString(), QString * selectedFilter = 0, Options options = Options() );
+    static QStringList getOpenFileNames( QWidget * parent = nullptr, const QString & caption = QString(), const QString & dir = QString(),
+                                         const QString & filter = QString(), QString * selectedFilter = nullptr, Options options = Options() );
 
     /*! Return the last directory a file was read from or saved to. */
     static QString getWorkingDirectory();
@@ -76,7 +76,7 @@ public:
     static QString restoreLocation();
     static void saveLocation(const QString&);
 
-    FileDialog(QWidget * parent = 0);
+    FileDialog(QWidget * parent = nullptr);
     ~FileDialog();
 
     void accept();
@@ -152,19 +152,20 @@ class GuiExport FileChooser : public QWidget
 {
     Q_OBJECT
 
-    Q_ENUMS( Mode )
-    Q_PROPERTY( Mode mode READ mode WRITE setMode )
-    Q_ENUMS( AcceptMode )
-    Q_PROPERTY( AcceptMode acceptMode READ acceptMode WRITE setAcceptMode    )
-    Q_PROPERTY( QString  fileName  READ fileName      WRITE setFileName      )
-    Q_PROPERTY( QString  filter    READ filter        WRITE setFilter        )
-    Q_PROPERTY( QString  buttonText  READ buttonText  WRITE setButtonText    )
-
 public:
     enum Mode { File, Directory };
     enum AcceptMode { AcceptOpen, AcceptSave };
 
-    FileChooser ( QWidget * parent = 0 );
+    Q_ENUM( Mode )
+    Q_PROPERTY(Mode mode READ mode WRITE setMode NOTIFY modeChanged)
+    Q_ENUM( AcceptMode )
+    Q_PROPERTY(AcceptMode acceptMode READ acceptMode WRITE setAcceptMode NOTIFY acceptModeChanged)
+    Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
+    Q_PROPERTY(QString filter READ filter WRITE setFilter NOTIFY filterChanged)
+    Q_PROPERTY(QString buttonText READ buttonText WRITE setButtonText NOTIFY buttonTextChanged)
+
+public:
+    FileChooser ( QWidget * parent = nullptr );
     virtual ~FileChooser();
 
     /**
@@ -191,9 +192,7 @@ public:
     /**
      * Sets the accept mode.
      */
-    void setAcceptMode(AcceptMode mode) {
-        accMode = mode;
-    }
+    void setAcceptMode(AcceptMode mode);
     /**
      * Returns the accept mode.
      */
@@ -203,13 +202,17 @@ public:
 
 public Q_SLOTS:
     virtual void setFileName( const QString &fn );
-    virtual void setMode( Mode m );
+    virtual void setMode( Gui::FileChooser::Mode m );
     virtual void setFilter ( const QString & );
     virtual void setButtonText ( const QString & );
 
 Q_SIGNALS:
     void fileNameChanged( const QString & );
     void fileNameSelected( const QString & );
+    void filterChanged(const QString&);
+    void buttonTextChanged(const QString&);
+    void modeChanged(Gui::FileChooser::Mode);
+    void acceptModeChanged(Gui::FileChooser::AcceptMode);
 
 private Q_SLOTS:
     void chooseFile();

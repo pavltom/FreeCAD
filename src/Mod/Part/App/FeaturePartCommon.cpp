@@ -20,24 +20,22 @@
  *                                                                         *
  ***************************************************************************/
 
-
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <BRepAlgoAPI_Common.hxx>
 # include <BRepCheck_Analyzer.hxx>
 # include <Standard_Failure.hxx>
+# include <TopExp.hxx>
 # include <TopoDS_Iterator.hxx>
 # include <TopTools_IndexedMapOfShape.hxx>
-# include <TopExp.hxx>
 #endif
 
+#include <App/Application.h>
+#include <Base/Parameter.h>
 
 #include "FeaturePartCommon.h"
 #include "modelRefine.h"
-#include <App/Application.h>
-#include <Base/Parameter.h>
-#include <Base/Exception.h>
+
 
 using namespace Part;
 
@@ -61,7 +59,7 @@ PROPERTY_SOURCE(Part::MultiCommon, Part::Feature)
 
 MultiCommon::MultiCommon(void)
 {
-    ADD_PROPERTY(Shapes,(0));
+    ADD_PROPERTY(Shapes,(nullptr));
     Shapes.setSize(0);
     ADD_PROPERTY_TYPE(History,(ShapeHistory()), "Boolean", (App::PropertyType)
         (App::Prop_Output|App::Prop_Transient|App::Prop_Hidden), "Shape history");

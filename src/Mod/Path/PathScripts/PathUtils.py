@@ -52,6 +52,15 @@ else:
 UserInput = None
 
 
+class PathNoTCExistsException(Exception):
+    """PathNoECExistsException is raised when no TC exists at all, or when all
+    existing TCs are rejected by a given op.
+    This is typically an error because avery op requires a TC."""
+
+    def __init__(self):
+        super().__init__("No Tool Controllers exist")
+
+
 def waiting_effects(function):
     def new_function(*args, **kwargs):
         if not FreeCAD.GuiUp:
@@ -351,7 +360,7 @@ def getToolControllers(obj, proxy=None):
         proxy = obj.Proxy
     try:
         job = findParentJob(obj)
-    except Exception:  # pylint: disable=broad-except
+    except Exception:
         job = None
 
     PathLog.debug("op={} ({})".format(obj.Label, type(obj)))
@@ -375,7 +384,7 @@ def findToolController(obj, proxy, name=None):
     controllers = getToolControllers(obj, proxy)
 
     if len(controllers) == 0:
-        return None
+        raise PathNoTCExistsException()
 
     # If there's only one in the job, use it.
     if len(controllers) == 1:
@@ -383,9 +392,9 @@ def findToolController(obj, proxy, name=None):
             tc = controllers[0]
         else:
             tc = None
-    elif name is not None:  # More than one, make the user choose.
+    elif name is not None:
         tc = [i for i in controllers if i.Label == name][0]
-    elif UserInput:
+    elif UserInput:  # More than one, make the user choose.
         tc = UserInput.chooseToolController(controllers)
     return tc
 
@@ -478,7 +487,7 @@ def sort_locations(locations, keys, attractors=None):
             # prevent dictionary comparison by inserting the index
             q.put((dist(j, location) + weight(j), i, j))
 
-        prio, i, result = q.get()  # pylint: disable=unused-variable
+        prio, i, result = q.get()
 
         return result
 
@@ -709,7 +718,28 @@ class depth_params(object):
             )[1:]
 
         depths.reverse()
-        return depths
+
+        if len(depths) < 2:
+            return depths
+
+        return self.__filter_roughly_equal_depths(depths)
+
+    def __filter_roughly_equal_depths(self, depths):
+        """Depths arrive sorted from largest to smallest, positive to negative.
+        Return unique list of depths, using PathGeom.isRoughly() method to determine
+        if the two values are equal.  Only one of two consecutive equals are removed.
+
+        The assumption is that there are not enough consecutively roughly-equal depths
+        to be removed, so as to eliminate an effective step-down depth with the removal
+        of repetitive roughly-equal values."""
+
+        depthcopy = sorted(depths)  # make a copy and sort low to high
+        keep = [depthcopy[0]]
+        for depth in depthcopy[1:]:
+            if not PathGeom.isRoughly(depth, keep[-1]):
+                keep.append(depth)
+        keep.reverse()  # reverse results back high to low
+        return keep
 
     def __equal_steps(self, start, stop, max_size):
         """returns a list of depths beginning with the bottom (included), ending
@@ -797,7 +827,7 @@ def RtoIJ(startpoint, command):
     perp = chord.cross(Vector(0, 0, 1))
 
     # use pythagoras to get the perp length
-    plength = math.sqrt(radius ** 2 - (chord.Length / 2) ** 2)
+    plength = math.sqrt(radius**2 - (chord.Length / 2) ** 2)
     perp.normalize()
     perp.scale(plength, plength, plength)
 

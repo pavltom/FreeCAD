@@ -24,7 +24,6 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <Python.h>
 #include <TopoDS.hxx>
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Face.hxx>
@@ -61,7 +60,7 @@
 #include <Mod/Part/App/TopoShapeCompoundPy.h>
 #include <Mod/Part/App/OCCError.h>
 
-#include <Mod/Import/App/ImpExpDxf.h>
+#include <Mod/Import/App/dxf/ImpExpDxf.h>
 
 #include "DrawProjectSplit.h"
 #include "DrawViewPart.h"
@@ -120,7 +119,7 @@ void copy(Py::Dict sourceRange, OutputIt targetIt)
   string key;
   string value;
 
-  for (auto keyPy : sourceRange.keys()) {
+  for (const auto& keyPy : sourceRange.keys()) {
     key = Py::String(keyPy);
     value = Py::String(sourceRange[keyPy]);
     *targetIt = {key, value};
@@ -284,7 +283,8 @@ private:
             }
         }
         catch (Base::Exception &e) {
-            throw Py::Exception(Base::BaseExceptionFreeCADError, e.what());
+            e.setPyException();
+            throw Py::Exception();
         }
         return result;
     }
@@ -334,7 +334,8 @@ private:
             }
         }
         catch (Base::Exception &e) {
-            throw Py::Exception(Base::BaseExceptionFreeCADError, e.what());
+            e.setPyException();
+            throw Py::Exception();
         }
         if (!success) {
             return Py::None();
@@ -400,7 +401,8 @@ private:
             }
         }
         catch (Base::Exception &e) {
-            throw Py::Exception(Base::BaseExceptionFreeCADError, e.what());
+            e.setPyException();
+            throw Py::Exception();
         }
         if (!success) {
             return Py::None();
@@ -417,8 +419,8 @@ private:
         Py::String dxfReturn;
 
         try {
-            App::DocumentObject* obj = 0;
-            TechDraw::DrawViewPart* dvp = 0;
+            App::DocumentObject* obj = nullptr;
+            TechDraw::DrawViewPart* dvp = nullptr;
             TechDraw::DXFOutput dxfOut;
             std::string dxfText;
             std::stringstream ss;
@@ -457,7 +459,8 @@ private:
            }
         }
         catch (Base::Exception &e) {
-            throw Py::Exception(Base::BaseExceptionFreeCADError, e.what());
+            e.setPyException();
+            throw Py::Exception();
         }
 
         return dxfReturn;
@@ -474,8 +477,8 @@ private:
         std::string grpHead2 = "\" stroke-linecap=\"butt\" stroke-linejoin=\"miter\" stroke-miterlimit=\"4\">\n";
         std::string grpTail  = "</g>\n";
         try {
-            App::DocumentObject* obj = 0;
-            TechDraw::DrawViewPart* dvp = 0;
+            App::DocumentObject* obj = nullptr;
+            TechDraw::DrawViewPart* dvp = nullptr;
             TechDraw::SVGOutput svgOut;
             std::string svgText;
             std::stringstream ss;
@@ -535,7 +538,8 @@ private:
            }
         }
         catch (Base::Exception &e) {
-            throw Py::Exception(Base::BaseExceptionFreeCADError, e.what());
+            e.setPyException();
+            throw Py::Exception();
         }
 
         return svgReturn;
@@ -552,7 +556,7 @@ private:
         if (dvp->isDerivedFrom(TechDraw::DrawProjGroupItem::getClassTypeId())) {
             TechDraw::DrawProjGroupItem* dpgi = static_cast<TechDraw::DrawProjGroupItem*>(dvp);
             TechDraw::DrawProjGroup*      dpg = dpgi->getPGroup();
-            if (dpg != nullptr) {
+            if (dpg) {
                 offX = dpg->X.getValue();
                 offY = dpg->Y.getValue();
             }
@@ -608,6 +612,20 @@ private:
             s = mkTrf.Shape();
             writer.exportShape(s);
         }
+        //add the cosmetic edges also
+        std::vector<TechDraw::BaseGeomPtr> geoms = dvp->getEdgeGeometry();
+        std::vector<TopoDS_Edge> cosmeticEdges;
+        for (auto& g: geoms) {
+            if (g->hlrVisible && g->cosmetic) {
+                cosmeticEdges.push_back(g->occEdge);
+            }
+        }
+        if (!cosmeticEdges.empty()) {
+            s = TechDraw::mirrorShape(DrawUtil::vectorToCompound(cosmeticEdges));
+            mkTrf.Perform(s);
+            s = mkTrf.Shape();
+            writer.exportShape(s);
+        }
     }
 
     Py::Object writeDXFView(const Py::Tuple& args)
@@ -632,8 +650,8 @@ private:
         try {
             ImpExpDxfWrite writer(filePath);
             writer.init();
-            App::DocumentObject* obj = 0;
-            TechDraw::DrawViewPart* dvp = 0;
+            App::DocumentObject* obj = nullptr;
+            TechDraw::DrawViewPart* dvp = nullptr;
             if (PyObject_TypeCheck(viewObj, &(TechDraw::DrawViewPartPy::Type))) {
                 obj = static_cast<App::DocumentObjectPy*>(viewObj)->getDocumentObjectPtr();
                 dvp = static_cast<TechDraw::DrawViewPart*>(obj);
@@ -666,8 +684,8 @@ private:
         try {
             ImpExpDxfWrite writer(filePath);
             writer.init();
-            App::DocumentObject* obj = 0;
-            TechDraw::DrawPage* dp = 0;
+            App::DocumentObject* obj = nullptr;
+            TechDraw::DrawPage* dp = nullptr;
             if (PyObject_TypeCheck(pageObj, &(TechDraw::DrawPagePy::Type))) {
                 obj = static_cast<App::DocumentObjectPy*>(pageObj)->getDocumentObjectPtr();
                 dp = static_cast<TechDraw::DrawPage*>(obj);
@@ -692,7 +710,7 @@ private:
                     } else if (v->isDerivedFrom(TechDraw::DrawViewDimension::getClassTypeId())) {
                         DrawViewDimension* dvd = static_cast<TechDraw::DrawViewDimension*>(v);
                         TechDraw::DrawViewPart* dvp = dvd->getViewPart();
-                        if (dvp == nullptr) {
+                        if (!dvp) {
                             continue;
                         }
                         double grandParentX = 0.0;
@@ -700,7 +718,7 @@ private:
                         if (dvp->isDerivedFrom(TechDraw::DrawProjGroupItem::getClassTypeId())) {
                             TechDraw::DrawProjGroupItem* dpgi = static_cast<TechDraw::DrawProjGroupItem*>(dvp);
                             TechDraw::DrawProjGroup* dpg = dpgi->getPGroup();
-                            if (dpg == nullptr) {
+                            if (!dpg) {
                                 continue;
                             }
                             grandParentX = dpg->X.getValue();
@@ -709,7 +727,13 @@ private:
                         double parentX = dvp->X.getValue() + grandParentX;
                         double parentY = dvp->Y.getValue() + grandParentY;
                         Base::Vector3d parentPos(parentX,parentY,0.0);
-                        std::string sDimText = dvd->getFormattedDimensionValue();
+                        std::string sDimText;
+                        //this is the same code as in QGIViewDimension::updateDim
+                        if (dvd->isMultiValueSchema()) {
+                            sDimText = dvd->getFormattedDimensionValue(0); //don't format multis
+                        } else {
+                            sDimText = dvd->getFormattedDimensionValue(1);
+                        }
                         char* dimText = &sDimText[0u];                  //hack for const-ness
                         float gap = 5.0;                                //hack. don't know font size here.
                         layerName = dvd->getNameInDocument();
@@ -758,22 +782,23 @@ private:
                         } else if (dvd->Type.isValue("Radius")) {
                             Base::Vector3d textLocn(dvd->X.getValue() + parentX, dvd->Y.getValue() + parentY, 0.0);
                             arcPoints pts = dvd->getArcPoints();
+                            pointPair arrowPts = dvd->getArrowPositions();
                             Base::Vector3d center = pts.center;
                             center.y = -center.y;
-                            Base::Vector3d arcPoint = pts.onCurve.first;
-                            arcPoint.y = -arcPoint.y;
                             center = center + parentPos;
-                            arcPoint = arcPoint + parentPos;
+                            Base::Vector3d lineDir = (arrowPts.first - arrowPts.second).Normalize();
+                            Base::Vector3d arcPoint = center + lineDir * pts.radius;
                             writer.exportRadialDim(center, textLocn, arcPoint, dimText);
                         } else if(dvd->Type.isValue("Diameter")){
                             Base::Vector3d textLocn(dvd->X.getValue() + parentX, dvd->Y.getValue() + parentY, 0.0);
                             arcPoints pts = dvd->getArcPoints();
-                            Base::Vector3d end1 = pts.onCurve.first;
-                            end1.y = -end1.y;
-                            Base::Vector3d end2 = pts.onCurve.second;
-                            end2.y = -end2.y;
-                            end1 = end1 + parentPos;
-                            end2 = end2 + parentPos;
+                            pointPair arrowPts = dvd->getArrowPositions();
+                            Base::Vector3d center = pts.center;
+                            center.y = -center.y;
+                            center = center + parentPos;
+                            Base::Vector3d lineDir = (arrowPts.first - arrowPts.second).Normalize();
+                            Base::Vector3d end1 = center + lineDir * pts.radius;
+                            Base::Vector3d end2 = center - lineDir * pts.radius;
                             writer.exportDiametricDim(textLocn, end1, end2, dimText);
                         }
                    }
@@ -1000,7 +1025,8 @@ private:
                 }
             }
             catch (Base::Exception &e) {
-                throw Py::Exception(Base::BaseExceptionFreeCADError, e.what());
+                e.setPyException();
+                throw Py::Exception();
             }
             return result;
             */
@@ -1018,7 +1044,8 @@ private:
                 }
             }
             catch (Base::Exception &e) {
-                throw Py::Exception(Base::BaseExceptionFreeCADError, e.what());
+                e.setPyException();
+                throw Py::Exception();
             }
             PyObject* pycomp = new TopoShapeCompoundPy(new TopoShape(comp));
             return Py::asObject(pycomp);
@@ -1029,7 +1056,7 @@ private:
     Py::Object project(const Py::Tuple& args)
     {
         PyObject *pcObjShape;
-        PyObject *pcObjDir=0;
+        PyObject *pcObjDir=nullptr;
 
         if (!PyArg_ParseTuple(args.ptr(), "O!|O!",
             &(Part::TopoShapePy::Type), &pcObjShape,
@@ -1054,7 +1081,7 @@ private:
     Py::Object projectEx(const Py::Tuple& args)
     {
         PyObject *pcObjShape;
-        PyObject *pcObjDir=0;
+        PyObject *pcObjDir=nullptr;
 
         if (!PyArg_ParseTuple(args.ptr(), "O!|O!",
             &(TopoShapePy::Type), &pcObjShape,
@@ -1085,23 +1112,23 @@ private:
 
     Py::Object projectToSVG(const Py::Tuple& args, const Py::Dict& keys)
         {
-            static char* argNames[] = {"topoShape", "direction", "type", "tolerance", "vStyle", "v0Style", "v1Style", "hStyle", "h0Style", "h1Style", NULL};
-            PyObject *pcObjShape = 0;
-            PyObject *pcObjDir = 0;
-            const char *extractionTypePy = 0;
+            static char* argNames[] = {"topoShape", "direction", "type", "tolerance", "vStyle", "v0Style", "v1Style", "hStyle", "h0Style", "h1Style", nullptr};
+            PyObject *pcObjShape = nullptr;
+            PyObject *pcObjDir = nullptr;
+            const char *extractionTypePy = nullptr;
             ProjectionAlgos::ExtractionType extractionType = ProjectionAlgos::Plain;
             const float tol = 0.1f;
-            PyObject* vStylePy = 0;
+            PyObject* vStylePy = nullptr;
             ProjectionAlgos::XmlAttributes vStyle;
-            PyObject* v0StylePy = 0;
+            PyObject* v0StylePy = nullptr;
             ProjectionAlgos::XmlAttributes v0Style;
-            PyObject* v1StylePy = 0;
+            PyObject* v1StylePy = nullptr;
             ProjectionAlgos::XmlAttributes v1Style;
-            PyObject* hStylePy = 0;
+            PyObject* hStylePy = nullptr;
             ProjectionAlgos::XmlAttributes hStyle;
-            PyObject* h0StylePy = 0;
+            PyObject* h0StylePy = nullptr;
             ProjectionAlgos::XmlAttributes h0Style;
-            PyObject* h1StylePy = 0;
+            PyObject* h1StylePy = nullptr;
             ProjectionAlgos::XmlAttributes h1Style;
         
             // Get the arguments
@@ -1155,8 +1182,8 @@ private:
     Py::Object projectToDXF(const Py::Tuple& args)
     {
         PyObject *pcObjShape;
-        PyObject *pcObjDir=0;
-        const char *type=0;
+        PyObject *pcObjDir=nullptr;
+        const char *type=nullptr;
         float scale=1.0f;
         float tol=0.1f;
 
@@ -1217,7 +1244,7 @@ private:
 
  PyObject* initModule()
 {
-    return (new Module)->module().ptr();
+    return Base::Interpreter().addModule(new Module);
 }
 
 } // namespace TechDraw

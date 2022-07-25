@@ -24,21 +24,20 @@
 #ifndef APP_DYNAMICPROPERTY_H
 #define APP_DYNAMICPROPERTY_H
 
-#include <Base/Persistence.h>
-#include <unordered_map>
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
 
-#include <boost/functional/hash.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 
+
 namespace Base {
 class Writer;
+class XMLReader;
 class XMLWriter;
 }
 
@@ -98,8 +97,8 @@ public:
        addDynamicProperty(..., ..., "Base","blah", Prop_None, true, true);
       @endcode
      */
-    Property* addDynamicProperty(PropertyContainer &pc, const char* type, const char* name=0, const char* group=0,
-                                 const char* doc=0, short attr=0, bool ro=false, bool hidden=false);
+    Property* addDynamicProperty(PropertyContainer &pc, const char* type, const char* name=nullptr, const char* group=nullptr,
+                                 const char* doc=nullptr, short attr=0, bool ro=false, bool hidden=false);
     /** Add a pre-existing property
      *
      * The property is not treated as dynamic, and will not trigger signal.
@@ -157,8 +156,8 @@ public:
         bool readonly;
         bool hidden;
 
-        PropData(Property *prop=0, std::string &&n=std::string(), const char *pn=0,
-                const char *g=0, const char *d=0, short a=0, bool ro=false, bool h=false)
+        PropData(Property *prop=nullptr, std::string &&n=std::string(), const char *pn=nullptr,
+                const char *g=nullptr, const char *d=nullptr, short a=0, bool ro=false, bool h=false)
             :property(prop),name(std::move(n)),pName(pn)
             ,group(g?g:""),doc(d?d:""),attr(a),readonly(ro),hidden(h)
         {}

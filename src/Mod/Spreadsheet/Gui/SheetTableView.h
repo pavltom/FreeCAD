@@ -52,12 +52,13 @@ class SheetTableView : public QTableView
 {
     Q_OBJECT
 public:
-    explicit SheetTableView(QWidget *parent = 0);
+    explicit SheetTableView(QWidget *parent = nullptr);
     ~SheetTableView();
     
     void edit(const QModelIndex &index);
     void setSheet(Spreadsheet::Sheet *_sheet);
     std::vector<App::Range> selectedRanges() const;
+    QModelIndexList selectedIndexesRaw() const;
     QString toHtml() const;
 
 public Q_SLOTS:
@@ -89,6 +90,7 @@ protected:
     bool event(QEvent *event);
     void closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint);
     void mousePressEvent(QMouseEvent* event);
+    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
     void contextMenuEvent (QContextMenuEvent * e);
 

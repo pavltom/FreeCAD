@@ -21,22 +21,14 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef GUI_TASKVIEW_TaskFemConstraintFixed_H
 #define GUI_TASKVIEW_TaskFemConstraintFixed_H
 
-#include <Gui/TaskView/TaskView.h>
-#include <Gui/Selection.h>
-#include <Gui/TaskView/TaskDialog.h>
-#include <Base/Quantity.h>
+#include <QObject>
 
-#include "TaskFemConstraint.h"
 #include "TaskFemConstraintOnBoundary.h"
 #include "ViewProviderFemConstraintFixed.h"
 
-#include <QObject>
-#include <Base/Console.h>
-#include <App/DocumentObject.h>
 
 class Ui_TaskFemConstraintFixed;
 
@@ -46,7 +38,7 @@ class TaskFemConstraintFixed : public TaskFemConstraintOnBoundary
     Q_OBJECT
 
 public:
-    TaskFemConstraintFixed(ViewProviderFemConstraintFixed *ConstraintView,QWidget *parent = 0);
+    TaskFemConstraintFixed(ViewProviderFemConstraintFixed *ConstraintView,QWidget *parent = nullptr);
     ~TaskFemConstraintFixed();
     const std::string getReferences() const;
 

@@ -21,36 +21,22 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-#endif
-
-#include <Base/UnitsApi.h>
-#include <Base/Console.h>
-#include <App/Application.h>
 #include <App/Document.h>
+#include <App/DocumentObject.h>
 #include <App/Origin.h>
-#include <App/OriginFeature.h>
+#include <Base/Console.h>
 #include <Gui/Application.h>
-#include <Gui/Document.h>
-#include <Gui/BitmapFactory.h>
-#include <Gui/ViewProvider.h>
-#include <Gui/WaitCursor.h>
-#include <Gui/Selection.h>
 #include <Gui/Command.h>
+#include <Gui/Document.h>
+#include <Gui/Selection.h>
+#include <Gui/WaitCursor.h>
 #include <Gui/ViewProviderOrigin.h>
-#include <Mod/PartDesign/App/DatumLine.h>
-#include <Mod/PartDesign/App/FeatureHelix.h>
-#include <Mod/PartDesign/App/FeatureGroove.h>
-#include <Mod/Sketcher/App/SketchObject.h>
 #include <Mod/PartDesign/App/Body.h>
-#include <QString>
+#include <Mod/PartDesign/App/FeatureHelix.h>
 
 #include "ReferenceSelection.h"
-#include "Utils.h"
-
 #include "ui_TaskHelixParameters.h"
 #include "TaskHelixParameters.h"
 
@@ -208,7 +194,7 @@ void TaskHelixParameters::fillAxisCombo(bool forceRefill)
         addPartAxes();
 
         //add "Select reference"
-        addAxisToCombo(0, std::string(), tr("Select reference..."));
+        addAxisToCombo(nullptr, std::string(), tr("Select reference..."));
     }
 
     //add current link, if not in list and highlight it
@@ -295,6 +281,9 @@ void TaskHelixParameters::updateStatus()
         else
             status = "";
     }
+    // if the helix touches itself along a single helical edge we get this error
+    else if (status.compare("NCollection_IndexedDataMap::FindFromKey") == 0)
+        status = "Error: helix touches itself";
     ui->labelMessage->setText(QString::fromUtf8(status.c_str()));
 }
 
@@ -471,7 +460,7 @@ void TaskHelixParameters::onAxisChanged(int num)
         oldRefName = oldSubRefAxis.front();
 
     App::PropertyLinkSub& lnk = *(axesInList[num]);
-    if (lnk.getValue() == 0) {
+    if (!lnk.getValue()) {
         // enter reference selection mode
         TaskSketchBasedParameters::onSelectReference(
             AllowSelection::EDGE |
@@ -557,7 +546,7 @@ TaskHelixParameters::~TaskHelixParameters()
 {
     try {
         //hide the parts coordinate system axis for selection
-        PartDesign::Body* body = vp ? PartDesign::Body::findBodyOf(vp->getObject()) : 0;
+        PartDesign::Body* body = vp ? PartDesign::Body::findBodyOf(vp->getObject()) : nullptr;
         if (body) {
             App::Origin* origin = body->getOrigin();
             ViewProviderOrigin* vpOrigin;
@@ -598,7 +587,7 @@ void TaskHelixParameters::getReferenceAxis(App::DocumentObject*& obj, std::vecto
 
     int num = ui->axis->currentIndex();
     const App::PropertyLinkSub& lnk = *(axesInList.at(num));
-    if (lnk.getValue() == 0) {
+    if (!lnk.getValue()) {
         throw Base::RuntimeError("Still in reference selection mode; reference wasn't selected yet");
     }
     else {

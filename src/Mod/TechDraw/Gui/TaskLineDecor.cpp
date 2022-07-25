@@ -116,7 +116,7 @@ void TaskLineDecor::getDefaults(void)
     if (!m_edges.empty()) {
         int num = DrawUtil::getIndexFromName(m_edges.front());
         BaseGeomPtr bg = m_partFeat->getGeomByIndex(num);
-        if (bg != nullptr) {
+        if (bg) {
             if (bg->cosmetic) {
                 if (bg->source() == 1) {
                     TechDraw::CosmeticEdge* ce = m_partFeat->getCosmeticEdgeBySelection(m_edges.front());
@@ -134,7 +134,7 @@ void TaskLineDecor::getDefaults(void)
                 }
             } else {
                 TechDraw::GeomFormat* gf = m_partFeat->getGeomFormatBySelection(num);
-                if (gf != nullptr) {
+                if (gf) {
                     m_style = gf->m_format.m_style;
                     m_color = gf->m_format.m_color;
                     m_weight = gf->m_format.m_weight;
@@ -142,7 +142,7 @@ void TaskLineDecor::getDefaults(void)
                 } else {
                     Gui::ViewProvider* vp = QGIView::getViewProvider(m_partFeat);
                     auto partVP = dynamic_cast<ViewProviderViewPart*>(vp);
-                    if ( partVP != nullptr ) {
+                    if (partVP) {
                         m_weight = partVP->LineWidth.getValue();
                         m_style = Qt::SolidLine;                  // = 1
                         m_color = LineFormat::getDefEdgeColor();
@@ -188,7 +188,7 @@ void TaskLineDecor::applyDecorations(void)
     for (auto& e: m_edges) {
         int num = DrawUtil::getIndexFromName(e);
         BaseGeomPtr bg = m_partFeat->getGeomByIndex(num);
-        if (bg != nullptr) {
+        if (bg) {
             if (bg->cosmetic) {
                 if (bg->source() == 1) {
                     TechDraw::CosmeticEdge* ce = m_partFeat->getCosmeticEdgeBySelection(e);
@@ -206,7 +206,7 @@ void TaskLineDecor::applyDecorations(void)
                 }
             } else {
                 TechDraw::GeomFormat* gf = m_partFeat->getGeomFormatBySelection(num);
-                if (gf != nullptr) {
+                if (gf) {
                     gf->m_format.m_style = m_style;
                     gf->m_format.m_color = m_color;
                     gf->m_format.m_weight = m_weight;
@@ -230,7 +230,8 @@ bool TaskLineDecor::accept()
 {
 //    Base::Console().Message("TLD::accept()\n");
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_partFeat->getDocument());
-    if (!doc) return false;
+    if (!doc)
+        return false;
 
     if (apply()) {
         applyDecorations();
@@ -248,7 +249,8 @@ bool TaskLineDecor::reject()
 {
 //    Base::Console().Message("TLD::reject()\n");
     Gui::Document* doc = Gui::Application::Instance->getDocument(m_partFeat->getDocument());
-    if (!doc) return false;
+    if (!doc)
+        return false;
 
     Gui::Command::doCommand(Gui::Command::Gui,"Gui.ActiveDocument.resetEdit()");
     return false;
@@ -435,8 +437,8 @@ TaskDlgLineDecor::TaskDlgLineDecor(TechDraw::DrawViewPart* partFeat,
     TaskDialog()
 {
     widget  = new TaskLineDecor(partFeat, edgeNames);
-    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/techdraw-DecorateLine"),
-                                         widget->windowTitle(), true, 0);
+    taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_DecorateLine"),
+                                         widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
     if (edgeNames.empty()) {
@@ -444,10 +446,10 @@ TaskDlgLineDecor::TaskDlgLineDecor(TechDraw::DrawViewPart* partFeat,
     }
 
     TaskLineDecor* parent = dynamic_cast<TaskLineDecor*>(widget);
-    if (parent != nullptr) {
+    if (parent) {
         restore = new TaskRestoreLines(partFeat, parent);
-        restoreBox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/techdraw-DecorateLine"),
-                                             tr("Restore Invisible Lines"), true, 0);
+        restoreBox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_DecorateLine"),
+                                             tr("Restore Invisible Lines"), true, nullptr);
         restoreBox->groupLayout()->addWidget(restore);
         Content.push_back(restoreBox);
     }

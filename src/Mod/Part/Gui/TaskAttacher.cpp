@@ -31,7 +31,6 @@
 # include <QMessageBox>
 # include <Precision.hxx>
 # include <Standard_Failure.hxx>
-# include <boost_bind_bind.hpp>
 #endif
 
 #include <Base/Console.h>
@@ -69,7 +68,7 @@ namespace bp = boost::placeholders;
 // Create reference name from PropertyLinkSub values in a translatable fashion
 const QString makeRefString(const App::DocumentObject* obj, const std::string& sub)
 {
-    if (obj == NULL)
+    if (!obj)
         return QObject::tr("No reference selected");
 
     if (obj->getTypeId().isDerivedFrom(App::OriginFeature::getClassTypeId()) ||
@@ -100,7 +99,7 @@ void TaskAttacher::makeRefStrings(std::vector<QString>& refstrings, std::vector<
     refnames = pcAttach->Support.getSubValues();
 
     for (size_t r = 0; r < 4; r++) {
-        if ((r < refs.size()) && (refs[r] != NULL)) {
+        if ((r < refs.size()) && (refs[r])) {
             refstrings.push_back(makeRefString(refs[r], refnames[r]));
             // for Origin or Datum features refnames is empty but we need a non-empty return value
             if (refnames[r].empty())
@@ -119,6 +118,7 @@ TaskAttacher::TaskAttacher(Gui::ViewProviderDocumentObject *ViewProvider, QWidge
     , ViewProvider(ViewProvider)
     , ui(new Ui_TaskAttacher)
     , visibilityFunc(visFunc)
+    , completed(false)
 {
     //check if we are attachable
     if (!ViewProvider->getObject()->hasExtension(Part::AttachExtension::getExtensionClassTypeId()))
@@ -346,7 +346,7 @@ QLineEdit* TaskAttacher::getLine(unsigned idx)
         case 1: return ui->lineRef2;
         case 2: return ui->lineRef3;
         case 3: return ui->lineRef4;
-        default: return NULL;
+        default: return nullptr;
     }
 }
 
@@ -364,7 +364,8 @@ void TaskAttacher::onSelectionChanged(const Gui::SelectionChanges& msg)
         std::vector<App::DocumentObject*> refs = pcAttach->Support.getValues();
         std::vector<std::string> refnames = pcAttach->Support.getSubValues();
         App::DocumentObject* selObj = ViewProvider->getObject()->getDocument()->getObject(msg.pObjectName);
-        if (!selObj || selObj == ViewProvider->getObject()) return;//prevent self-referencing
+        if (!selObj || selObj == ViewProvider->getObject())//prevent self-referencing
+            return;
         
         std::string subname = msg.pSubName;
 
@@ -378,7 +379,7 @@ void TaskAttacher::onSelectionChanged(const Gui::SelectionChanges& msg)
             if ((refs[r] == selObj) && (refnames[r] == subname))
                 return;
 
-        if (autoNext && iActiveRef > 0 && iActiveRef == (ssize_t) refnames.size()){
+        if (autoNext && iActiveRef > 0 && iActiveRef == static_cast<int>(refnames.size())){
             if (refs[iActiveRef-1] == selObj
                 && refnames[iActiveRef-1].length() != 0 && subname.length() == 0){
                 //A whole object was selected by clicking it twice. Fill it
@@ -388,7 +389,7 @@ void TaskAttacher::onSelectionChanged(const Gui::SelectionChanges& msg)
                 iActiveRef--;
             }
         }
-        if (iActiveRef < (ssize_t) refs.size()) {
+        if (iActiveRef < static_cast<int>(refs.size())) {
             refs[iActiveRef] = selObj;
             refnames[iActiveRef] = subname;
         } else {
@@ -418,7 +419,7 @@ void TaskAttacher::onSelectionChanged(const Gui::SelectionChanges& msg)
         }
 
         QLineEdit* line = getLine(iActiveRef);
-        if (line != NULL) {
+        if (line) {
             line->blockSignals(true);
             line->setText(makeRefString(selObj, subname));
             line->setProperty("RefName", QByteArray(subname.c_str()));
@@ -562,7 +563,8 @@ void TaskAttacher::onRefName(const QString& text, unsigned idx)
         return;
 
     QLineEdit* line = getLine(idx);
-    if (line == NULL) return;
+    if (!line)
+        return;
 
     if (text.length() == 0) {
         // Reference was removed
@@ -605,7 +607,8 @@ void TaskAttacher::onRefName(const QString& text, unsigned idx)
         parts.push_back(QString::fromLatin1(""));
     // Check whether this is the name of an App::Plane or Part::Datum feature
     App::DocumentObject* obj = ViewProvider->getObject()->getDocument()->getObject(parts[0].toLatin1());
-    if (obj == NULL) return;
+    if (!obj)
+        return;
 
     std::string subElement;
 
@@ -802,7 +805,7 @@ void TaskAttacher::updateListOfModes()
     //populate list
     ui->listOfModes->blockSignals(true);
     ui->listOfModes->clear();
-    QListWidgetItem* iSelect = 0;
+    QListWidgetItem* iSelect = nullptr;
     if (modesInList.size()>0) {
         for (size_t i = 0  ;  i < modesInList.size()  ;  ++i){
             eMapMode mmode = modesInList[i];
@@ -971,7 +974,8 @@ void TaskAttacher::visibilityAutomation(bool opening_not_closing)
                     QString::fromLatin1(editSubName.c_str()),
                     QString::fromLatin1(postfix.c_str()));
             Gui::Command::runCommand(Gui::Command::Gui,code.toLatin1().constData());
-        } else if(postfix.size()) {
+        }
+        else if (!postfix.empty()) {
             QString code = QString::fromLatin1(
                 "_tv_%1.restore()\n"
                 "del(_tv_%1)"
@@ -994,14 +998,14 @@ void TaskAttacher::visibilityAutomation(bool opening_not_closing)
         auto editDoc = Gui::Application::Instance->editDocument();
         App::DocumentObject *editObj = ViewProvider->getObject();
         std::string editSubName;
-        auto sels = Gui::Selection().getSelection(0,0,true);
+        auto sels = Gui::Selection().getSelection(nullptr, Gui::ResolveMode::NoResolve, true);
         if(sels.size() && sels[0].pResolvedObject 
                        && sels[0].pResolvedObject->getLinkedObject()==editObj) 
         {
             editObj = sels[0].pObject;
             editSubName = sels[0].SubName;
         } else {
-            ViewProviderDocumentObject *editVp = 0;
+            ViewProviderDocumentObject *editVp = nullptr;
             if (editDoc) {
                 editDoc->getInEdit(&editVp,&editSubName);
                 if (editVp)

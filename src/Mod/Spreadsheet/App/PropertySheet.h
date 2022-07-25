@@ -28,6 +28,7 @@
 #include <App/DocumentObject.h>
 #include <App/PropertyLinks.h>
 #include <App/PropertyLinks.h>
+#include <Base/SmartPtrPy.h>
 #include "Cell.h"
 
 namespace Spreadsheet
@@ -42,7 +43,7 @@ class SpreadsheetExport PropertySheet : public App::PropertyExpressionContainer
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 public:
 
-    PropertySheet(Sheet * _owner = 0);
+    PropertySheet(Sheet * _owner = nullptr);
 
     ~PropertySheet();
 
@@ -112,7 +113,9 @@ public:
 
     bool isValidAlias(const std::string &candidate);
 
-    std::set<App::CellAddress> getUsedCells() const;
+    std::vector<App::CellAddress> getUsedCells() const;
+
+    std::vector<App::CellAddress> getNonEmptyCells() const;
 
     Sheet * sheet() const { return owner; }
 
@@ -149,6 +152,8 @@ public:
     void splitCell(App::CellAddress address);
 
     void getSpans(App::CellAddress address, int &rows, int &cols) const;
+
+    bool hasSpan() const;
 
     App::CellAddress getAnchor(App::CellAddress address) const;
 
@@ -189,7 +194,7 @@ public:
     unsigned getBindingBorder(App::CellAddress address) const;
 
     bool isBindingPath(const App::ObjectIdentifier &path,
-            App::CellAddress *from=0, App::CellAddress *to=0, bool *href=0) const;
+            App::CellAddress *from=nullptr, App::CellAddress *to=nullptr, bool *href=nullptr) const;
 
     enum BindingType {
         BindingNone,
@@ -197,7 +202,9 @@ public:
         BindingHiddenRef,
     };
     BindingType getBinding(const App::Range &range,
-            App::ExpressionPtr *pStart=0, App::ExpressionPtr *pEnd=0) const;
+                           App::ExpressionPtr *pStart=nullptr,
+                           App::ExpressionPtr *pEnd=nullptr,
+                           App::ObjectIdentifier *pTarget=nullptr) const;
 
 protected:
     virtual void hasSetValue() override;
@@ -283,7 +290,7 @@ private:
     std::map<std::string, App::CellAddress> revAliasProp;
 
     /*! The associated python object */
-    Py::Object PythonObject;
+    Py::SmartPtr PythonObject;
 
     std::map<const App::DocumentObject*, boost::signals2::scoped_connection> depConnections;
 

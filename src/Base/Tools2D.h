@@ -176,8 +176,10 @@ public:
   // admin-interface
   inline size_t GetCtVectors () const;
   inline bool Add (const Vector2d &rclVct);
-  inline Vector2d& operator[] (size_t ulNdx) const;
-  inline Vector2d& At (size_t ulNdx) const;
+  inline const Vector2d& operator[] (size_t ulNdx) const;
+  inline const Vector2d& At (size_t ulNdx) const;
+  inline Vector2d& operator[] (size_t ulNdx);
+  inline Vector2d& At (size_t ulNdx);
   inline bool Delete (size_t ulNdx);
   inline void  DeleteAll ();
 
@@ -200,7 +202,7 @@ inline Vector2d::Vector2d()
 }
 
 inline Vector2d::Vector2d(float x, float y)
-: x(x), y(y)
+: x(double(x)), y(double(y))
 {
 }
 
@@ -262,7 +264,7 @@ inline Vector2d& Vector2d::operator-= (const Vector2d &v)
 
 inline Vector2d Vector2d::operator* (double c) const
 {
-  return Vector2d(c*x, c*y);
+  return Vector2d(c * x, c * y);
 }
 
 inline Vector2d& Vector2d::operator*= (double c)
@@ -274,17 +276,17 @@ inline Vector2d& Vector2d::operator*= (double c)
 
 inline double Vector2d::operator* (const Vector2d &v) const
 {
-  return x*v.x + y*v.y;
+  return x * v.x + y * v.y;
 }
 
 inline Vector2d operator* (double c, const Vector2d &v)
 {
-    return Vector2d(c*v.x, c*v.y);
+  return Vector2d(c * v.x, c * v.y);
 }
 
 inline Vector2d Vector2d::operator/ (double c) const
 {
-  return Vector2d(x/c, y/c);
+  return Vector2d(x / c, y / c);
 }
 
 inline Vector2d& Vector2d::operator/= (double c)
@@ -296,12 +298,12 @@ inline Vector2d& Vector2d::operator/= (double c)
 
 inline bool Vector2d::IsNull(double tolerance) const
 {
-  return x*x + y*y <= tolerance*tolerance;
+  return x * x + y * y <= tolerance * tolerance;
 }
 
 inline double Vector2d::Length() const
 {
-  return sqrt(x*x + y*y);
+  return sqrt(x * x + y * y);
 }
 
 inline double Vector2d::Angle() const
@@ -311,7 +313,7 @@ inline double Vector2d::Angle() const
 
 inline double Vector2d::Sqr() const
 {
-  return x*x + y*y;
+  return x * x + y * y;
 }
 
 inline Vector2d& Vector2d::Set(double x, double y)
@@ -337,8 +339,9 @@ inline Vector2d& Vector2d::Scale(double factor)
 
 inline Vector2d& Vector2d::Rotate(double angle)
 {
-  x = x*cos(angle) - y*sin(angle);
-  y = x*sin(angle) + y*cos(angle);
+  auto tmp_x = x;
+  x = x * cos(angle) - y * sin(angle);
+  y = tmp_x * sin(angle) + y * cos(angle);
   return *this;
 }
 
@@ -361,7 +364,7 @@ inline Vector2d Vector2d::Perpendicular(bool clockwise) const
 
 inline Vector2d Vector2d::FromPolar(double r, double fi)
 {
-  return Vector2d(r*cos(fi), r*sin(fi));
+  return Vector2d(r * cos(fi), r * sin(fi));
 }
 
 inline double Vector2d::Distance(const Vector2d& v) const
@@ -369,7 +372,7 @@ inline double Vector2d::Distance(const Vector2d& v) const
   double dx = (x - v.x);
   double dy = (y - v.y);
 
-  return sqrt(dx*dx + dy*dy);
+  return sqrt(dx * dx + dy * dy);
 }
 
 inline bool Vector2d::IsEqual(const Vector2d& v, double tolerance) const
@@ -410,23 +413,35 @@ inline bool Polygon2d::Delete (size_t ulNdx)
 {
   if ( ulNdx < _aclVct.size() )
   {
-    std::vector<Vector2d>::iterator it = _aclVct.begin() + ulNdx;
-    _aclVct.erase ( it );
+    std::vector<Vector2d>::iterator it = _aclVct.begin();
+    std::advance(it, ulNdx);
+    _aclVct.erase(it);
     return true;
   }
 
   return false;
 }
 
-inline Vector2d& Polygon2d::operator[] (size_t ulNdx) const
+inline const Vector2d& Polygon2d::operator[] (size_t ulNdx) const
 {
-  return (Vector2d&) _aclVct[ulNdx];
+  return _aclVct[ulNdx];
 }
 
-inline Vector2d& Polygon2d::At (size_t ulNdx) const
+inline const Vector2d& Polygon2d::At (size_t ulNdx) const
 {
-  return (Vector2d&) _aclVct[ulNdx];
+  return _aclVct.at(ulNdx);
 }
+
+inline Vector2d& Polygon2d::operator[] (size_t ulNdx)
+{
+  return _aclVct[ulNdx];
+}
+
+inline Vector2d& Polygon2d::At (size_t ulNdx)
+{
+  return _aclVct.at(ulNdx);
+}
+
 
 inline Line2d::Line2d (const Line2d &rclLine)
     : clV1 (rclLine.clV1),
@@ -477,10 +492,10 @@ inline BoundBox2d::BoundBox2d (const BoundBox2d &rclBB)
 
 inline BoundBox2d::BoundBox2d (double fX1, double fY1, double fX2, double fY2)
 {
-    MinX = std::min<double>( fX1, fX2 );
-    MaxX = std::max<double>( fX1, fX2 );
-    MinY = std::min<double>( fY1, fY2 );
-    MaxY = std::max<double>( fY1, fY2 );
+    MinX = std::min<double>(fX1, fX2);
+    MaxX = std::max<double>(fX1, fX2);
+    MinY = std::min<double>(fY1, fY2);
+    MaxY = std::max<double>(fY1, fY2);
 }
 
 inline bool BoundBox2d::IsValid ()
@@ -490,8 +505,8 @@ inline bool BoundBox2d::IsValid ()
 
 inline bool BoundBox2d::IsEqual(const BoundBox2d& b, double tolerance) const
 {
-  return Vector2d(MinX,MinY).IsEqual(Vector2d(b.MinX,b.MinY), tolerance) &&
-         Vector2d(MaxX,MaxY).IsEqual(Vector2d(b.MaxX,b.MaxY), tolerance);
+  return Vector2d(MinX, MinY).IsEqual(Vector2d(b.MinX, b.MinY), tolerance) &&
+         Vector2d(MaxX, MaxY).IsEqual(Vector2d(b.MaxX, b.MaxY), tolerance);
 }
 
 inline BoundBox2d& BoundBox2d::operator= (const BoundBox2d& rclBB)
@@ -535,7 +550,7 @@ inline bool BoundBox2d::Contains(const Vector2d &v, double tolerance) const
 
 inline Vector2d BoundBox2d::GetCenter() const
 {
-  return Vector2d((MinX + MaxX)*0.5, (MinY + MaxY)*0.5);
+  return Vector2d((MinX + MaxX) * 0.5, (MinY + MaxY) * 0.5);
 }
 
 inline void BoundBox2d::SetVoid()
@@ -555,5 +570,3 @@ inline void BoundBox2d::Add(const Vector2d &v)
 } // namespace Base
 
 #endif // BASE_TOOLS2D_H
-
-

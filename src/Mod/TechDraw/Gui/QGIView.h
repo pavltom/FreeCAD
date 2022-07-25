@@ -23,19 +23,17 @@
 #ifndef DRAWINGGUI_QGRAPHICSITEMVIEW_H
 #define DRAWINGGUI_QGRAPHICSITEMVIEW_H
 
+#include <Mod/TechDraw/TechDrawGlobal.h>
+
+#include <QColor>
+#include <QFont>
 #include <QGraphicsItemGroup>
 #include <QObject>
 #include <QPen>
-#include <QFont>
-#include <QColor>
-#include <QCursor>
 #include <QPointF>
 
-#include <App/DocumentObject.h>
 #include <Base/Parameter.h>
-#include <Gui/ViewProvider.h>
-
-#include <Mod/TechDraw/App/DrawView.h>
+#include <Base/Vector3D.h>
 
 
 QT_BEGIN_NAMESPACE
@@ -43,8 +41,24 @@ class QGraphicsScene;
 class QGraphicsSceneMouseEvent;
 QT_END_NAMESPACE
 
+namespace App
+{
+class DocumentObject;
+}
+
+namespace Gui
+{
+class ViewProvider;
+}
+
+namespace TechDraw
+{
+class DrawView;
+}
+
 namespace TechDrawGui
 {
+class QGSPage;
 class QGVPage;
 class QGCustomBorder;
 class QGCustomLabel;
@@ -66,7 +80,6 @@ public:
     enum {Type = QGraphicsItem::UserType + 101};
     int type() const override { return Type;}
     virtual QRectF boundingRect() const override;
-    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void paint( QPainter *painter,
                         const QStyleOptionGraphicsItem *option,
                         QWidget *widget = nullptr ) override;
@@ -117,6 +130,7 @@ public:
     
     static Gui::ViewProvider* getViewProvider(App::DocumentObject* obj);
     static QGVPage* getGraphicsView(TechDraw::DrawView* dv);
+    static QGSPage* getGraphicsScene(TechDraw::DrawView* dv);
     static int calculateFontPixelSize(double sizeInMillimetres);
     static int calculateFontPixelWidth(const QFont &font);
     static const double DefaultFontSizeInMM;
@@ -132,7 +146,10 @@ public:
     virtual void addArbitraryItem(QGraphicsItem* qgi);
 
     // Mouse handling
-    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
     boost::signals2::signal<void (QGIView*, QPointF)> signalSelectPoint;
 
 public Q_SLOTS:
@@ -141,12 +158,10 @@ public Q_SLOTS:
 protected:
     QGIView* getQGIVByName(std::string name);
 
-    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
-    // Mouse handling
-/*    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;*/
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
     // Preselection events:
-    virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
-    virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
     virtual QRectF customChildrenBoundingRect(void) const;
     void dumpRect(const char* text, QRectF r);
 
@@ -180,8 +195,8 @@ protected:
     QPen m_decorPen;
     double m_lockWidth;
     double m_lockHeight;
+    int m_dragState;
 
-//    std::vector<QGraphicsItem*> m_randomItems;
 };
 
 } // namespace

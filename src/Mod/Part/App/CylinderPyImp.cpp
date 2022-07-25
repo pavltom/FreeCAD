@@ -20,29 +20,22 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <Geom_CylindricalSurface.hxx>
-# include <Geom_Circle.hxx>
-# include <Geom_Line.hxx>
-# include <Geom_TrimmedCurve.hxx>
 # include <GC_MakeCylindricalSurface.hxx>
-# include <gp_Circ.hxx>
+# include <Geom_Circle.hxx>
+# include <Geom_CylindricalSurface.hxx>
 # include <gp_Cylinder.hxx>
-# include <gp_Lin.hxx>
 #endif
 
 #include <Base/GeometryPyCXX.h>
 #include <Base/VectorPy.h>
 
-#include "OCCError.h"
-#include "Geometry.h"
-#include "CirclePy.h"
-#include "EllipsePy.h"
-#include "LinePy.h"
 #include "CylinderPy.h"
 #include "CylinderPy.cpp"
+#include "CirclePy.h"
+#include "OCCError.h"
+
 
 using namespace Part;
 
@@ -66,7 +59,7 @@ int CylinderPy::PyInit(PyObject* args, PyObject* kwds)
     // cylinder and distance for offset
     PyObject *pCyl;
     double dist;
-    static char* keywords_cd[] = {"Cylinder","Distance",NULL};
+    static char* keywords_cd[] = {"Cylinder","Distance",nullptr};
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!d", keywords_cd, &(CylinderPy::Type), &pCyl, &dist)) {
         CylinderPy* pcCylinder = static_cast<CylinderPy*>(pCyl);
         Handle(Geom_CylindricalSurface) cylinder = Handle(Geom_CylindricalSurface)::DownCast
@@ -83,7 +76,7 @@ int CylinderPy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    static char* keywords_c[] = {"Cylinder",NULL};
+    static char* keywords_c[] = {"Cylinder",nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", keywords_c, &(CylinderPy::Type), &pCyl)) {
         CylinderPy* pcCylinder = static_cast<CylinderPy*>(pCyl);
@@ -96,7 +89,7 @@ int CylinderPy::PyInit(PyObject* args, PyObject* kwds)
     }
 
     PyObject *pV1, *pV2, *pV3;
-    static char* keywords_ppp[] = {"Point1","Point2","Point3",NULL};
+    static char* keywords_ppp[] = {"Point1","Point2","Point3",nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!", keywords_ppp,
                                          &(Base::VectorPy::Type), &pV1,
@@ -119,7 +112,7 @@ int CylinderPy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    static char* keywords_cc[] = {"Circle",NULL};
+    static char* keywords_cc[] = {"Circle",nullptr};
     PyErr_Clear();
     PyObject *pCirc;
     if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", keywords_cc, &(CirclePy::Type), &pCirc)) {
@@ -138,7 +131,7 @@ int CylinderPy::PyInit(PyObject* args, PyObject* kwds)
         return 0;
     }
 
-    static char* keywords_n[] = {NULL};
+    static char* keywords_n[] = {nullptr};
     PyErr_Clear();
     if (PyArg_ParseTupleAndKeywords(args, kwds, "", keywords_n)) {
         Handle(Geom_CylindricalSurface) cyl = Handle(Geom_CylindricalSurface)::DownCast
@@ -246,7 +239,7 @@ void CylinderPy::setAxis(Py::Object arg)
 
 PyObject *CylinderPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int CylinderPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

@@ -20,19 +20,18 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <Geom_SurfaceOfRevolution.hxx>
 #endif
 
-#include "Geometry.h"
-#include "SurfaceOfRevolutionPy.h"
-#include "SurfaceOfRevolutionPy.cpp"
-
 #include <Base/GeometryPyCXX.h>
 #include <Base/VectorPy.h>
+
+#include "SurfaceOfRevolutionPy.h"
+#include "SurfaceOfRevolutionPy.cpp"
 #include "OCCError.h"
+
 
 using namespace Part;
 
@@ -180,7 +179,7 @@ void  SurfaceOfRevolutionPy::setBasisCurve(Py::Object arg)
 
 PyObject *SurfaceOfRevolutionPy::getCustomAttributes(const char* /*attr*/) const
 {
-    return 0;
+    return nullptr;
 }
 
 int SurfaceOfRevolutionPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)

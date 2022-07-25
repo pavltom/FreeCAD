@@ -37,7 +37,7 @@ class SheetModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit SheetModel(Spreadsheet::Sheet * _sheet, QObject *parent = 0);
+    explicit SheetModel(Spreadsheet::Sheet * _sheet, QObject *parent = nullptr);
     ~SheetModel();
     
     SheetModel(QObject *parent);
@@ -47,6 +47,9 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     Qt::ItemFlags flags(const QModelIndex &) const;
+
+private Q_SLOTS:
+    void setCellData(QModelIndex index, QString str);
 
 private:
     void cellUpdated(App::CellAddress address);

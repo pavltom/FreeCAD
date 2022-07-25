@@ -51,11 +51,12 @@ PyObject *PointsPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // Pyt
 int PointsPy::PyInit(PyObject* args, PyObject* /*kwd*/)
 {
     PyObject *pcObj=nullptr;
-    if (!PyArg_ParseTuple(args, "|O", &pcObj))     // convert args: Python->C
-        return -1;                             // NULL triggers exception
+    if (!PyArg_ParseTuple(args, "|O", &pcObj))
+        return -1;
 
     // if no mesh is given
-    if (!pcObj) return 0;
+    if (!pcObj)
+        return 0;
     if (PyObject_TypeCheck(pcObj, &(PointsPy::Type))) {
         *getPointKernelPtr() = *(static_cast<PointsPy*>(pcObj)->getPointKernelPtr());
     }
@@ -141,8 +142,7 @@ PyObject* PointsPy::addPoints(PyObject * args)
 
     try {
         Py::Sequence list(obj);
-        union PyType_Object pyType = {&(Base::VectorPy::Type)};
-        Py::Type vType(pyType.o);
+        Py::Type vType(Base::getTypeAsObject(&Base::VectorPy::Type));
 
         for (Py::Sequence::iterator it = list.begin(); it != list.end(); ++it) {
             if ((*it).isType(vType)) {
@@ -160,7 +160,7 @@ PyObject* PointsPy::addPoints(PyObject * args)
         }
     }
     catch (const Py::Exception&) {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, "either expect\n"
+        PyErr_SetString(PyExc_TypeError, "either expect\n"
             "-- [Vector,...] \n"
             "-- [(x,y,z),...]");
         return nullptr;
@@ -190,7 +190,7 @@ PyObject* PointsPy::fromSegment(PyObject * args)
         return new PointsPy(pts.release());
     }
     catch (const Py::Exception&) {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, "expect a list of int");
+        PyErr_SetString(PyExc_TypeError, "expect a list of int");
         return nullptr;
     }
 }
@@ -212,7 +212,7 @@ PyObject* PointsPy::fromValid(PyObject * args)
         return new PointsPy(pts.release());
     }
     catch (const Py::Exception&) {
-        PyErr_SetString(Base::BaseExceptionFreeCADError, "expect a list of int");
+        PyErr_SetString(PyExc_TypeError, "expect a list of int");
         return nullptr;
     }
 }

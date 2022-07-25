@@ -29,8 +29,6 @@
 
 #include "PropertyContainer.h"
 #include "Property.h"
-#include "PropertyLinks.h"
-#include "Application.h"
 #include "DocumentObject.h"
 
 #include <boost/iostreams/device/array.hpp>
@@ -54,25 +52,34 @@ PyObject*  PropertyContainerPy::getPropertyByName(PyObject *args)
 {
     char *pstr;
     int checkOwner=0;
-    if (!PyArg_ParseTuple(args, "s|i", &pstr, &checkOwner))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
-    App::Property* prop = getPropertyContainerPtr()->getPropertyByName(pstr);
-    if (prop) {
-        if(!checkOwner || (checkOwner==1 && prop->getContainer()==getPropertyContainerPtr()))
-            return prop->getPyObject();
-        Py::TupleN res(Py::asObject(prop->getContainer()->getPyObject()),
-                       Py::asObject(prop->getPyObject()));
-        return Py::new_reference_to(res);
+    if (!PyArg_ParseTuple(args, "s|i", &pstr, &checkOwner))
+        return nullptr;
+
+    if (checkOwner < 0 || checkOwner > 2) {
+        PyErr_SetString(PyExc_ValueError, "'checkOwner' expected in the range [0, 2]");
+        return nullptr;
     }
-    PyErr_Format(PyExc_AttributeError, "Property container has no property '%s'", pstr);
-    return nullptr;
+
+    App::Property* prop = getPropertyContainerPtr()->getPropertyByName(pstr);
+    if (!prop) {
+        PyErr_Format(PyExc_AttributeError, "Property container has no property '%s'", pstr);
+        return nullptr;
+    }
+
+    if (!checkOwner || (checkOwner==1 && prop->getContainer()==getPropertyContainerPtr()))
+        return prop->getPyObject();
+
+    Py::TupleN res(Py::asObject(prop->getContainer()->getPyObject()), Py::asObject(prop->getPyObject()));
+
+    return Py::new_reference_to(res);
 }
 
 PyObject*  PropertyContainerPy::getPropertyTouchList(PyObject *args)
 {
     char *pstr;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
+
     App::Property* prop = getPropertyContainerPtr()->getPropertyByName(pstr);
     if (prop && prop->isDerivedFrom(PropertyLists::getClassTypeId())) {
         const auto &touched = static_cast<PropertyLists*>(prop)->getTouchList();
@@ -82,19 +89,22 @@ PyObject*  PropertyContainerPy::getPropertyTouchList(PyObject *args)
             ret.setItem(i++,Py::Long(idx));
         return Py::new_reference_to(ret);
     }
-    else if(!prop)
+    else if (!prop) {
         PyErr_Format(PyExc_AttributeError, "Property container has no property '%s'", pstr);
-    else
+        return nullptr;
+    }
+    else {
         PyErr_Format(PyExc_AttributeError, "Property '%s' is not of list type", pstr);
-    return nullptr;
+        return nullptr;
+    }
 }
 
 PyObject*  PropertyContainerPy::getTypeOfProperty(PyObject *args)
 {
     Py::List ret;
     char *pstr;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
 
     Property* prop =  getPropertyContainerPtr()->getPropertyByName(pstr);
     if (!prop) {
@@ -103,16 +113,18 @@ PyObject*  PropertyContainerPy::getTypeOfProperty(PyObject *args)
     }
 
     short Type =  prop->getType();
-    if (Type & Prop_Hidden)
-        ret.append(Py::String("Hidden"));
     if (Type & Prop_ReadOnly)
         ret.append(Py::String("ReadOnly"));
+    if (Type & Prop_Transient)
+        ret.append(Py::String("Transient"));
+    if (Type & Prop_Hidden)
+        ret.append(Py::String("Hidden"));
     if (Type & Prop_Output)
         ret.append(Py::String("Output"));
     if (Type & Prop_NoRecompute)
         ret.append(Py::String("NoRecompute"));
-    if (Type & Prop_Transient)
-        ret.append(Py::String("Transient"));
+    if (Type & Prop_NoPersist)
+        ret.append(Py::String("NoPersist"));
 
     return Py::new_reference_to(ret);
 }
@@ -120,8 +132,8 @@ PyObject*  PropertyContainerPy::getTypeOfProperty(PyObject *args)
 PyObject*  PropertyContainerPy::getTypeIdOfProperty(PyObject *args)
 {
     char *pstr;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
 
     Property* prop =  getPropertyContainerPtr()->getPropertyByName(pstr);
     if (!prop) {
@@ -168,7 +180,7 @@ PyObject*  PropertyContainerPy::setEditorMode(PyObject *args)
             status.reset(Property::ReadOnly);
             status.reset(Property::Hidden);
             for (Py::Sequence::iterator it = seq.begin();it!=seq.end();++it) {
-                std::string str = (std::string)Py::String(*it);
+                std::string str = static_cast<std::string>(Py::String(*it));
                 if (str == "ReadOnly")
                     status.set(Property::ReadOnly);
                 else if (str == "Hidden")
@@ -199,6 +211,7 @@ static const std::map<std::string, int> &getStatusMap() {
         statusMap["PartialTrigger"] = Property::PartialTrigger;
         statusMap["NoRecompute"] = Property::NoRecompute;
         statusMap["CopyOnChange"] = Property::CopyOnChange;
+        statusMap["UserEdit"] = Property::UserEdit;
     }
     return statusMap;
 }
@@ -209,28 +222,30 @@ PyObject*  PropertyContainerPy::setPropertyStatus(PyObject *args)
     PyObject *pyValue;
     if (!PyArg_ParseTuple(args, "sO", &name, &pyValue))
         return nullptr;
+
     App::Property* prop = getPropertyContainerPtr()->getPropertyByName(name);
     if (!prop) {
         PyErr_Format(PyExc_AttributeError, "Property container has no property '%s'", name);
         return nullptr;
     }
-    auto linkProp = Base::freecad_dynamic_cast<App::PropertyLinkBase>(prop);
 
+    auto linkProp = Base::freecad_dynamic_cast<App::PropertyLinkBase>(prop);
     std::bitset<32> status(prop->getStatus());
     size_t count = 1;
     bool isSeq = false;
-    if(PyList_Check(pyValue) || PyTuple_Check(pyValue)) {
+    if (PyList_Check(pyValue) || PyTuple_Check(pyValue)) {
         isSeq = true;
         count = PySequence_Size(pyValue);
     }
-    for(size_t i=0;i<count;++i) {
+
+    for(size_t i=0; i<count; ++i) {
         Py::Object item;
-        if(isSeq)
+        if (isSeq)
             item = Py::Object(PySequence_GetItem(pyValue,i));
         else
             item = Py::Object(pyValue);
         bool value = true;
-        if(item.isString()) {
+        if (item.isString()) {
             const auto &statusMap = getStatusMap();
             auto v = (std::string)Py::String(item);
             if(v.size()>1 && v[0] == '-') {
@@ -247,7 +262,8 @@ PyObject*  PropertyContainerPy::setPropertyStatus(PyObject *args)
                 return nullptr;
             }
             status.set(it->second,value);
-        }else if(item.isNumeric()) {
+        }
+        else if (item.isNumeric()) {
             int v = Py::Int(item);
             if(v<0) {
                 value = false;
@@ -256,7 +272,8 @@ PyObject*  PropertyContainerPy::setPropertyStatus(PyObject *args)
             if(v==0 || v>31)
                 PyErr_Format(PyExc_ValueError, "Status value out of range '%d'", v);
             status.set(v,value);
-        } else {
+        }
+        else {
             PyErr_SetString(PyExc_TypeError, "Expects status type to be Int or String");
             return nullptr;
         }
@@ -269,36 +286,39 @@ PyObject*  PropertyContainerPy::setPropertyStatus(PyObject *args)
 PyObject*  PropertyContainerPy::getPropertyStatus(PyObject *args)
 {
     char* name = "";
-    if (!PyArg_ParseTuple(args, "|s", &name))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "|s", &name))
+        return nullptr;
 
     Py::List ret;
     const auto &statusMap = getStatusMap();
-    if(!name[0]) {
+    if (!name[0]) {
         for(auto &v : statusMap)
             ret.append(Py::String(v.first.c_str()));
-    }else{
+    }
+    else {
         App::Property* prop = getPropertyContainerPtr()->getPropertyByName(name);
-        if (prop) {
+        if (!prop) {
+            PyErr_Format(PyExc_AttributeError, "Property container has no property '%s'", name);
+            return nullptr;
+        }
 
-            auto linkProp = Base::freecad_dynamic_cast<App::PropertyLinkBase>(prop);
-            if(linkProp && linkProp->testFlag(App::PropertyLinkBase::LinkAllowPartial))
-                ret.append(Py::String("AllowPartial"));
+        auto linkProp = Base::freecad_dynamic_cast<App::PropertyLinkBase>(prop);
+        if (linkProp && linkProp->testFlag(App::PropertyLinkBase::LinkAllowPartial))
+            ret.append(Py::String("AllowPartial"));
 
-            std::bitset<32> bits(prop->getStatus());
-            for(size_t i=1;i<bits.size();++i) {
-                if(!bits[i]) continue;
-                bool found = false;
-                for(auto &v : statusMap) {
-                    if(v.second == (int)i) {
-                        ret.append(Py::String(v.first.c_str()));
-                        found = true;
-                        break;
-                    }
+        std::bitset<32> bits(prop->getStatus());
+        for(size_t i=1; i<bits.size(); ++i) {
+            if(!bits[i]) continue;
+            bool found = false;
+            for(auto &v : statusMap) {
+                if(v.second == static_cast<int>(i)) {
+                    ret.append(Py::String(v.first.c_str()));
+                    found = true;
+                    break;
                 }
-                if(!found)
-                    ret.append(Py::Int((long)i));
             }
+            if (!found)
+                ret.append(Py::Int(static_cast<long>(i)));
         }
     }
     return Py::new_reference_to(ret);
@@ -307,10 +327,15 @@ PyObject*  PropertyContainerPy::getPropertyStatus(PyObject *args)
 PyObject*  PropertyContainerPy::getEditorMode(PyObject *args)
 {
     char* name;
-    if (!PyArg_ParseTuple(args, "s", &name))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "s", &name))
+        return nullptr;
 
     App::Property* prop = getPropertyContainerPtr()->getPropertyByName(name);
+    if (!prop) {
+        PyErr_Format(PyExc_AttributeError, "Property container has no property '%s'", name);
+        return nullptr;
+    }
+
     Py::List ret;
     if (prop) {
         short Type =  prop->getType();
@@ -325,8 +350,8 @@ PyObject*  PropertyContainerPy::getEditorMode(PyObject *args)
 PyObject*  PropertyContainerPy::getGroupOfProperty(PyObject *args)
 {
     char *pstr;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
 
     Property* prop = getPropertyContainerPtr()->getPropertyByName(pstr);
     if (!prop) {
@@ -345,8 +370,8 @@ PyObject*  PropertyContainerPy::setGroupOfProperty(PyObject *args)
 {
     char *pstr;
     char *group;
-    if (!PyArg_ParseTuple(args, "ss", &pstr, &group))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "ss", &pstr, &group))
+        return nullptr;
 
     PY_TRY {
         Property* prop = getPropertyContainerPtr()->getDynamicPropertyByName(pstr);
@@ -354,17 +379,18 @@ PyObject*  PropertyContainerPy::setGroupOfProperty(PyObject *args)
             PyErr_Format(PyExc_AttributeError, "Property container has no dynamic property '%s'", pstr);
             return nullptr;
         }
-        prop->getContainer()->changeDynamicProperty(prop,group,0);
+        prop->getContainer()->changeDynamicProperty(prop,group,nullptr);
         Py_Return;
-    } PY_CATCH
+    }
+    PY_CATCH
 }
 
 
 PyObject*  PropertyContainerPy::getDocumentationOfProperty(PyObject *args)
 {
     char *pstr;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
 
     Property* prop = getPropertyContainerPtr()->getPropertyByName(pstr);
     if (!prop) {
@@ -372,9 +398,9 @@ PyObject*  PropertyContainerPy::getDocumentationOfProperty(PyObject *args)
         return nullptr;
     }
 
-    const char* Group = getPropertyContainerPtr()->getPropertyDocumentation(prop);
-    if (Group)
-        return Py::new_reference_to(Py::String(Group));
+    const char* docstr = getPropertyContainerPtr()->getPropertyDocumentation(prop);
+    if (docstr)
+        return Py::new_reference_to(Py::String(docstr));
     else
         return Py::new_reference_to(Py::String(""));
 }
@@ -383,8 +409,8 @@ PyObject*  PropertyContainerPy::setDocumentationOfProperty(PyObject *args)
 {
     char *pstr;
     char *doc;
-    if (!PyArg_ParseTuple(args, "ss", &pstr, &doc))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "ss", &pstr, &doc))
+        return nullptr;
 
     PY_TRY {
         Property* prop = getPropertyContainerPtr()->getDynamicPropertyByName(pstr);
@@ -392,16 +418,17 @@ PyObject*  PropertyContainerPy::setDocumentationOfProperty(PyObject *args)
             PyErr_Format(PyExc_AttributeError, "Property container has no dynamic property '%s'", pstr);
             return nullptr;
         }
-        prop->getContainer()->changeDynamicProperty(prop,0,doc);
+        prop->getContainer()->changeDynamicProperty(prop,nullptr,doc);
         Py_Return;
-    } PY_CATCH
+    }
+    PY_CATCH
 }
 
 PyObject*  PropertyContainerPy::getEnumerationsOfProperty(PyObject *args)
 {
     char *pstr;
-    if (!PyArg_ParseTuple(args, "s", &pstr))     // convert args: Python->C
-        return nullptr;                             // nullptr triggers exception
+    if (!PyArg_ParseTuple(args, "s", &pstr))
+        return nullptr;
 
     Property* prop = getPropertyContainerPtr()->getPropertyByName(pstr);
     if (!prop) {
@@ -410,13 +437,10 @@ PyObject*  PropertyContainerPy::getEnumerationsOfProperty(PyObject *args)
     }
 
     PropertyEnumeration *enumProp = dynamic_cast<PropertyEnumeration*>(prop);
-    if (!enumProp) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    }
+    if (!enumProp)
+        Py_Return;
 
     std::vector<std::string> enumerations = enumProp->getEnumVector();
-
     Py::List ret;
     for (std::vector<std::string>::const_iterator it = enumerations.begin(); it != enumerations.end(); ++it) {
         ret.append(Py::String(*it));
@@ -431,7 +455,7 @@ Py::List PropertyContainerPy::getPropertiesList(void) const
 
     getPropertyContainerPtr()->getPropertyMap(Map);
 
-    for (std::map<std::string,Property*>::const_iterator It=Map.begin();It!=Map.end();++It)
+    for (std::map<std::string,Property*>::const_iterator It=Map.begin(); It!=Map.end(); ++It)
         ret.append(Py::String(It->first));
 
     return ret;
@@ -441,12 +465,11 @@ Py::List PropertyContainerPy::getPropertiesList(void) const
 PyObject* PropertyContainerPy::dumpPropertyContent(PyObject *args, PyObject *kwds)
 {
     int compression = 3;
-    char* property;
-    static char* kwds_def[] = {"Property", "Compression",nullptr};
+    const char* property;
+    static char* kwds_def[] = {"Property", "Compression", nullptr};
     PyErr_Clear();
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|i", kwds_def, &property, &compression)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|i", kwds_def, &property, &compression))
         return nullptr;
-    }
 
     Property* prop = getPropertyContainerPtr()->getPropertyByName(property);
     if (!prop) {
@@ -460,7 +483,7 @@ PyObject* PropertyContainerPy::dumpPropertyContent(PyObject *args, PyObject *kwd
         prop->dumpToStream(stream, compression);
     }
     catch (...) {
-       PyErr_SetString(PyExc_IOError, "Unable parse content into binary representation");
+       PyErr_SetString(PyExc_IOError, "Unable to parse content into binary representation");
        return nullptr;
     }
 
@@ -568,7 +591,7 @@ PyObject *PropertyContainerPy::getCustomAttributes(const char* attr) const
     ///FIXME: For v0.20: Do not use stuff from Part module here!
     else if(Base::streq(attr,"Shape") && getPropertyContainerPtr()->isDerivedFrom(App::DocumentObject::getClassTypeId())) {
         // Special treatment of Shape property
-        static PyObject *_getShape = 0;
+        static PyObject *_getShape = nullptr;
         if(!_getShape) {
             _getShape = Py_None;
             PyObject *mod = PyImport_ImportModule("Part");

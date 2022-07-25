@@ -177,8 +177,9 @@ def processcsg(filename):
 
     # Build the parser
     if printverbose: print('Load Parser')
-    # No debug out otherwise Linux has protection exception
-    parser = yacc.yacc(debug=False)
+    # Disable generation of debug ('parser.out') and table cache ('parsetab.py'),
+    # as it requires a writable location
+    parser = yacc.yacc(debug=False, write_tables=False)
     if printverbose: print('Parser Loaded')
     # Give the lexer some input
     #f=open('test.scad', 'r')
@@ -193,7 +194,8 @@ def processcsg(filename):
     if printverbose:
         print('End Parser')
         print(result)
-    fixVisibility()
+    if gui:
+        fixVisibility()
     hassetcolor.clear()
     alreadyhidden.clear()
     FreeCAD.Console.PrintMessage('End processing CSG file\n')
@@ -227,6 +229,9 @@ def p_group_action1(p):
     'group_action1 : group LPAREN RPAREN OBRACE block_list EBRACE'
     if printverbose: print("Group")
 # Test if need for implicit fuse
+    if p[5] is None:
+        p[0] = []
+        return
     if (len(p[5]) > 1):
         p[0] = [fuse(p[5], "Group")]
     else:
@@ -479,9 +484,9 @@ def p_offset_action(p):
 #            newobj.ViewObject.Proxy = 0
     p[0] = [newobj]
 
-def checkObjShape(obj) :
+def checkObjShape(obj):
     if printverbose: print('Check Object Shape')
-    if obj.Shape.isNull() == True :
+    if obj.Shape.isNull():
        if printverbose: print('Shape is Null - recompute')
        obj.recompute()
 
@@ -649,19 +654,13 @@ def p_difference_action(p):
         if (len(p[5]) > 2 ):
            if printverbose: print("Need to Fuse Extra First")
            mycut.Tool = fuse(p[5][1:],'union')
-           checkObjShape(myfuse.Base)
-           checkObjShape(myfuse.Tool)
-           for o in p[5][1:]: 
-               checkObjShape(o)
-               mycut.Tool.Shape = mycut.Tool.cut(o.Shape)
         else :
            mycut.Tool = p[5][1]
-        mycut.Shape = mycut.Base.Shape.cut(mycut.Tool.Shape)
+           checkObjShape(mycut.Tool)
         if gui:
             mycut.Base.ViewObject.hide()
             mycut.Tool.ViewObject.hide()
         if printverbose: print("Push Resulting Cut")
-        mycut.Shape = mycut.Base.Shape.cut(mycut.Tool.Shape)
         p[0] = [mycut]
     if printverbose: print("End Cut")
 
@@ -944,7 +943,7 @@ def p_multmatrix_action(p):
     transform_matrix = FreeCAD.Matrix()
     if printverbose: print("Multmatrix")
     if printverbose: print(p[3])
-    if gui:
+    if gui and p[6]:
         parentcolor=p[6][0].ViewObject.ShapeColor
         parenttransparency=p[6][0].ViewObject.Transparency
 
@@ -1027,7 +1026,7 @@ def p_multmatrix_action(p):
         p[0] = [newobj]
     else :
         p[0] = [new_part]
-    if gui:
+    if gui and p[6]:
         new_part.ViewObject.ShapeColor=parentcolor
         new_part.ViewObject.Transparency = parenttransparency
     if printverbose: print("Multmatrix applied")

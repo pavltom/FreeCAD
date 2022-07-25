@@ -36,6 +36,7 @@
 
 #include "QGIPrimPath.h"
 
+
 namespace TechDrawGui
 {
 class QGCustomSvg;
@@ -56,7 +57,7 @@ public:
     int type() const override { return Type;}
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
-    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = 0 ) override;
+    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = nullptr ) override;
 
 public:
     enum fillMode {

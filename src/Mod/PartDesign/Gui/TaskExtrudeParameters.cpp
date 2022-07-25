@@ -24,19 +24,16 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-# include <sstream>
-# include <Precision.hxx>
-# include <QRegExp>
 # include <QSignalBlocker>
-# include <QTextStream>
 #endif
+
+#include <Base/UnitsApi.h>
+#include <App/Document.h>
+#include <Gui/Command.h>
+#include <Mod/PartDesign/App/FeatureExtrude.h>
 
 #include "ui_TaskPadPocketParameters.h"
 #include "TaskExtrudeParameters.h"
-#include <Base/UnitsApi.h>
-#include <Gui/Command.h>
-#include <Gui/Widgets.h>
-#include <Mod/PartDesign/App/FeatureExtrude.h>
 #include "ReferenceSelection.h"
 
 using namespace PartDesignGui;
@@ -47,12 +44,13 @@ using namespace Gui;
 TaskExtrudeParameters::TaskExtrudeParameters(ViewProviderSketchBased *SketchBasedView, QWidget *parent,
                                              const std::string& pixmapname, const QString& parname)
     : TaskSketchBasedParameters(SketchBasedView, parent, pixmapname, parname)
+    , propReferenceAxis(nullptr)
     , ui(new Ui_TaskPadPocketParameters)
 {
     // we need a separate container widget to add all controls to
     proxy = new QWidget(this);
     ui->setupUi(proxy);
-    ui->lineFaceName->setPlaceholderText(tr("No face selected"));
+    handleLineFaceNameNo();
 
     Gui::ButtonGroup* group = new Gui::ButtonGroup(this);
     group->addButton(ui->checkBoxMidplane);
@@ -98,7 +96,7 @@ void TaskExtrudeParameters::setupDialog()
     }
 
     // set decimals for the direction edits
-    // do this here before the edits are filed to avoid rounding mistakes
+    // do this here before the edits are filled to avoid rounding mistakes
     int UserDecimals = Base::UnitsApi::getDecimals();
     ui->XDirectionEdit->setDecimals(UserDecimals);
     ui->YDirectionEdit->setDecimals(UserDecimals);
@@ -154,9 +152,9 @@ void TaskExtrudeParameters::setupDialog()
     }
     else if (obj && faceId >= 0) {
         ui->lineFaceName->setText(QString::fromLatin1("%1:%2%3")
-                                  .arg(QString::fromUtf8(obj->Label.getValue()))
-                                  .arg(tr("Face"))
-                                  .arg(faceId));
+                                  .arg(QString::fromUtf8(obj->Label.getValue()),
+                                       tr("Face"),
+                                       QString::number(faceId)));
         ui->lineFaceName->setProperty("FeatureName", QByteArray(obj->getNameInDocument()));
     }
     else {
@@ -222,7 +220,7 @@ void TaskExtrudeParameters::connectSlots()
         this, &TaskExtrudeParameters::onReversedChanged);
     connect(ui->changeMode, qOverload<int>(&QComboBox::currentIndexChanged),
         this, &TaskExtrudeParameters::onModeChanged);
-    connect(ui->buttonFace, &QPushButton::clicked,
+    connect(ui->buttonFace, &QPushButton::toggled,
         this, &TaskExtrudeParameters::onButtonFace);
     connect(ui->lineFaceName, &QLineEdit::textEdited,
         this, &TaskExtrudeParameters::onFaceName);
@@ -257,7 +255,7 @@ void TaskExtrudeParameters::onSelectionChanged(const Gui::SelectionChanges& msg)
                 ui->lineFaceName->setProperty("FeatureName", QByteArray(msg.pObjectName));
                 ui->lineFaceName->setProperty("FaceName", QByteArray(msg.pSubName));
                 // Turn off reference selection mode
-                onButtonFace(false);
+                ui->buttonFace->setChecked(false);
             }
             else {
                 clearFaceName();
@@ -364,7 +362,7 @@ void TaskExtrudeParameters::fillDirectionCombo()
             addAxisToCombo(pcFeat->Profile.getValue(), std::string(), tr("Face normal"), false);
 
         // add the other entries
-        addAxisToCombo(0, std::string(), tr("Select reference..."));
+        addAxisToCombo(nullptr, std::string(), tr("Select reference..."));
 
         // we start with the sketch normal as proposal for the custom direction
         if (pcSketch)
@@ -470,7 +468,7 @@ void TaskExtrudeParameters::setCheckboxes(Modes mode, Type type)
         QMetaObject::invokeMethod(ui->lineFaceName, "setFocus", Qt::QueuedConnection);
         // Go into reference selection mode if no face has been selected yet
         if (ui->lineFaceName->property("FeatureName").isNull())
-            onButtonFace(true);
+            ui->buttonFace->setChecked(true);
     }
     else if (mode == Modes::TwoDimensions) {
         isLengthEditVisible = true;
@@ -509,7 +507,7 @@ void TaskExtrudeParameters::setCheckboxes(Modes mode, Type type)
     ui->buttonFace->setEnabled(isFaceEditEnabled);
     ui->lineFaceName->setEnabled(isFaceEditEnabled);
     if (!isFaceEditEnabled) {
-        onButtonFace(false);
+        ui->buttonFace->setChecked(false);
     }
 }
 
@@ -683,16 +681,18 @@ void TaskExtrudeParameters::getReferenceAxis(App::DocumentObject*& obj, std::vec
     }
 }
 
-void TaskExtrudeParameters::onButtonFace(const bool pressed)
+void TaskExtrudeParameters::onButtonFace(const bool checked)
 {
+    if (!checked)
+        handleLineFaceNameNo();
+    else
+        handleLineFaceNameClick(); // sets placeholder text
+
     // to distinguish that this is the direction selection
     selectionFace = true;
 
     // only faces are allowed
-    TaskSketchBasedParameters::onSelectReference(pressed ? AllowSelection::FACE : AllowSelection::NONE);
-
-    // Update button if onButtonFace() is called explicitly
-    ui->buttonFace->setChecked(pressed);
+    TaskSketchBasedParameters::onSelectReference(checked ? AllowSelection::FACE : AllowSelection::NONE);
 }
 
 void TaskExtrudeParameters::onFaceName(const QString& text)
@@ -722,7 +722,7 @@ void TaskExtrudeParameters::onFaceName(const QString& text)
 
 void TaskExtrudeParameters::translateFaceName()
 {
-    ui->lineFaceName->setPlaceholderText(tr("No face selected"));
+    handleLineFaceNameNo();
     QVariant featureName = ui->lineFaceName->property("FeatureName");
     if (featureName.isValid()) {
         QStringList parts = ui->lineFaceName->text().split(QChar::fromLatin1(':'));
@@ -735,9 +735,9 @@ void TaskExtrudeParameters::translateFaceName()
 
         if (ok) {
             ui->lineFaceName->setText(QString::fromLatin1("%1:%2%3")
-                                      .arg(parts[0])
-                                      .arg(tr("Face"))
-                                      .arg(faceId));
+                                      .arg(parts[0],
+                                           tr("Face"),
+                                           QString(faceId)));
         }
         else {
             ui->lineFaceName->setText(parts[0]);
@@ -890,6 +890,16 @@ void TaskExtrudeParameters::updateUI(int)
 void TaskExtrudeParameters::translateModeList(int)
 {
     // implement in sub-class
+}
+
+void TaskExtrudeParameters::handleLineFaceNameClick(void)
+{
+    ui->lineFaceName->setPlaceholderText(tr("Click on a face in the model"));
+}
+
+void TaskExtrudeParameters::handleLineFaceNameNo(void)
+{
+    ui->lineFaceName->setPlaceholderText(tr("No face selected"));
 }
 
 #include "moc_TaskExtrudeParameters.cpp"

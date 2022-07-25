@@ -26,9 +26,6 @@
 #define APP_FEATURECUSTOM_H
 
 
-#include <Base/Writer.h>
-#include <App/DocumentObject.h>
-
 namespace App
 {
 
@@ -88,6 +85,11 @@ protected:
     virtual void onSettingDocument() {
         FeatureT::onSettingDocument();
     }
+
+    FeatureCustomT(const FeatureCustomT&) = delete;
+    FeatureCustomT(FeatureCustomT&&) = delete;
+    FeatureCustomT& operator= (const FeatureCustomT&) = delete;
+    FeatureCustomT& operator= (FeatureCustomT&&) = delete;
 };
 
 } //namespace App

@@ -24,11 +24,7 @@
 #ifndef GUI_COMMAND_H
 #define GUI_COMMAND_H
 
-
 #include <list>
-#include <map>
-#include <string>
-#include <vector>
 
 #include <Base/Type.h>
 #include <Gui/Application.h>
@@ -236,8 +232,8 @@ void CreateLinkCommands(void);
 class GuiExport CommandBase
 {
 protected:
-    CommandBase(const char* sMenu, const char* sToolTip=0, const char* sWhat=0,
-                const char* sStatus=0, const char* sPixmap=0, const char* sAccel=0);
+    CommandBase(const char* sMenu, const char* sToolTip=nullptr, const char* sWhat=nullptr,
+                const char* sStatus=nullptr, const char* sPixmap=nullptr, const char* sAccel=nullptr);
     virtual ~CommandBase();
 
 public:
@@ -386,30 +382,30 @@ public:
      *  document when no name is given. NULL is returned
      *  when the name does not exist or no document is active!
      */
-    App::Document*  getDocument(const char* Name=0) const;
+    App::Document*  getDocument(const char* Name=nullptr) const;
     /// checks if the active view is of a special type or derived
     bool isViewOfType(Base::Type t) const;
     /// returns the named feature or the active one from the active document or NULL
     App::DocumentObject*  getObject(const char* Name) const;
     /// returns a python command string to retrieve an object from a document
-    static std::string getObjectCmd(const char *Name, const App::Document *doc=0,
-            const char *prefix=0, const char *postfix=0, bool gui=false);
+    static std::string getObjectCmd(const char *Name, const App::Document *doc=nullptr,
+            const char *prefix=nullptr, const char *postfix=nullptr, bool gui=false);
     /// returns a python command string to retrieve the given object
     static std::string getObjectCmd(const App::DocumentObject *obj,
-            const char *prefix=0, const char *postfix=0, bool gui=false);
+            const char *prefix=nullptr, const char *postfix=nullptr, bool gui=false);
     /** Get unique Feature name from the active document
      *
      *  @param BaseName: the base name
      *  @param obj: if not zero, then request the unique name in the document of
      *  the given object.
      */
-    std::string getUniqueObjectName(const char *BaseName, const App::DocumentObject *obj=0) const;
+    std::string getUniqueObjectName(const char *BaseName, const App::DocumentObject *obj=nullptr) const;
     //@}
 
     /** @name Helper methods for the Undo/Redo and Update handling */
     //@{
     /// Open a new Undo transaction on the active document
-    static void openCommand(const char* sName=0);
+    static void openCommand(const char* sName=nullptr);
     /// Commit the Undo transaction on the active document
     static void commitCommand(void);
     /// Abort the Undo transaction on the active document
@@ -638,7 +634,7 @@ public:
      * @param reg: whether to register the command with CommandManager
      * @return Return the command index.
      */
-    int addCommand(Command *cmd = 0, bool reg=true);
+    int addCommand(Command *cmd = nullptr, bool reg=true);
     /** Add child command
      * @param cmd: child command name.
      * @return Return the found command, or NULL if not found.
@@ -883,6 +879,13 @@ public:
      */
     const Command* checkAcceleratorForConflicts(const char* accel, const Command *ignore = nullptr) const;
 
+    /**
+     * Returns the first available command name for a new macro (e.g. starting from 1,
+     * examines the existing user preferences for Std_Macro_%1 and returns the lowest
+     * available numbered string).
+     */
+    std::string newMacroName() const;
+
 private:
     /// Destroys all commands in the manager and empties the list.
     void clearCommands();
@@ -902,10 +905,16 @@ private:
 {\
 public:\
     X();\
+    virtual ~X(){}\
     virtual const char* className() const\
     { return #X; }\
 protected: \
     virtual void activated(int iMsg);\
+private:\
+    X(const X&) = delete;\
+    X(X&&) = delete;\
+    X& operator= (const X&) = delete;\
+    X& operator= (X&&) = delete;\
 };
 
 /** The Command Macro Standard + isActive()
@@ -923,6 +932,11 @@ public:\
 protected: \
     virtual void activated(int iMsg);\
     virtual bool isActive(void);\
+private:\
+    X(const X&) = delete;\
+    X(X&&) = delete;\
+    X& operator= (const X&) = delete;\
+    X& operator= (X&&) = delete;\
 };
 
 /** The Command Macro Standard + createAction()
@@ -940,6 +954,11 @@ public:\
 protected: \
     virtual void activated(int iMsg);\
     virtual Gui::Action * createAction(void);\
+private:\
+    X(const X&) = delete;\
+    X(X&&) = delete;\
+    X& operator= (const X&) = delete;\
+    X& operator= (X&&) = delete;\
 };
 
 /** The Command Macro Standard + isActive() + createAction()
@@ -958,6 +977,11 @@ protected: \
     virtual void activated(int iMsg);\
     virtual bool isActive(void);\
     virtual Gui::Action * createAction(void);\
+private:\
+    X(const X&) = delete;\
+    X(X&&) = delete;\
+    X& operator= (const X&) = delete;\
+    X& operator= (X&&) = delete;\
 };
 
 /** The Command Macro Standard + isActive() + updateAction()
@@ -976,6 +1000,11 @@ public:\
 protected: \
     virtual void activated(int iMsg);\
     virtual bool isActive(void);\
+private:\
+    X(const X&) = delete;\
+    X(X&&) = delete;\
+    X& operator= (const X&) = delete;\
+    X& operator= (X&&) = delete;\
 };
 
 /** The Command Macro Standard + isActive() + createAction()
@@ -996,6 +1025,11 @@ protected: \
     virtual void activated(int iMsg);\
     virtual bool isActive(void);\
     virtual Gui::Action * createAction(void);\
+private:\
+    X(const X&) = delete;\
+    X(X&&) = delete;\
+    X& operator= (const X&) = delete;\
+    X& operator= (X&&) = delete;\
 };
 
 /** The Command Macro Standard + isActive() + createAction()
@@ -1017,6 +1051,11 @@ protected: \
     virtual void activated(int iMsg);\
     virtual bool isActive(void);\
     virtual Gui::Action * createAction(void);\
+private:\
+    X(const X&) = delete;\
+    X(X&&) = delete;\
+    X& operator= (const X&) = delete;\
+    X& operator= (X&&) = delete;\
 };
 
 /** The Command Macro view
@@ -1039,6 +1078,11 @@ protected: \
         Gui::MDIView* view = Gui::getMainWindow()->activeWindow();\
         return view && view->isDerivedFrom(Gui::View3DInventor::getClassTypeId());\
     }\
+private:\
+    X(const X&) = delete;\
+    X(X&&) = delete;\
+    X& operator= (const X&) = delete;\
+    X& operator= (X&&) = delete;\
 };
 
 #endif // GUI_COMMAND_H

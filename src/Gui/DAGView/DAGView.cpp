@@ -22,23 +22,17 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <boost_bind_bind.hpp>
 #include <QAbstractEventDispatcher>
 #include <QVBoxLayout>
+#include <memory>
 #endif
 
-#include <memory>
-
-#include <sstream>
-
-#include <Base/Console.h>
-
-#include <App/Document.h>
-#include <Gui/Document.h>
 #include <Gui/Application.h>
+#include <Gui/Document.h>
 
-#include "DAGModel.h"
 #include "DAGView.h"
+#include "DAGModel.h"
+
 
 using namespace Gui;
 using namespace DAG;
@@ -119,7 +113,8 @@ void View::onSelectionChanged(const SelectionChanges& msg)
     return;
   }
   auto doc = Gui::Application::Instance->getDocument(msg.pDocName);
-  if (!doc) return;
+  if (!doc)
+      return;
   auto &model = modelMap[doc];
   if(!model)
     model = std::make_shared<Model>(this, *doc);

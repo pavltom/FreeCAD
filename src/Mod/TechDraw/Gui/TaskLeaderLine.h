@@ -23,12 +23,9 @@
 #ifndef TECHDRAWGUI_TASKTEXTLEADER_H
 #define TECHDRAWGUI_TASKTEXTLEADER_H
 
-#include <App/DocumentObject.h>
 #include <Base/Vector3D.h>
-#include <Gui/TaskView/TaskView.h>
 #include <Gui/TaskView/TaskDialog.h>
-
-#include <Mod/TechDraw/Gui/ui_TaskLeaderLine.h>
+#include <Gui/TaskView/TaskView.h>
 
 #include "QGTracker.h"
 
@@ -40,12 +37,6 @@
 #define TRACKERFINISHED 4
 #define TRACKERSAVE 5
 
-class Ui_TaskLeaderLine;
-
-namespace App {
-class DocumentObject;
-}
-
 namespace TechDraw
 {
 class DrawPage;
@@ -55,6 +46,7 @@ class DrawLeaderLine;
 
 namespace TechDrawGui
 {
+class QGSPage;
 class QGVPage;
 class QGIView;
 class QGIPrimPath;
@@ -64,6 +56,7 @@ class QGEPath;
 class QGMText;
 class QGILeaderLine;
 class ViewProviderLeader;
+class Ui_TaskLeaderLine;
 
 class TaskLeaderLine : public QWidget
 {
@@ -78,7 +71,7 @@ public:
 public Q_SLOTS:
     void onTrackerClicked(bool b);
     void onCancelEditClicked(bool b);
-    void onTrackerFinished(std::vector<QPointF> pts, QGIView* qgParent);
+    void onTrackerFinished(std::vector<QPointF> pts, TechDrawGui::QGIView* qgParent);
 
 public:
     virtual bool accept();
@@ -136,7 +129,7 @@ private:
     QGTracker* m_tracker;
     
     MDIViewPage* m_mdi;
-    QGraphicsScene* m_scene;
+    QGSPage* m_scene;
     QGVPage* m_view;
     ViewProviderLeader* m_lineVP;
     TechDraw::DrawView* m_baseFeat;

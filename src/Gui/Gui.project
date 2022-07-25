@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="Gui" Version="10.0.0" InternalType="Library">
+  <VirtualDirectory Name="Gui">
+    <VirtualDirectory Name="propertyeditor">
+      <File Name="propertyeditor/PropertyModel.h"/>
+      <File Name="propertyeditor/PropertyModel.cpp"/>
+      <File Name="propertyeditor/PropertyItemDelegate.h"/>
+      <File Name="propertyeditor/PropertyItemDelegate.cpp"/>
+      <File Name="propertyeditor/PropertyItem.h"/>
+      <File Name="propertyeditor/PropertyItem.cpp"/>
+      <File Name="propertyeditor/PropertyEditor.h"/>
+      <File Name="propertyeditor/PropertyEditor.cpp"/>
+    </VirtualDirectory>
+    <File Name="SoFCBackgroundGradient.h"/>
+    <File Name="ViewProviderTextDocument.cpp"/>
+    <File Name="ToolBox.h"/>
+    <File Name="PropertyPage.cpp"/>
+    <File Name="DlgCustomizeImp.cpp"/>
+    <File Name="ViewProviderGeoFeatureGroup.cpp"/>
+    <File Name="AxisOrigin.cpp"/>
+    <File Name="DlgPreferencesImp.h"/>
+    <File Name="DlgSettings3DViewImp.cpp"/>
+    <File Name="MouseSelection.h"/>
+    <File Name="Flag.cpp"/>
+    <File Name="SoFCOffscreenRenderer.cpp"/>
+    <File Name="GLBuffer.h"/>
+    <File Name="Control.h"/>
+    <File Name="DlgCustomizeSpNavSettings.h"/>
+    <File Name="ViewProviderMeasureDistance.cpp"/>
+    <File Name="DockWindow.h"/>
+    <File Name="NetworkRetriever.h"/>
+    <File Name="PrefWidgets.cpp"/>
+    <File Name="DockWindowManager.cpp"/>
+    <File Name="GLPainter.cpp"/>
+    <File Name="DlgReportViewImp.cpp"/>
+    <File Name="SoFCSelection.h"/>
+    <File Name="Window.h"/>
+    <File Name="TaskCSysDragger.h"/>
+    <File Name="ViewProviderGroupExtension.h"/>
+    <File Name="ToolBarManager.h"/>
+    <File Name="PropertyPage.h"/>
+    <File Name="DlgSettings3DViewImp.h"/>
+    <File Name="DlgDisplayPropertiesImp.h"/>
+    <File Name="SoTextLabel.cpp"/>
+    <File Name="SpinBox.cpp"/>
+    <File Name="PropertyView.cpp"/>
+    <File Name="SoFCVectorizeU3DAction.h"/>
+    <File Name="GuiApplicationNativeEventAware.cpp"/>
+    <File Name="MenuManager.h"/>
+    <File Name="Placement.cpp"/>
+    <File Name="SoFCColorGradient.h"/>
+    <File Name="DlgCustomizeSpaceball.cpp"/>
+    <File Name="MDIViewPy.cpp"/>
+    <File Name="WorkbenchFactory.cpp"/>
+    <File Name="ManualAlignment.h"/>
+    <File Name="Action.cpp"/>
+    <File Name="CommandStructure.cpp"/>
+    <File Name="DlgCheckableMessageBox.h"/>
+    <File Name="CommandDoc.cpp"/>
+    <File Name="DocumentObserver.h"/>
+    <File Name="DlgKeyboardImp.cpp"/>
+    <File Name="ProgressBar.h"/>
+    <File Name="NavigationStyle.cpp"/>
+    <File Name="DlgGeneralImp.h"/>
+    <File Name="GraphvizView.cpp"/>
+    <File Name="QListWidgetCustom.h"/>
+    <File Name="SceneInspector.cpp"/>
+    <File Name="ViewProviderOriginGroup.h"/>
+    <File Name="GuiConsole.h"/>
+    <File Name="SelectionFilter.tab.c"/>
+    <File Name="Tree.h"/>
+    <File Name="DlgUnitsCalculatorImp.h"/>
+    <File Name="ViewProviderMeasureDistance.h"/>
+    <File Name="DlgMacroRecordImp.cpp"/>
+    <File Name="Splashscreen.cpp"/>
+    <File Name="ViewProviderDocumentObject.cpp"/>
+    <File Name="ViewProviderVRMLObject.cpp"/>
+    <File Name="WorkbenchManager.h"/>
+    <File Name="SoFCColorBar.cpp"/>
+    <File Name="DlgMacroRecordImp.h"/>
+    <File Name="DlgSettingsUnitsImp.cpp"/>
+    <File Name="WaitCursor.h"/>
+    <File Name="DlgUndoRedo.cpp"/>
+    <File Name="WinNativeGestureRecognizers.h"/>
+    <File Name="DlgOnlineHelpImp.cpp"/>
+    <File Name="TouchpadNavigationStyle.cpp"/>
+    <File Name="InputVector.h"/>
+    <File Name="DocumentObserverPython.h"/>
+    <File Name="SoFCCSysDragger.cpp"/>
+    <File Name="DlgActionsImp.h"/>
+    <File Name="ViewProviderLinkPyImp.cpp"/>
+    <File Name="Thumbnail.h"/>
+    <File Name="ViewProviderDragger.h"/>
+    <File Name="TaskCSysDragger.cpp"/>
+    <File Name="CallTips.h"/>
+    <File Name="DocumentModel.cpp"/>
+    <File Name="ViewProviderVRMLObject.h"/>
+    <File Name="LinkViewPyImp.cpp"/>
+    <File Name="DocumentPyImp.cpp"/>
+    <File Name="SoFCSelectionAction.h"/>
+    <File Name="Command.cpp"/>
+    <File Name="SelectionObjectPyImp.cpp"/>
+    <File Name="Action.h"/>
+    <File Name="SelectionFilter.h"/>
+    <File Name="EditorView.cpp"/>
+    <File Name="DlgSettingsImageImp.h"/>
+    <File Name="ViewProviderGeoFeatureGroup.h"/>
+    <File Name="NetworkRetriever.cpp"/>
+    <File Name="Workbench.cpp"/>
+    <File Name="Utilities.h"/>
+    <File Name="SoFCOffscreenRenderer.h"/>
+    <File Name="Document.cpp"/>
+    <File Name="SoNavigationDragger.cpp"/>
+    <File Name="QListWidgetCustom.cpp"/>
+    <File Name="ActiveObjectList.h"/>
+    <File Name="DlgPropertyLink.h"/>
+    <File Name="ViewProviderOrigin.cpp"/>
+    <File Name="Macro.h"/>
+    <File Name="PythonConsolePy.h"/>
+    <File Name="CommandMacro.cpp"/>
+    <File Name="SoFCColorLegend.cpp"/>
+    <File Name="View3DInventorExamples.cpp"/>
+    <File Name="DlgCustomizeSpaceball.h"/>
+    <File Name="DlgMacroExecuteImp.h"/>
+    <File Name="Tools.h"/>
+    <File Name="View3DInventor.h"/>
+    <File Name="SceneInspector.h"/>
+    <File Name="CommandStd.cpp"/>
+    <File Name="Application.h"/>
+    <File Name="View3DPy.h"/>
+    <File Name="CommandWindow.cpp"/>
+    <File Name="View3DInventor.cpp"/>
+    <File Name="ViewProviderTextDocument.h"/>
+    <File Name="DlgSettingsImageImp.cpp"/>
+    <File Name="BitmapFactory.h"/>
+    <File Name="TransactionObject.cpp"/>
+    <File Name="SoFCBoundingBox.cpp"/>
+    <File Name="Document.h"/>
+    <File Name="MergeDocuments.cpp"/>
+    <File Name="RevitNavigationStyle.cpp"/>
+    <File Name="SoFCDB.cpp"/>
+    <File Name="QuantitySpinBox.cpp"/>
+    <File Name="DlgSettingsColorGradientImp.cpp"/>
+    <File Name="SoTextLabel.h"/>
+    <File Name="ViewProviderAnnotation.h"/>
+    <File Name="ViewProviderOriginGroupExtension.cpp"/>
+    <File Name="DlgSettingsDocumentImp.cpp"/>
+    <File Name="ViewProviderExtern.cpp"/>
+    <File Name="WhatsThis.h"/>
+    <File Name="SoAxisCrossKit.cpp"/>
+    <File Name="SoFCColorLegend.h"/>
+    <File Name="ActionFunction.cpp"/>
+    <File Name="SyntaxHighlighter.h"/>
+    <File Name="DlgSettingsLazyLoadedImp.cpp"/>
+    <File Name="ExpressionBinding.cpp"/>
+    <File Name="ToolBoxManager.cpp"/>
+    <File Name="DlgUnitsCalculatorImp.cpp"/>
+    <File Name="DemoMode.h"/>
+    <File Name="SoFCSelectionContext.h"/>
+    <File Name="DlgPropertyLink.cpp"/>
+    <File Name="MDIView.cpp"/>
+    <File Name="QuantitySpinBox.h"/>
+    <File Name="ProgressDialog.cpp"/>
+    <File Name="DocumentRecovery.cpp"/>
+    <File Name="View3DInventorViewer.h"/>
+    <File Name="DlgWorkbenchesImp.h"/>
+    <File Name="DlgMaterialPropertiesImp.cpp"/>
+    <File Name="ViewProviderOrigin.h"/>
+    <File Name="DlgCommandsImp.h"/>
+    <File Name="SoTouchEvents.cpp"/>
+    <File Name="DlgInputDialogImp.cpp"/>
+    <File Name="DlgRunExternal.h"/>
+    <File Name="DlgSettingsDocumentImp.h"/>
+    <File Name="ViewProviderLine.cpp"/>
+    <File Name="Namespace.h"/>
+    <File Name="Workbench.h"/>
+    <File Name="GraphicsViewZoom.h"/>
+    <File Name="CommandTest.cpp"/>
+    <File Name="ViewProviderPart.cpp"/>
+    <File Name="ProjectView.cpp"/>
+    <File Name="DlgProjectInformationImp.h"/>
+    <File Name="NaviCube.h"/>
+    <File Name="ManualAlignment.cpp"/>
+    <File Name="PythonDebugger.h"/>
+    <File Name="DlgExpressionInput.cpp"/>
+    <File Name="WaitCursor.cpp"/>
+    <File Name="ViewProviderBuilder.h"/>
+    <File Name="ViewProviderExtension.h"/>
+    <File Name="InventorAll.h"/>
+    <File Name="PropertyView.h"/>
+    <File Name="DownloadManager.h"/>
+    <File Name="DlgOnlineHelpImp.h"/>
+    <File Name="SoFCInteractiveElement.cpp"/>
+    <File Name="MenuManager.cpp"/>
+    <File Name="ViewProviderPlane.cpp"/>
+    <File Name="Macro.cpp"/>
+    <File Name="WorkbenchManager.cpp"/>
+    <File Name="DownloadItem.cpp"/>
+    <File Name="Application.cpp"/>
+    <File Name="ViewProviderGroupExtension.cpp"/>
+    <File Name="TaskDlgRelocation.h"/>
+    <File Name="DlgToolbarsImp.cpp"/>
+    <File Name="SoFCSelectionAction.cpp"/>
+    <File Name="Window.cpp"/>
+    <File Name="GLBuffer.cpp"/>
+    <File Name="DlgPreferencesImp.cpp"/>
+    <File Name="DlgSettingsColorGradientImp.h"/>
+    <File Name="QuantitySpinBox_p.h"/>
+    <File Name="ViewProviderGeoFeatureGroupExtension.h"/>
+    <File Name="TextDocumentEditorView.cpp"/>
+    <File Name="ViewProviderPythonFeature.h"/>
+    <File Name="AutoSaver.cpp"/>
+    <File Name="SoFCVectorizeU3DAction.cpp"/>
+    <File Name="SoFCBackgroundGradient.cpp"/>
+    <File Name="BitmapFactory.cpp"/>
+    <File Name="Clipping.h"/>
+    <File Name="ViewParams.h"/>
+    <File Name="EditorView.h"/>
+    <File Name="ViewProviderAnnotation.cpp"/>
+    <File Name="CallTips.cpp"/>
+    <File Name="FileDialog.h"/>
+    <File Name="ToolBarManager.cpp"/>
+    <File Name="PreCompiled.h"/>
+    <File Name="InputVector.cpp"/>
+    <File Name="DlgObjectSelection.h"/>
+    <File Name="DlgParameterImp.cpp"/>
+    <File Name="SoFCBoundingBox.h"/>
+    <File Name="AxisOriginPyImp.cpp"/>
+    <File Name="SoFCSelection.cpp"/>
+    <File Name="GestureNavigationStyle.h"/>
+    <File Name="DockWindow.cpp"/>
+    <File Name="GraphicsViewZoom.cpp"/>
+    <File Name="WorkbenchPyImp.cpp"/>
+    <File Name="GraphvizView.h"/>
+    <File Name="WorkbenchFactory.h"/>
+    <File Name="InventorNavigationStyle.cpp"/>
+    <File Name="FileDialog.cpp"/>
+    <File Name="Selection.cpp"/>
+    <File Name="DockWindowManager.h"/>
+    <File Name="View3DInventorRiftViewer.h"/>
+    <File Name="SpinBox.h"/>
+    <File Name="ViewProviderOriginGroup.cpp"/>
+    <File Name="SelectionView.cpp"/>
+    <File Name="DlgEditFileIncludePropertyExternal.cpp"/>
+    <File Name="TextEdit.h"/>
+    <File Name="CommandPyImp.cpp"/>
+    <File Name="TransactionObject.h"/>
+    <File Name="Clipping.cpp"/>
+    <File Name="ViewProviderExtension.cpp"/>
+    <File Name="ViewProviderDocumentObject.h"/>
+    <File Name="View3DInventorRiftViewer.cpp"/>
+    <File Name="MergeDocuments.h"/>
+    <File Name="ViewProviderFeature.cpp"/>
+    <File Name="ViewProviderGeometryObject.cpp"/>
+    <File Name="Assistant.cpp"/>
+    <File Name="ExpressionCompleter.cpp"/>
+    <File Name="Command.h"/>
+    <File Name="ApplicationPy.cpp"/>
+    <File Name="TaskDlgRelocation.cpp"/>
+    <File Name="DlgSettingsSelection.cpp"/>
+    <File Name="Selection.h"/>
+    <File Name="ViewProviderPlacement.cpp"/>
+    <File Name="DlgActionsImp.cpp"/>
+    <File Name="AxisOrigin.h"/>
+    <File Name="ProjectView.h"/>
+    <File Name="CADNavigationStyle.cpp"/>
+    <File Name="TextureMapping.h"/>
+    <File Name="ComboView.h"/>
+    <File Name="DlgParameterFind.h"/>
+    <File Name="ViewProviderPythonFeature.cpp"/>
+    <File Name="DlgActivateWindowImp.h"/>
+    <File Name="DocumentObserverPython.cpp"/>
+    <File Name="PrefWidgets.h"/>
+    <File Name="DlgEditorImp.h"/>
+    <File Name="PythonEditor.cpp"/>
+    <File Name="DlgAddProperty.cpp"/>
+    <File Name="SoFCUnifiedSelection.h"/>
+    <File Name="SoMouseWheelEvent.h"/>
+    <File Name="ViewProviderDragger.cpp"/>
+    <File Name="ActionFunction.h"/>
+    <File Name="DlgToolbarsImp.h"/>
+    <File Name="DlgAddProperty.h"/>
+    <File Name="View.cpp"/>
+    <File Name="DlgWorkbenchesImp.cpp"/>
+    <File Name="SpaceballEvent.h"/>
+    <File Name="PythonConsole.cpp"/>
+    <File Name="ViewProvider.h"/>
+    <File Name="Qt4All.h"/>
+    <File Name="SplitView3DInventor.cpp"/>
+    <File Name="Transform.cpp"/>
+    <File Name="DlgSettingsMacroImp.h"/>
+    <File Name="SelectionView.h"/>
+    <File Name="SoFCColorGradient.cpp"/>
+    <File Name="ViewProviderInventorObject.cpp"/>
+    <File Name="PythonEditor.h"/>
+    <File Name="DlgProjectInformationImp.cpp"/>
+    <File Name="DlgSettingsViewColor.cpp"/>
+    <File Name="MDIView.h"/>
+    <File Name="Widgets.h"/>
+    <File Name="DlgReportViewImp.h"/>
+    <File Name="ProgressDialog.h"/>
+    <File Name="PythonConsolePy.cpp"/>
+    <File Name="AutoSaver.h"/>
+    <File Name="ViewProviderDocumentObjectPyImp.cpp"/>
+    <File Name="DlgMacroExecuteImp.cpp"/>
+    <File Name="DocumentModel.h"/>
+    <File Name="Tree.cpp"/>
+    <File Name="Transform.h"/>
+    <File Name="ViewProviderDocumentObjectGroup.cpp"/>
+    <File Name="CommandT.h"/>
+    <File Name="ExpressionBinding.h"/>
+    <File Name="ViewProviderDocumentObjectGroup.h"/>
+    <File Name="TreeView.cpp"/>
+    <File Name="GestureNavigationStyle.cpp"/>
+    <File Name="MayaGestureNavigationStyle.cpp"/>
+    <File Name="ViewProviderPyImp.cpp"/>
+    <File Name="PythonWorkbenchPyImp.cpp"/>
+    <File Name="Splashscreen.h"/>
+    <File Name="View3DInventorExamples.h"/>
+    <File Name="SelectionObject.h"/>
+    <File Name="CommandFeat.cpp"/>
+    <File Name="GuiApplication.cpp"/>
+    <File Name="TextureMapping.cpp"/>
+    <File Name="SoAxisCrossKit.h"/>
+    <File Name="CoinRiftWidget.cpp"/>
+    <File Name="TextDocumentEditorView.h"/>
+    <File Name="SplitView3DInventor.h"/>
+    <File Name="Flag.h"/>
+    <File Name="ViewProviderPart.h"/>
+    <File Name="ViewProviderGeoFeatureGroupExtension.cpp"/>
+    <File Name="SoFCColorBar.h"/>
+    <File Name="SoTouchEvents.h"/>
+    <File Name="ViewProviderMaterialObject.cpp"/>
+    <File Name="DlgSettingsMacroImp.cpp"/>
+    <File Name="OnlineDocumentation.h"/>
+    <File Name="DlgProjectUtility.h"/>
+    <File Name="View3DPy.cpp"/>
+    <File Name="SelectionFilter.cpp"/>
+    <File Name="DlgParameterFind.cpp"/>
+    <File Name="DlgSettingsSelection.h"/>
+    <File Name="DlgCheckableMessageBox.cpp"/>
+    <File Name="DownloadManager.cpp"/>
+    <File Name="View3DInventorViewer.cpp"/>
+    <File Name="DlgEditFileIncludePropertyExternal.h"/>
+    <File Name="GuiApplication.h"/>
+    <File Name="Control.cpp"/>
+    <File Name="DocumentObserver.cpp"/>
+    <File Name="ViewProviderExtensionPyImp.cpp"/>
+    <File Name="ViewProviderOriginFeature.cpp"/>
+    <File Name="DownloadItem.h"/>
+    <File Name="SoFCInteractiveElement.h"/>
+    <File Name="CommandView.cpp"/>
+    <File Name="Placement.h"/>
+    <File Name="SpaceballEvent.cpp"/>
+    <File Name="GuiConsole.cpp"/>
+    <File Name="ViewProviderPlane.h"/>
+    <File Name="DlgCustomizeImp.h"/>
+    <File Name="DlgParameterImp.h"/>
+    <File Name="OpenCascadeNavigationStyle.cpp"/>
+    <File Name="ViewProviderOriginFeature.h"/>
+    <File Name="DlgEditorImp.cpp"/>
+    <File Name="DlgGeneralImp.cpp"/>
+    <File Name="TaskElementColors.h"/>
+    <File Name="PythonDebugger.cpp"/>
+    <File Name="InputField.h"/>
+    <File Name="ViewProviderExtern.h"/>
+    <File Name="DlgKeyboardImp.h"/>
+    <File Name="DlgSettingsViewColor.h"/>
+    <File Name="DlgInputDialogImp.h"/>
+    <File Name="DocumentRecovery.h"/>
+    <File Name="SoNavigationDragger.h"/>
+    <File Name="CommandLink.cpp"/>
+    <File Name="ViewProviderBuilder.cpp"/>
+    <File Name="BlenderNavigationStyle.cpp"/>
+    <File Name="MainWindow.h"/>
+    <File Name="ViewParams.cpp"/>
+    <File Name="SoNavigationDraggerLayout.h"/>
+    <File Name="SoFCDB.h"/>
+    <File Name="DlgRunExternal.cpp"/>
+    <File Name="View3DViewerPy.cpp"/>
+    <File Name="ViewProviderPlacement.h"/>
+    <File Name="ToolBox.cpp"/>
+    <File Name="ViewProviderLink.h"/>
+    <File Name="WidgetFactory.cpp"/>
+    <File Name="DlgMaterialPropertiesImp.h"/>
+    <File Name="Thumbnail.cpp"/>
+    <File Name="ViewProviderLine.h"/>
+    <File Name="ViewProvider.cpp"/>
+    <File Name="TextEdit.cpp"/>
+    <File Name="PythonConsole.h"/>
+    <File Name="ViewProviderMaterialObject.h"/>
+    <File Name="ToolBoxManager.h"/>
+    <File Name="CoinRiftWidget.h"/>
+    <File Name="MDIViewPy.h"/>
+    <File Name="DlgSettingsNavigation.h"/>
+    <File Name="WinNativeGestureRecognizers.cpp"/>
+    <File Name="DlgDisplayPropertiesImp.cpp"/>
+    <File Name="Utilities.cpp"/>
+    <File Name="SoFCVectorizeSVGAction.cpp"/>
+    <File Name="ReportView.cpp"/>
+    <File Name="NavigationStyle.h"/>
+    <File Name="PreCompiled.cpp"/>
+    <File Name="DlgSettingsLazyLoadedImp.h"/>
+    <File Name="GLPainter.h"/>
+    <File Name="DlgSettingsNavigation.cpp"/>
+    <File Name="MouseSelection.cpp"/>
+    <File Name="SoFCCSysDragger.h"/>
+    <File Name="ActiveObjectList.cpp"/>
+    <File Name="DlgProjectUtility.cpp"/>
+    <File Name="ViewProviderLink.cpp"/>
+    <File Name="DlgActivateWindowImp.cpp"/>
+    <File Name="View3DViewerPy.h"/>
+    <File Name="InputField.cpp"/>
+    <File Name="ExpressionCompleter.h"/>
+    <File Name="SelectionObject.cpp"/>
+    <File Name="View.h"/>
+    <File Name="TreeView.h"/>
+    <File Name="SoFCVectorizeSVGAction.h"/>
+    <File Name="DlgCommandsImp.cpp"/>
+    <File Name="ComboView.cpp"/>
+    <File Name="ViewProviderGeometryObject.h"/>
+    <File Name="ViewProviderFeature.h"/>
+    <File Name="SyntaxHighlighter.cpp"/>
+    <File Name="SoFCUnifiedSelection.cpp"/>
+    <File Name="ReportView.h"/>
+    <File Name="VectorListEditor.h"/>
+    <File Name="SoFCSelectionContext.cpp"/>
+    <File Name="SoMouseWheelEvent.cpp"/>
+    <File Name="WidgetFactory.h"/>
+    <File Name="ProgressBar.cpp"/>
+    <File Name="VectorListEditor.cpp"/>
+    <File Name="NaviCube.cpp"/>
+    <File Name="DlgUndoRedo.h"/>
+    <File Name="WhatsThis.cpp"/>
+    <File Name="MetaTypes.h"/>
+    <File Name="DlgSettingsUnitsImp.h"/>
+    <File Name="Assistant.h"/>
+    <File Name="ViewProviderInventorObject.h"/>
+    <File Name="OnlineDocumentation.cpp"/>
+    <File Name="TaskElementColors.cpp"/>
+    <File Name="resource.cpp"/>
+    <File Name="DlgExpressionInput.h"/>
+    <File Name="Widgets.cpp"/>
+    <File Name="GuiApplicationNativeEventAware.h"/>
+    <File Name="lex.SelectionFilter.c"/>
+    <File Name="DlgCustomizeSpNavSettings.cpp"/>
+    <File Name="ViewProviderOriginGroupExtension.h"/>
+    <File Name="DemoMode.cpp"/>
+    <File Name="DlgObjectSelection.cpp"/>
+    <File Name="MainWindow.cpp"/>
+    <File Name="ExpressionBindingPy.cpp"/>
+    <File Name="ExpressionBindingPy.h"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Dynamic Library">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).so" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

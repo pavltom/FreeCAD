@@ -33,6 +33,7 @@ import PathScripts.PathPreferences as PathPreferences
 import PathScripts.PathUtil as PathUtil
 import PathScripts.PathUtils as PathUtils
 import os
+import re
 
 from PathScripts.PathPostProcessor import PostProcessor
 from PySide import QtCore, QtGui
@@ -41,20 +42,389 @@ from PySide.QtCore import QT_TRANSLATE_NOOP
 
 LOG_MODULE = PathLog.thisModule()
 
-PathLog.setLevel(PathLog.Level.INFO, LOG_MODULE)
+if True:
+    PathLog.setLevel(PathLog.Level.DEBUG, PathLog.thisModule())
+    PathLog.trackModule(PathLog.thisModule())
+else:
+    PathLog.setLevel(PathLog.Level.INFO, PathLog.thisModule())
+
+
+translate = FreeCAD.Qt.translate
 
 
 class _TempObject:
-    # pylint: disable=no-init
     Path = None
     Name = "Fixture"
     InList = []
     Label = "Fixture"
 
 
+def processFileNameSubstitutions(
+    job,
+    subpartname,
+    sequencenumber,
+    outputpath,
+    filename,
+    ext,
+):
+    """Process any substitutions in the outputpath or filename."""
+
+    # The following section allows substitution within the path part
+    PathLog.track(f"path before substitution: {outputpath}")
+
+    if "%D" in outputpath:  # Directory of active document
+        D = FreeCAD.ActiveDocument.FileName
+        if D:
+            D = os.path.dirname(D)
+            # in case the document is in the current working directory
+            if not D:
+                D = "."
+        else:
+            FreeCAD.Console.PrintError(
+                "Please save document in order to resolve output path!\n"
+            )
+            return None
+        outputpath = outputpath.replace("%D", D)
+
+    if "%M" in outputpath:
+        M = FreeCAD.getUserMacroDir()
+        outputpath = outputpath.replace("%M", M)
+
+    # Use the file label
+    if "%d" in outputpath:
+        d = FreeCAD.ActiveDocument.Label
+        outputpath = outputpath.replace("%d", d)
+
+    # Use the name of the active job object
+    if "%j" in outputpath:
+        j = job.Label
+        outputpath = outputpath.replace("%j", j)
+
+    PathLog.track(f"path after substitution: {outputpath}")
+
+    # The following section allows substitution within the filename part
+    PathLog.track(f"filename before substitution: {filename}")
+
+    # Use the file label
+    if "%d" in filename:
+        d = FreeCAD.ActiveDocument.Label
+        filename = filename.replace("%d", d)
+
+    # Use the name of the active job object
+    if "%j" in filename:
+        j = job.Label
+        filename = filename.replace("%j", j)
+
+    # Use the sequnce number if explicitly called
+    if "%S" in filename:
+        j = job.Label
+        filename = filename.replace("%S", str(sequencenumber))
+
+    # This section handles unique names for splitting output
+    if job.SplitOutput:
+        PathLog.track()
+        if "%T" in filename and job.OrderOutputBy == "Tool":
+            filename = filename.replace("%T", subpartname)
+
+        if "%t" in filename and job.OrderOutputBy == "Tool":
+            filename = filename.replace("%t", subpartname)
+
+        if "%W" in filename and job.OrderOutputBy == "Fixture":
+            filename = filename.replace("%W", subpartname)
+
+        if "%O" in filename and job.OrderOutputBy == "Operation":
+            filename = filename.replace("%O", subpartname)
+
+        if (
+            "%S" in filename
+        ):  # We always add a sequence number but the user can say where
+            filename = filename.replace("%S", str(sequencenumber))
+        else:
+            filename = f"{filename}-{sequencenumber}"
+
+    PathLog.track(f"filename after substitution: {filename}")
+
+    if not ext:
+        ext = ".nc"
+    PathLog.track(f"file extension: {ext}")
+
+    fullPath = f"{outputpath}{os.path.sep}{filename}{ext}"
+
+    PathLog.track(f"full filepath: {fullPath}")
+    return fullPath
+
+
+def resolveFileName(job, subpartname, sequencenumber):
+    PathLog.track(subpartname, sequencenumber)
+
+    validPathSubstitutions = ["D", "d", "M", "j"]
+    validFilenameSubstitutions = ["j", "d", "T", "t", "W", "O", "S"]
+
+    # Look for preference default
+    outputpath, filename = os.path.split(PathPreferences.defaultOutputFile())
+    filename, ext = os.path.splitext(filename)
+
+    # Override with document default if it exists
+    if job.PostProcessorOutputFile:
+        matchstring = job.PostProcessorOutputFile
+        candidateOutputPath, candidateFilename = os.path.split(matchstring)
+
+        if candidateOutputPath:
+            outputpath = candidateOutputPath
+
+        if candidateFilename:
+            filename, ext = os.path.splitext(candidateFilename)
+
+    # Strip any invalid substitutions from the ouputpath
+    for match in re.findall("%(.)", outputpath):
+        if match not in validPathSubstitutions:
+            outputpath = outputpath.replace(f"%{match}", "")
+
+    # if nothing else, use current directory
+    if not outputpath:
+        outputpath = "."
+
+    # Strip any invalid substitutions from the filename
+    for match in re.findall("%(.)", filename):
+        if match not in validFilenameSubstitutions:
+            filename = filename.replace(f"%{match}", "")
+
+    # if no filename, use the active document label
+    if not filename:
+        filename = FreeCAD.ActiveDocument.Label
+
+    # if no extension, use something sensible
+    if not ext:
+        ext = ".nc"
+
+    # By now we should have a sanitized path, filename and extension to work with
+    PathLog.track(f"path: {outputpath} name: {filename} ext: {ext}")
+
+    fullPath = processFileNameSubstitutions(
+        job,
+        subpartname,
+        sequencenumber,
+        outputpath,
+        filename,
+        ext,
+    )
+
+    # This section determines whether user interaction is necessary
+    policy = PathPreferences.defaultOutputPolicy()
+
+    openDialog = policy == "Open File Dialog"
+    # if os.path.isdir(filename) or not os.path.isdir(os.path.dirname(filename)):
+    #     # Either the entire filename resolves into a directory or the parent
+    #     # directory doesn't exist.
+    #     # Either way I don't know what to do - ask for help
+    #     openDialog = True
+
+    if not FreeCAD.GuiUp:  # if testing, or scripting, never open dialog.
+        policy = "Append Unique ID on conflict"
+        openDialog = False
+
+    if os.path.isfile(fullPath) and not openDialog:
+        if policy == "Open File Dialog on conflict":
+            openDialog = True
+        elif policy == "Append Unique ID on conflict":
+            fn, ext = os.path.splitext(fullPath)
+            nr = fn[-3:]
+            n = 1
+            if nr.isdigit():
+                n = int(nr)
+            while os.path.isfile("%s%03d%s" % (fn, n, ext)):
+                n = n + 1
+            fullPath = "%s%03d%s" % (fn, n, ext)
+
+    if openDialog:
+        foo = QtGui.QFileDialog.getSaveFileName(
+            QtGui.QApplication.activeWindow(), "Output File", filename
+        )
+        if foo[0]:
+            fullPath = foo[0]
+        else:
+            fullPath = None
+
+    # remove any unused substitution strings:
+    for s in validPathSubstitutions + validFilenameSubstitutions:
+        fullPath = fullPath.replace(f"%{s}", "")
+
+    fullPath = os.path.normpath(fullPath)
+    PathLog.track(fullPath)
+    return fullPath
+
+
+def buildPostList(job):
+    """Takes the job and determines the specific objects and order to
+    postprocess  Returns a list of objects which can be passed to
+    exportObjectsWith() for final posting."""
+    wcslist = job.Fixtures
+    orderby = job.OrderOutputBy
+
+    postlist = []
+
+    if orderby == "Fixture":
+        PathLog.debug("Ordering by Fixture")
+        # Order by fixture means all operations and tool changes will be
+        # completed in one fixture before moving to the next.
+
+        currTool = None
+        for index, f in enumerate(wcslist):
+            # create an object to serve as the fixture path
+            fobj = _TempObject()
+            c1 = Path.Command(f)
+            fobj.Path = Path.Path([c1])
+            if index != 0:
+                c2 = Path.Command(
+                    "G0 Z"
+                    + str(
+                        job.Stock.Shape.BoundBox.ZMax
+                        + job.SetupSheet.ClearanceHeightOffset.Value
+                    )
+                )
+                fobj.Path.addCommands(c2)
+            fobj.InList.append(job)
+            sublist = [fobj]
+
+            # Now generate the gcode
+            for obj in job.Operations.Group:
+                tc = PathUtil.toolControllerForOp(obj)
+                if tc is not None and PathUtil.opProperty(obj, "Active"):
+                    if tc.ToolNumber != currTool:
+                        sublist.append(tc)
+                        PathLog.debug("Appending TC: {}".format(tc.Name))
+                        currTool = tc.ToolNumber
+                sublist.append(obj)
+            postlist.append((f, sublist))
+
+    elif orderby == "Tool":
+        PathLog.debug("Ordering by Tool")
+        # Order by tool means tool changes are minimized.
+        # all operations with the current tool are processed in the current
+        # fixture before moving to the next fixture.
+
+        toolstring = "None"
+        currTool = None
+
+        # Build the fixture list
+        fixturelist = []
+        for f in wcslist:
+            # create an object to serve as the fixture path
+            fobj = _TempObject()
+            c1 = Path.Command(f)
+            c2 = Path.Command(
+                "G0 Z"
+                + str(
+                    job.Stock.Shape.BoundBox.ZMax
+                    + job.SetupSheet.ClearanceHeightOffset.Value
+                )
+            )
+            fobj.Path = Path.Path([c1, c2])
+            fobj.InList.append(job)
+            fixturelist.append(fobj)
+
+        # Now generate the gcode
+        curlist = []  # list of ops for tool, will repeat for each fixture
+        sublist = []  # list of ops for output splitting
+
+        PathLog.track(job.PostProcessorOutputFile)
+        for idx, obj in enumerate(job.Operations.Group):
+            PathLog.track(obj.Label)
+
+            # check if the operation is active
+            if not getattr(obj, "Active", True):
+                PathLog.track()
+                continue
+
+            # Determine the proper string for the Op's TC
+            tc = PathUtil.toolControllerForOp(obj)
+            if tc is None:
+                tcstring = "None"
+            elif "%T" in job.PostProcessorOutputFile:
+                tcstring = f"{tc.ToolNumber}"
+            else:
+                tcstring = re.sub(r"[^\w\d-]", "_", tc.Label)
+            PathLog.track(toolstring)
+
+            if tc is None or tc.ToolNumber == currTool:
+                curlist.append(obj)
+            elif tc.ToolNumber != currTool and currTool is None:  # first TC
+                sublist.append(tc)
+                curlist.append(obj)
+                currTool = tc.ToolNumber
+                toolstring = tcstring
+
+            elif tc.ToolNumber != currTool and currTool is not None:  # TC
+                for fixture in fixturelist:
+                    sublist.append(fixture)
+                    sublist.extend(curlist)
+                postlist.append((toolstring, sublist))
+                sublist = [tc]
+                curlist = [obj]
+                currTool = tc.ToolNumber
+                toolstring = tcstring
+
+            if idx == len(job.Operations.Group) - 1:  # Last operation.
+                for fixture in fixturelist:
+                    sublist.append(fixture)
+                    sublist.extend(curlist)
+
+                postlist.append((toolstring, sublist))
+
+    elif orderby == "Operation":
+        PathLog.debug("Ordering by Operation")
+        # Order by operation means ops are done in each fixture in
+        # sequence.
+        currTool = None
+        firstFixture = True
+
+        # Now generate the gcode
+        for obj in job.Operations.Group:
+
+            # check if the operation is active
+            if not getattr(obj, "Active", True):
+                continue
+
+            sublist = []
+            PathLog.debug("obj: {}".format(obj.Name))
+
+            for f in wcslist:
+                fobj = _TempObject()
+                c1 = Path.Command(f)
+                fobj.Path = Path.Path([c1])
+                if not firstFixture:
+                    c2 = Path.Command(
+                        "G0 Z"
+                        + str(
+                            job.Stock.Shape.BoundBox.ZMax
+                            + job.SetupSheet.ClearanceHeightOffset.Value
+                        )
+                    )
+                    fobj.Path.addCommands(c2)
+                fobj.InList.append(job)
+                sublist.append(fobj)
+                firstFixture = False
+                tc = PathUtil.toolControllerForOp(obj)
+                if tc is not None:
+                    if job.SplitOutput or (tc.ToolNumber != currTool):
+                        sublist.append(tc)
+                        currTool = tc.ToolNumber
+                sublist.append(obj)
+            postlist.append((obj.Label, sublist))
+
+    if job.SplitOutput:
+        PathLog.track()
+        return postlist
+    else:
+        PathLog.track()
+        finalpostlist = [
+            ("allitems", [item for slist in postlist for item in slist[1]])
+        ]
+        return finalpostlist
+
+
 class DlgSelectPostProcessor:
     def __init__(self, parent=None):
-        # pylint: disable=unused-argument
         self.dialog = FreeCADGui.PySideUic.loadUi(":/panels/DlgSelectPostProcessor.ui")
         firstItem = None
         for post in PathPreferences.allEnabledPostProcessors():
@@ -91,80 +461,7 @@ class DlgSelectPostProcessor:
 
 
 class CommandPathPost:
-    # pylint: disable=no-init
     subpart = 1
-
-    def resolveFileName(self, job):
-        path = PathPreferences.defaultOutputFile()
-        if job.PostProcessorOutputFile:
-            path = job.PostProcessorOutputFile
-        filename = path
-
-        if "%D" in filename:
-            D = FreeCAD.ActiveDocument.FileName
-            if D:
-                D = os.path.dirname(D)
-                # in case the document is in the current working directory
-                if not D:
-                    D = "."
-            else:
-                FreeCAD.Console.PrintError(
-                    "Please save document in order to resolve output path!\n"
-                )
-                return None
-            filename = filename.replace("%D", D)
-
-        if "%d" in filename:
-            d = FreeCAD.ActiveDocument.Label
-            filename = filename.replace("%d", d)
-
-        if "%j" in filename:
-            j = job.Label
-            filename = filename.replace("%j", j)
-
-        if "%M" in filename:
-            pref = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Macro")
-            M = pref.GetString("MacroPath", FreeCAD.getUserAppDataDir())
-            filename = filename.replace("%M", M)
-
-        if "%s" in filename:
-            if job.SplitOutput:
-                filename = filename.replace("%s", "_" + str(self.subpart))
-                self.subpart += 1
-            else:
-                filename = filename.replace("%s", "")
-
-        policy = PathPreferences.defaultOutputPolicy()
-
-        openDialog = policy == "Open File Dialog"
-        if os.path.isdir(filename) or not os.path.isdir(os.path.dirname(filename)):
-            # Either the entire filename resolves into a directory or the parent directory doesn't exist.
-            # Either way I don't know what to do - ask for help
-            openDialog = True
-
-        if os.path.isfile(filename) and not openDialog:
-            if policy == "Open File Dialog on conflict":
-                openDialog = True
-            elif policy == "Append Unique ID on conflict":
-                fn, ext = os.path.splitext(filename)
-                nr = fn[-3:]
-                n = 1
-                if nr.isdigit():
-                    n = int(nr)
-                while os.path.isfile("%s%03d%s" % (fn, n, ext)):
-                    n = n + 1
-                filename = "%s%03d%s" % (fn, n, ext)
-
-        if openDialog:
-            foo = QtGui.QFileDialog.getSaveFileName(
-                QtGui.QApplication.activeWindow(), "Output File", filename
-            )
-            if foo[0]:
-                filename = foo[0]
-            else:
-                filename = None
-
-        return filename
 
     def resolvePostProcessor(self, job):
         if hasattr(job, "PostProcessor"):
@@ -193,20 +490,34 @@ class CommandPathPost:
 
         return False
 
-    def exportObjectsWith(self, objs, job, needFilename=True):
-        PathLog.track()
+    def exportObjectsWith(self, objs, partname, job, sequence, extraargs=None):
+        PathLog.track(extraargs)
         # check if the user has a project and has set the default post and
         # output filename
+        # extraargs can be passed in at this time
+        PathLog.track(partname, sequence)
+        PathLog.track(objs)
+
+        # partname = objs[0]
+        # slist = objs[1]
+        PathLog.track(objs, partname)
+
         postArgs = PathPreferences.defaultPostProcessorArgs()
         if hasattr(job, "PostProcessorArgs") and job.PostProcessorArgs:
             postArgs = job.PostProcessorArgs
         elif hasattr(job, "PostProcessor") and job.PostProcessor:
             postArgs = ""
 
+        if extraargs is not None:
+            postArgs += " {}".format(extraargs)
+
+        PathLog.track(postArgs)
+
         postname = self.resolvePostProcessor(job)
-        filename = "-"
-        if postname and needFilename:
-            filename = self.resolveFileName(job)
+        # filename = "-"
+        filename = resolveFileName(job, partname, sequence)
+        # if postname and needFilename:
+        #     filename = resolveFileName(job)
 
         if postname and filename:
             print("post: %s(%s, %s)" % (postname, filename, postArgs))
@@ -244,6 +555,7 @@ class CommandPathPost:
                     job = None
             else:
                 job = None
+
         if job is None:
             targetlist = []
             for o in FreeCAD.ActiveDocument.Objects:
@@ -252,175 +564,62 @@ class CommandPathPost:
                         targetlist.append(o.Label)
             PathLog.debug("Possible post objects: {}".format(targetlist))
             if len(targetlist) > 1:
-                form = FreeCADGui.PySideUic.loadUi(":/panels/DlgJobChooser.ui")
-                form.cboProject.addItems(targetlist)
-                r = form.exec_()
-                if r is False:
+                jobname, result = QtGui.QInputDialog.getItem(
+                    None, translate("Path", "Choose a Path Job"), None, targetlist
+                )
+
+                if result is False:
                     return
-                else:
-                    jobname = form.cboProject.currentText()
             else:
                 jobname = targetlist[0]
             job = FreeCAD.ActiveDocument.getObject(jobname)
 
         PathLog.debug("about to postprocess job: {}".format(job.Name))
 
-        wcslist = job.Fixtures
-        orderby = job.OrderOutputBy
-        split = job.SplitOutput
+        postlist = buildPostList(job)
+        # filename = resolveFileName(job, "allitems", 0)
 
-        postlist = []
+        filenames = []
 
-        if orderby == "Fixture":
-            PathLog.debug("Ordering by Fixture")
-            # Order by fixture means all operations and tool changes will be completed in one
-            # fixture before moving to the next.
+        success = True
+        finalgcode = ""
+        for idx, section in enumerate(postlist):
+            partname = section[0]
+            sublist = section[1]
 
-            currTool = None
-            for index, f in enumerate(wcslist):
-                # create an object to serve as the fixture path
-                fobj = _TempObject()
-                c1 = Path.Command(f)
-                fobj.Path = Path.Path([c1])
-                if index != 0:
-                    c2 = Path.Command(
-                        "G0 Z"
-                        + str(
-                            job.Stock.Shape.BoundBox.ZMax
-                            + job.SetupSheet.ClearanceHeightOffset.Value
-                        )
-                    )
-                    fobj.Path.addCommands(c2)
-                fobj.InList.append(job)
-                sublist = [fobj]
+            result, gcode, name = self.exportObjectsWith(sublist, partname, job, idx)
+            filenames.append(name)
+            PathLog.track(result, gcode, name)
 
-                # Now generate the gcode
-                for obj in job.Operations.Group:
-                    tc = PathUtil.toolControllerForOp(obj)
-                    if tc is not None and PathUtil.opProperty(obj, "Active"):
-                        if tc.ToolNumber != currTool or split is True:
-                            sublist.append(tc)
-                            PathLog.debug("Appending TC: {}".format(tc.Name))
-                            currTool = tc.ToolNumber
-                    sublist.append(obj)
-                postlist.append(sublist)
+            if result is None:
+                success = False
+            else:
+                finalgcode += gcode
 
-        elif orderby == "Tool":
-            PathLog.debug("Ordering by Tool")
-            # Order by tool means tool changes are minimized.
-            # all operations with the current tool are processed in the current
-            # fixture before moving to the next fixture.
+        # if job.SplitOutput:
+        #     for idx, sublist in enumerate(postlist):  # name, slist in postlist:
+        #         result = self.exportObjectsWith(sublist[1], sublist[0], job, idx)
 
-            currTool = None
-            fixturelist = []
-            for f in wcslist:
-                # create an object to serve as the fixture path
-                fobj = _TempObject()
-                c1 = Path.Command(f)
-                c2 = Path.Command(
-                    "G0 Z"
-                    + str(
-                        job.Stock.Shape.BoundBox.ZMax
-                        + job.SetupSheet.ClearanceHeightOffset.Value
-                    )
-                )
-                fobj.Path = Path.Path([c1, c2])
-                fobj.InList.append(job)
-                fixturelist.append(fobj)
+        #         if result is None:
+        #             success = False
+        #         else:
+        #             gcode += result
 
-            # Now generate the gcode
-            curlist = []  # list of ops for tool, will repeat for each fixture
-            sublist = []  # list of ops for output splitting
+        # else:
+        #     finalpostlist = [item for (_, slist) in postlist for item in slist]
+        #     gcode = self.exportObjectsWith(finalpostlist, "allitems", job, 1)
+        #     success = gcode is not None
 
-            for idx, obj in enumerate(job.Operations.Group):
-
-                # check if the operation is active
-                active = PathUtil.opProperty(obj, "Active")
-
-                tc = PathUtil.toolControllerForOp(obj)
-                if tc is None or tc.ToolNumber == currTool and active:
-                    curlist.append(obj)
-                elif (
-                    tc.ToolNumber != currTool and currTool is None and active
-                ):  # first TC
-                    sublist.append(tc)
-                    curlist.append(obj)
-                    currTool = tc.ToolNumber
-                elif (
-                    tc.ToolNumber != currTool and currTool is not None and active
-                ):  # TC
-                    for fixture in fixturelist:
-                        sublist.append(fixture)
-                        sublist.extend(curlist)
-                    postlist.append(sublist)
-                    sublist = [tc]
-                    curlist = [obj]
-                    currTool = tc.ToolNumber
-
-                if idx == len(job.Operations.Group) - 1:  # Last operation.
-                    for fixture in fixturelist:
-                        sublist.append(fixture)
-                        sublist.extend(curlist)
-                    postlist.append(sublist)
-
-        elif orderby == "Operation":
-            PathLog.debug("Ordering by Operation")
-            # Order by operation means ops are done in each fixture in
-            # sequence.
-            currTool = None
-            firstFixture = True
-
-            # Now generate the gcode
-            for obj in job.Operations.Group:
-                if PathUtil.opProperty(obj, "Active"):
-                    sublist = []
-                    PathLog.debug("obj: {}".format(obj.Name))
-                    for f in wcslist:
-                        fobj = _TempObject()
-                        c1 = Path.Command(f)
-                        fobj.Path = Path.Path([c1])
-                        if not firstFixture:
-                            c2 = Path.Command(
-                                "G0 Z"
-                                + str(
-                                    job.Stock.Shape.BoundBox.ZMax
-                                    + job.SetupSheet.ClearanceHeightOffset.Value
-                                )
-                            )
-                            fobj.Path.addCommands(c2)
-                        fobj.InList.append(job)
-                        sublist.append(fobj)
-                        firstFixture = False
-                        tc = PathUtil.toolControllerForOp(obj)
-                        if tc is not None:
-                            if job.SplitOutput or (tc.ToolNumber != currTool):
-                                sublist.append(tc)
-                                currTool = tc.ToolNumber
-                        sublist.append(obj)
-                    postlist.append(sublist)
-
-        fail = True
-        rc = ""
-        if split:
-            for slist in postlist:
-                (fail, rc, filename) = self.exportObjectsWith(slist, job)
-                if fail:
-                    break
-        else:
-            finalpostlist = [item for slist in postlist for item in slist]
-            (fail, rc, filename) = self.exportObjectsWith(finalpostlist, job)
-
-        self.subpart = 1
-
-        if fail:
-            FreeCAD.ActiveDocument.abortTransaction()
-        else:
+        PathLog.track(success)
+        if success:
             if hasattr(job, "LastPostProcessDate"):
                 job.LastPostProcessDate = str(datetime.now())
             if hasattr(job, "LastPostProcessOutput"):
-                job.LastPostProcessOutput = filename
+                job.LastPostProcessOutput = " \n".join(filenames)
+                PathLog.track(job.LastPostProcessOutput)
             FreeCAD.ActiveDocument.commitTransaction()
-
+        else:
+            FreeCAD.ActiveDocument.abortTransaction()
         FreeCAD.ActiveDocument.recompute()
 
 

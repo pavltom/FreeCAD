@@ -25,12 +25,11 @@
 #define GUI_DIALOG_DOCUMENTRECOVERY_H
 
 #include <QDialog>
-#include <QScopedPointer>
-#include <QList>
 #include <QFileInfo>
 #include <QFileInfoList>
-#include <string>
-#include <functional>
+#include <QList>
+#include <QScopedPointer>
+
 
 namespace Gui { namespace Dialog {
 
@@ -44,7 +43,7 @@ class DocumentRecovery : public QDialog
     Q_OBJECT
 
 public:
-    DocumentRecovery(const QList<QFileInfo>&, QWidget* parent = 0);
+    DocumentRecovery(const QList<QFileInfo>&, QWidget* parent = nullptr);
     virtual ~DocumentRecovery();
 
     void accept();

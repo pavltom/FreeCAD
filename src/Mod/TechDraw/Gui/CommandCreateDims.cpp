@@ -22,6 +22,7 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
+# include <QApplication>
 # include <QMessageBox>
 # include <iostream>
 # include <string>
@@ -32,20 +33,22 @@
 
 #include <QGraphicsView>
 
-# include <App/DocumentObject.h>
-# include <Base/Exception.h>
+#include <App/Document.h>
+#include <App/DocumentObject.h>
+#include <Base/Exception.h>
 #include <Base/Console.h>
 #include <Base/Type.h>
-# include <Gui/Action.h>
-# include <Gui/Application.h>
-# include <Gui/BitmapFactory.h>
-# include <Gui/Command.h>
-# include <Gui/Control.h>
-# include <Gui/Document.h>
-# include <Gui/Selection.h>
-# include <Gui/MainWindow.h>
-# include <Gui/FileDialog.h>
-# include <Gui/ViewProvider.h>
+#include <Gui/Action.h>
+#include <Gui/Application.h>
+#include <Gui/BitmapFactory.h>
+#include <Gui/Command.h>
+#include <Gui/Control.h>
+#include <Gui/Document.h>
+#include <Gui/Selection.h>
+#include <Gui/SelectionObject.h>
+#include <Gui/MainWindow.h>
+#include <Gui/FileDialog.h>
+#include <Gui/ViewProvider.h>
 
 # include <Mod/Part/App/PartFeature.h>
 
@@ -266,7 +269,7 @@ void CmdTechDrawRadiusDimension::activated(int iMsg)
         return;
 
     std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx();
-    TechDraw::DrawViewPart * objFeat = 0;
+    TechDraw::DrawViewPart * objFeat = nullptr;
     std::vector<std::string> SubNames;
 
     std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
@@ -279,7 +282,7 @@ void CmdTechDrawRadiusDimension::activated(int iMsg)
     TechDraw::DrawPage* page = objFeat->findParentPage();
     std::string PageName = page->getNameInDocument();
 
-    TechDraw::DrawViewDimension *dim = 0;
+    TechDraw::DrawViewDimension *dim = nullptr;
     std::string FeatName = getUniqueObjectName("Dimension");
 
     std::vector<App::DocumentObject *> objs;
@@ -312,21 +315,15 @@ void CmdTechDrawRadiusDimension::activated(int iMsg)
             return;
         }
     } else if (edgeType == isBSpline) {
-        QMessageBox::StandardButton result =
-        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("BSpline Curve Warning"),
-                             QObject::tr("Selected edge is a BSpline.  Radius will be approximate. Continue?"),
-                             QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
-        if (result == QMessageBox::Ok) {
-            objs.push_back(objFeat);
-            subs.push_back(SubNames[0]);
-        } else {
-            return;
-        }
+        QMessageBox::critical(Gui::getMainWindow(), QObject::tr("BSpline Curve Error"),
+                             QObject::tr("Selected edge is a BSpline and a radius can not be calculated."));
+        return;
     } else {
-        std::stringstream edgeMsg;
-        edgeMsg << "Selection for Radius does not contain a circular edge (edge type: " << _edgeTypeToText(edgeType) << ")";
-        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect Selection"),
-                                                   QObject::tr(edgeMsg.str().c_str()));
+        QMessageBox::warning(
+            Gui::getMainWindow(), QObject::tr("Incorrect Selection"),
+            QObject::tr("Selection for Radius does not contain a circular edge "
+                        "(edge type: %1)")
+                .arg(QString::fromStdString(_edgeTypeToText(edgeType))));
         return;
     }
 
@@ -388,7 +385,7 @@ void CmdTechDrawDiameterDimension::activated(int iMsg)
         return;
 
     std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx();
-    TechDraw::DrawViewPart * objFeat = 0;
+    TechDraw::DrawViewPart * objFeat = nullptr;
     std::vector<std::string> SubNames;
 
     std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
@@ -401,7 +398,7 @@ void CmdTechDrawDiameterDimension::activated(int iMsg)
     TechDraw::DrawPage* page = objFeat->findParentPage();
     std::string PageName = page->getNameInDocument();
 
-    TechDraw::DrawViewDimension *dim = 0;
+    TechDraw::DrawViewDimension *dim = nullptr;
     std::string FeatName = getUniqueObjectName("Dimension");
 
     std::vector<App::DocumentObject *> objs;
@@ -409,17 +406,13 @@ void CmdTechDrawDiameterDimension::activated(int iMsg)
 
     int edgeType = _isValidSingleEdge(this);
     if (edgeType == isCircle) {
-        objs.push_back(objFeat);
-        subs.push_back(SubNames[0]);
+            // nothing to do
     } else if (edgeType == isEllipse) {
         QMessageBox::StandardButton result =
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Ellipse Curve Warning"),
                              QObject::tr("Selected edge is an Ellipse.  Diameter will be approximate. Continue?"),
                              QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
-        if (result == QMessageBox::Ok) {
-            objs.push_back(objFeat);
-            subs.push_back(SubNames[0]);
-        } else {
+        if (result != QMessageBox::Ok) {
             return;
         }
     } else if (edgeType == isBSplineCircle) {
@@ -427,30 +420,24 @@ void CmdTechDrawDiameterDimension::activated(int iMsg)
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("BSpline Curve Warning"),
                              QObject::tr("Selected edge is a BSpline.  Diameter will be approximate. Continue?"),
                              QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
-        if (result == QMessageBox::Ok) {
-            objs.push_back(objFeat);
-            subs.push_back(SubNames[0]);
-        } else {
+        if (result != QMessageBox::Ok) {
             return;
         }
     } else if (edgeType == isBSpline) {
-        QMessageBox::StandardButton result =
-        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("BSpline Curve Warning"),
-                             QObject::tr("Selected edge is a BSpline.  Diameter will be approximate. Continue?"),
-                             QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
-        if (result == QMessageBox::Ok) {
-            objs.push_back(objFeat);
-            subs.push_back(SubNames[0]);
-        } else {
-            return;
-        }
-    } else {
-        std::stringstream edgeMsg;
-        edgeMsg << "Selection for Diameter does not contain a circular edge (edge type: " << _edgeTypeToText(edgeType) << ")";
-        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect Selection"),
-                                                   QObject::tr(edgeMsg.str().c_str()));
+        QMessageBox::critical(Gui::getMainWindow(), QObject::tr("BSpline Curve Error"),
+                             QObject::tr("Selected edge is a BSpline and a diameter can not be calculated."));
         return;
+    } else {
+        QMessageBox::warning(
+          Gui::getMainWindow(), QObject::tr("Incorrect Selection"),
+          QObject::tr("Selection for Diameter does not contain a circular edge "
+                      "(edge type: %1)")
+              .arg(QString::fromStdString(_edgeTypeToText(edgeType))));
+      return;
     }
+
+    objs.push_back(objFeat);
+    subs.push_back(SubNames[0]);
 
     openCommand(QT_TRANSLATE_NOOP("Command", "Create Dimension"));
     doCommand(Doc,"App.activeDocument().addObject('TechDraw::DrawViewDimension','%s')",FeatName.c_str());
@@ -509,7 +496,7 @@ void CmdTechDrawLengthDimension::activated(int iMsg)
         return;
 
     std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx();
-    TechDraw::DrawViewPart * objFeat = 0;
+    TechDraw::DrawViewPart * objFeat = nullptr;
     std::vector<std::string> SubNames;
 
     std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
@@ -522,17 +509,19 @@ void CmdTechDrawLengthDimension::activated(int iMsg)
     TechDraw::DrawPage* page = objFeat->findParentPage();
     std::string PageName = page->getNameInDocument();
 
-    TechDraw::DrawViewDimension *dim = 0;
+    TechDraw::DrawViewDimension *dim = nullptr;
     std::string FeatName = getUniqueObjectName("Dimension");
     std::string dimType;
 
     std::vector<App::DocumentObject *> objs;
     std::vector<std::string> subs;
 
-    if (_isValidSingleEdge(this) ) {
+    if ( (_isValidSingleEdge(this) == isVertical) ||
+         (_isValidSingleEdge(this) == isHorizontal) ||
+         (_isValidSingleEdge(this) == isDiagonal) ) {
         objs.push_back(objFeat);
         subs.push_back(SubNames[0]);
-    } else if (  _isValidVertexes(this) || 
+    } else if (  _isValidVertexes(this) ||
                 (_isValidEdgeToEdge(this) == isVertical)   ||
                 (_isValidEdgeToEdge(this) == isHorizontal) ||
                 (_isValidEdgeToEdge(this) == isDiagonal) ||
@@ -542,11 +531,11 @@ void CmdTechDrawLengthDimension::activated(int iMsg)
         subs.push_back(SubNames[0]);
         subs.push_back(SubNames[1]);
     } else {
-        std::stringstream edgeMsg;
-        edgeMsg << "Need 2 Vertexes, 2 Edges or 1 Vertex and 1 Edge for Distance Dimension";
-        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect Selection"),
-                                                   QObject::tr(edgeMsg.str().c_str()));
-        return;
+      QMessageBox::warning(Gui::getMainWindow(),
+                           QObject::tr("Incorrect Selection"),
+                           QObject::tr("Need 1 straight Edge, 2 Vertexes, 2 Edges or "
+                                       "1 Vertex and 1 Edge for Distance Dimension"));
+      return;
     }
 
     openCommand(QT_TRANSLATE_NOOP("Command", "Create Dimension"));
@@ -612,7 +601,7 @@ void CmdTechDrawHorizontalDimension::activated(int iMsg)
         return;
 
     std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx();
-    TechDraw::DrawViewPart * objFeat = 0;
+    TechDraw::DrawViewPart * objFeat = nullptr;
     std::vector<std::string> SubNames;
 
     std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
@@ -625,17 +614,19 @@ void CmdTechDrawHorizontalDimension::activated(int iMsg)
     TechDraw::DrawPage* page = objFeat->findParentPage();
     std::string PageName = page->getNameInDocument();
 
-    TechDraw::DrawViewDimension *dim = 0;
+    TechDraw::DrawViewDimension *dim = nullptr;
     std::string FeatName = getUniqueObjectName("Dimension");
     std::string dimType;
 
     std::vector<App::DocumentObject *> objs;
     std::vector<std::string> subs;
 
-    if (_isValidSingleEdge(this) ) {
+    if ( (_isValidSingleEdge(this) == isVertical) ||
+         (_isValidSingleEdge(this) == isHorizontal) ||
+         (_isValidSingleEdge(this) == isDiagonal) ) {
         objs.push_back(objFeat);
         subs.push_back(SubNames[0]);
-    } else if (  _isValidVertexes(this) || 
+    } else if (  _isValidVertexes(this) ||
                 (_isValidEdgeToEdge(this) == isVertical)   ||
                 (_isValidEdgeToEdge(this) == isHorizontal) ||
                 (_isValidEdgeToEdge(this) == isDiagonal) ||
@@ -645,11 +636,11 @@ void CmdTechDrawHorizontalDimension::activated(int iMsg)
         subs.push_back(SubNames[0]);
         subs.push_back(SubNames[1]);
     } else {
-        std::stringstream edgeMsg;
-        edgeMsg << "Need 2 Vertexes, 2 Edges or 1 Vertex and 1 Edge for Horizontal Dimension";
-        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect Selection"),
-                                                   QObject::tr(edgeMsg.str().c_str()));
-        return;
+      QMessageBox::warning(Gui::getMainWindow(),
+                           QObject::tr("Incorrect Selection"),
+                           QObject::tr("Need 1 straight Edge, 2 Vertexes, 2 Edges or "
+                                       "1 Vertex and 1 Edge for Horizontal Dimension"));
+      return;
     }
 
     openCommand(QT_TRANSLATE_NOOP("Command", "Create Dimension"));
@@ -715,7 +706,7 @@ void CmdTechDrawVerticalDimension::activated(int iMsg)
         return;
 
     std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx();
-    TechDraw::DrawViewPart * objFeat = 0;
+    TechDraw::DrawViewPart * objFeat = nullptr;
     std::vector<std::string> SubNames;
 
     std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
@@ -728,14 +719,16 @@ void CmdTechDrawVerticalDimension::activated(int iMsg)
     TechDraw::DrawPage* page = objFeat->findParentPage();
     std::string PageName = page->getNameInDocument();
 
-    TechDraw::DrawViewDimension *dim = 0;
+    TechDraw::DrawViewDimension *dim = nullptr;
     std::string FeatName = getUniqueObjectName("Dimension");
     std::string dimType;
 
     std::vector<App::DocumentObject *> objs;
     std::vector<std::string> subs;
 
-    if (_isValidSingleEdge(this) ) {
+    if ( (_isValidSingleEdge(this) == isVertical) ||
+         (_isValidSingleEdge(this) == isHorizontal) ||
+         (_isValidSingleEdge(this) == isDiagonal) ) {
         objs.push_back(objFeat);
         subs.push_back(SubNames[0]);
     } else if (  _isValidVertexes(this) || 
@@ -748,11 +741,11 @@ void CmdTechDrawVerticalDimension::activated(int iMsg)
         subs.push_back(SubNames[0]);
         subs.push_back(SubNames[1]);
     } else {
-        std::stringstream edgeMsg;
-        edgeMsg << "Need 2 Vertexes, 2 Edges or 1 Vertex and 1 Edge for Vertical Dimension";
-        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect Selection"),
-                                                   QObject::tr(edgeMsg.str().c_str()));
-        return;
+      QMessageBox::warning(Gui::getMainWindow(),
+                           QObject::tr("Incorrect Selection"),
+                           QObject::tr("Need 1 straight Edge, 2 Vertexes, 2 Edges or "
+                                       "1 Vertex and 1 Edge for Vertical Dimension"));
+      return;
     }
 
     openCommand(QT_TRANSLATE_NOOP("Command", "Create Dimension"));
@@ -816,7 +809,7 @@ void CmdTechDrawAngleDimension::activated(int iMsg)
         return;
 
     std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx();
-    TechDraw::DrawViewPart * objFeat = 0;
+    TechDraw::DrawViewPart * objFeat = nullptr;
     std::vector<std::string> SubNames;
 
     std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
@@ -829,23 +822,23 @@ void CmdTechDrawAngleDimension::activated(int iMsg)
     TechDraw::DrawPage* page = objFeat->findParentPage();
     std::string PageName = page->getNameInDocument();
 
-    TechDraw::DrawViewDimension *dim = 0;
+    TechDraw::DrawViewDimension *dim = nullptr;
     std::string FeatName = getUniqueObjectName("Dimension");
 
     std::vector<App::DocumentObject *> objs;
     std::vector<std::string> subs;
 
     int edgeType = _isValidEdgeToEdge(this);
-    if (edgeType == isAngle) {
-        objs.push_back(objFeat);
-        objs.push_back(objFeat);
-        subs.push_back(SubNames[0]);
-        subs.push_back(SubNames[1]);
-    } else {
+    if (edgeType != isAngle) {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect Selection"),
                                                    QObject::tr("Need two straight edges to make an Angle Dimension"));
         return;
     }
+    
+    objs.push_back(objFeat);
+    objs.push_back(objFeat);
+    subs.push_back(SubNames[0]);
+    subs.push_back(SubNames[1]);
 
     openCommand(QT_TRANSLATE_NOOP("Command", "Create Dimension"));
     doCommand(Doc,"App.activeDocument().addObject('TechDraw::DrawViewDimension','%s')",FeatName.c_str());
@@ -904,7 +897,7 @@ void CmdTechDraw3PtAngleDimension::activated(int iMsg)
         return;
 
     std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx();
-    TechDraw::DrawViewPart * objFeat = 0;
+    TechDraw::DrawViewPart * objFeat = nullptr;
     std::vector<std::string> SubNames;
 
     std::vector<Gui::SelectionObject>::iterator itSel = selection.begin();
@@ -917,24 +910,24 @@ void CmdTechDraw3PtAngleDimension::activated(int iMsg)
     TechDraw::DrawPage* page = objFeat->findParentPage();
     std::string PageName = page->getNameInDocument();
 
-    TechDraw::DrawViewDimension *dim = 0;
+    TechDraw::DrawViewDimension *dim = nullptr;
     std::string FeatName = getUniqueObjectName("Dimension");
 
     std::vector<App::DocumentObject *> objs;
     std::vector<std::string> subs;
 
-    if (_isValidVertexes(this, 3))  {
-        objs.push_back(objFeat);
-        objs.push_back(objFeat);
-        objs.push_back(objFeat);
-        subs.push_back(SubNames[0]);
-        subs.push_back(SubNames[1]);
-        subs.push_back(SubNames[2]);
-    } else {
+    if (!_isValidVertexes(this, 3))  {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Incorrect Selection"),
                                                    QObject::tr("Need three points to make a 3 point Angle Dimension"));
         return;
     }
+
+    objs.push_back(objFeat);
+    objs.push_back(objFeat);
+    objs.push_back(objFeat);
+    subs.push_back(SubNames[0]);
+    subs.push_back(SubNames[1]);
+    subs.push_back(SubNames[2]);
 
     openCommand(QT_TRANSLATE_NOOP("Command", "Create Dimension"));
     doCommand(Doc,"App.activeDocument().addObject('TechDraw::DrawViewDimension','%s')",FeatName.c_str());
@@ -992,16 +985,15 @@ void CmdTechDrawLinkDimension::activated(int iMsg)
     if (!page) {
         return;
     }
-    std::string PageName = page->getNameInDocument();
 
     bool result = _checkSelection(this,2);
     if (!result)
         return;
 
-    std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx(0,
-            App::DocumentObject::getClassTypeId(),0);
+    std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx(nullptr,
+            App::DocumentObject::getClassTypeId(), Gui::ResolveMode::NoResolve);
 
-    App::DocumentObject* obj3D = 0;
+    App::DocumentObject* obj3D = nullptr;
     std::vector<App::DocumentObject*> parts;
     std::vector<std::string> subs;
 
@@ -1067,7 +1059,7 @@ void CmdTechDrawExtentGroup::activated(int iMsg)
 {
 //    Base::Console().Message("CMD::ExtentGrp - activated(%d)\n", iMsg);
     Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
-    if (dlg != nullptr) {
+    if (dlg) {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Task In Progress"),
             QObject::tr("Close active task dialog and try again."));
         return;
@@ -1161,7 +1153,7 @@ void CmdTechDrawHorizontalExtentDimension::activated(int iMsg)
     Q_UNUSED(iMsg);
 
     Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
-    if (dlg != nullptr) {
+    if (dlg) {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Task In Progress"),
             QObject::tr("Close active task dialog and try again."));
         return;
@@ -1186,17 +1178,17 @@ void execHExtent(Gui::Command* cmd)
 
     std::vector<Gui::SelectionObject> selection = cmd->getSelection().getSelectionEx();
     TechDraw::DrawViewPart* baseFeat = nullptr;
-    if (!selection.empty()) {
-        baseFeat =  dynamic_cast<TechDraw::DrawViewPart *>(selection[0].getObject());
-        if( baseFeat == nullptr ) {
-            QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Selection Error"),
-                                 QObject::tr("No base View in Selection."));
-            return;
-        }
-    } else {
-            QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Selection Error"),
-                                 QObject::tr("Please select a View [and Edges]."));
-            return;
+    if (selection.empty()) {
+        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Selection Error"),
+                                QObject::tr("Please select a View [and Edges]."));
+        return;
+    }
+
+    baseFeat =  dynamic_cast<TechDraw::DrawViewPart *>(selection[0].getObject());
+    if (!baseFeat) {
+        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Selection Error"),
+                                QObject::tr("No base View in Selection."));
+        return;
     }
 
     std::vector<std::string> SubNames;
@@ -1248,7 +1240,7 @@ void CmdTechDrawVerticalExtentDimension::activated(int iMsg)
     Q_UNUSED(iMsg);
 
     Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
-    if (dlg != nullptr) {
+    if (dlg) {
         QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Task In Progress"),
             QObject::tr("Close active task dialog and try again."));
         return;
@@ -1273,17 +1265,18 @@ void execVExtent(Gui::Command* cmd)
 
     std::vector<Gui::SelectionObject> selection = cmd->getSelection().getSelectionEx();
     TechDraw::DrawViewPart* baseFeat = nullptr;
-    if (!selection.empty()) {
-        baseFeat =  dynamic_cast<TechDraw::DrawViewPart *>(selection[0].getObject());
-        if( baseFeat == nullptr ) {
-            QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Selection Error"),
-                                 QObject::tr("No base View in Selection."));
-            return;
-        }
-    } else {
-            QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Selection Error"),
-                                 QObject::tr("Please select a View [and Edges]."));
-            return;
+    if (selection.empty()) {
+        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Selection Error"),
+                                QObject::tr("Please select a View [and Edges]."));
+        return;
+    }
+
+
+    baseFeat =  dynamic_cast<TechDraw::DrawViewPart *>(selection[0].getObject());
+    if (!baseFeat) {
+        QMessageBox::warning(Gui::getMainWindow(), QObject::tr("Selection Error"),
+                                QObject::tr("No base View in Selection."));
+        return;
     }
 
     std::vector<std::string> SubNames;
@@ -1360,7 +1353,7 @@ void CmdTechDrawLandmarkDimension::activated(int iMsg)
     std::string parentName = dvp->getNameInDocument();
     std::string PageName = page->getNameInDocument();
 
-    TechDraw::LandmarkDimension *dim = 0;
+    TechDraw::LandmarkDimension *dim = nullptr;
     std::string FeatName = getUniqueObjectName("LandmarkDim");
 
     openCommand(QT_TRANSLATE_NOOP("Command", "Create Dimension"));
@@ -1485,74 +1478,75 @@ bool _checkPartFeature(Gui::Command* cmd) {
 
 //! verify that Selection contains a valid Geometry for a single Edge Dimension
 int _isValidSingleEdge(Gui::Command* cmd) {
-    auto edgeType( isInvalid );
     auto selection( cmd->getSelection().getSelectionEx() );
 
     auto objFeat( dynamic_cast<TechDraw::DrawViewPart *>(selection[0].getObject()) );
-    if( objFeat == nullptr ) {
+    if (!objFeat)
+        return isInvalid;
+
+    const std::vector<std::string> SubNames = selection[0].getSubNames();
+    if (SubNames.size() != 1 ||
+        TechDraw::DrawUtil::getGeomTypeFromName(SubNames[0]) != "Edge") {
         return isInvalid;
     }
 
-    const std::vector<std::string> SubNames = selection[0].getSubNames();
-    if (SubNames.size() == 1) {                                                 //only 1 subshape selected
-        if (TechDraw::DrawUtil::getGeomTypeFromName(SubNames[0]) == "Edge") {                                //the Name starts with "Edge"
-            int GeoId( TechDraw::DrawUtil::getIndexFromName(SubNames[0]) );
-            TechDraw::BaseGeomPtr geom = objFeat->getGeomByIndex(GeoId);
-            if (!geom) {
-                Base::Console().Error("Logic Error: no geometry for GeoId: %d\n",GeoId);
-                return isInvalid;
-            }
 
-            if(geom->geomType == TechDraw::GENERIC) {
-                TechDraw::GenericPtr gen1 = std::static_pointer_cast<TechDraw::Generic>(geom);
-                if(gen1->points.size() > 2) {                                   //the edge is a polyline
-                    return isInvalid;
-                }
-                Base::Vector3d line = gen1->points.at(1) - gen1->points.at(0);
-                if(fabs(line.y) < FLT_EPSILON ) {
-                    edgeType = isHorizontal;
-                } else if(fabs(line.x) < FLT_EPSILON) {
-                    edgeType = isVertical;
-                } else {
-                    edgeType = isDiagonal;
-                }
-            } else if (geom->geomType == TechDraw::CIRCLE ||
-                       geom->geomType == TechDraw::ARCOFCIRCLE ) {
-                edgeType = isCircle;
-            } else if (geom->geomType == TechDraw::ELLIPSE ||
-                       geom->geomType == TechDraw::ARCOFELLIPSE) {
-                edgeType = isEllipse;
-            } else if (geom->geomType == TechDraw::BSPLINE) {
-                TechDraw::BSplinePtr  spline = static_pointer_cast<TechDraw::BSpline> (geom);
-                if (spline->isCircle()) {
-                    edgeType = isBSplineCircle;
-                } else {
-                    edgeType = isBSpline;
-                }
-            } else {
-                edgeType = isInvalid;
-            }
+    //only 1 subshape selected
+    //the Name starts with "Edge"
+    int GeoId( TechDraw::DrawUtil::getIndexFromName(SubNames[0]) );
+    TechDraw::BaseGeomPtr geom = objFeat->getGeomByIndex(GeoId);
+    if (!geom) {
+        Base::Console().Error("Logic Error: no geometry for GeoId: %d\n",GeoId);
+        return isInvalid;
+    }
+
+    if(geom->geomType == TechDraw::GENERIC) {
+        TechDraw::GenericPtr gen1 = std::static_pointer_cast<TechDraw::Generic>(geom);
+        if(gen1->points.size() > 2) {                                   //the edge is a polyline
+            return isInvalid;
+        }
+        Base::Vector3d line = gen1->points.at(1) - gen1->points.at(0);
+        if(fabs(line.y) < FLT_EPSILON ) {
+            return isHorizontal;
+        } else if(fabs(line.x) < FLT_EPSILON) {
+            return isVertical;
+        } else {
+            return isDiagonal;
+        }
+    } else if (geom->geomType == TechDraw::CIRCLE ||
+                geom->geomType == TechDraw::ARCOFCIRCLE ) {
+        return isCircle;
+    } else if (geom->geomType == TechDraw::ELLIPSE ||
+                geom->geomType == TechDraw::ARCOFELLIPSE) {
+        return isEllipse;
+    } else if (geom->geomType == TechDraw::BSPLINE) {
+        TechDraw::BSplinePtr  spline = static_pointer_cast<TechDraw::BSpline> (geom);
+        if (spline->isCircle()) {
+            return isBSplineCircle;
+        } else {
+            return isBSpline;
         }
     }
-    return edgeType;
+
+    return isInvalid;
 }
 
 //! verify that Selection contains valid geometries for a Vertex based Dimensions
 bool _isValidVertexes(Gui::Command* cmd, int count) {
     std::vector<Gui::SelectionObject> selection = cmd->getSelection().getSelectionEx();
     const std::vector<std::string> SubNames = selection[0].getSubNames();
-    bool isValid = true;
-    if(SubNames.size() == (unsigned) count) {
-        for (auto& s: SubNames) {
-            if (TechDraw::DrawUtil::getGeomTypeFromName(s) != "Vertex") {
-                isValid = false;
-                break;
-            }
-        }
-    } else {
-        isValid = false;
+
+    if(SubNames.size() != (unsigned) count) {
+        return false;
     }
-    return isValid;
+
+    for (auto& s: SubNames) {
+        if (TechDraw::DrawUtil::getGeomTypeFromName(s) != "Vertex") {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 //! verify that the Selection contains valid geometries for an Edge to Edge Dimension
@@ -1566,115 +1560,113 @@ int _isValidEdgeToEdge(Gui::Command* cmd) {
         return isInvalid;
     }
 
-    int edgeType = isInvalid;
     const std::vector<std::string> SubNames = selection[0].getSubNames();
-    if(SubNames.size() == 2) {                                                   //there are 2
-        if (TechDraw::DrawUtil::getGeomTypeFromName(SubNames[0]) == "Edge" &&    //they both start with "Edge"
-            TechDraw::DrawUtil::getGeomTypeFromName(SubNames[1]) == "Edge") {
-            int GeoId0( TechDraw::DrawUtil::getIndexFromName(SubNames[0]) );
-            int GeoId1( TechDraw::DrawUtil::getIndexFromName(SubNames[1]) );
-            TechDraw::BaseGeomPtr geom0 = objFeat0->getGeomByIndex(GeoId0);
-            TechDraw::BaseGeomPtr geom1 = objFeat0->getGeomByIndex(GeoId1);
 
-            if ((!geom0) || (!geom1)) {                                         // missing gometry
-                Base::Console().Error("Logic Error: no geometry for GeoId: %d or GeoId: %d\n",GeoId0,GeoId1);
-                return isInvalid;
-            }
+    //there has to be 2
+    if(SubNames.size() != 2) {                                                   
+        return isInvalid;
+    }
 
-            if(geom0->geomType == TechDraw::GENERIC &&
-               geom1->geomType == TechDraw::GENERIC) {
-                TechDraw::GenericPtr gen0 = std::static_pointer_cast<TechDraw::Generic> (geom0);
-                TechDraw::GenericPtr gen1 = std::static_pointer_cast<TechDraw::Generic> (geom1);
-                if(gen0->points.size() > 2 ||
-                   gen1->points.size() > 2) {                          //the edge is a polyline
-                    return isInvalid;                                  //not supported yet
-                }
-                Base::Vector3d line0 = gen0->points.at(1) - gen0->points.at(0);
-                Base::Vector3d line1 = gen1->points.at(1) - gen1->points.at(0);
-                double xprod = fabs(line0.x * line1.y - line0.y * line1.x);
-                if (xprod > FLT_EPSILON) {                              //edges are not parallel
-                    return isAngle;                                 //angle or distance
-                } else {
-                    return isDiagonal;                              //distance || line
-                }
-            } else {
-                return isDiagonal;                                  //two edges, not both straight lines
-            }
-        }  //edges
-    } // 2 sub objects
-    return edgeType;
+    //they both must start with "Edge"
+    if(TechDraw::DrawUtil::getGeomTypeFromName(SubNames[0]) != "Edge" ||
+        TechDraw::DrawUtil::getGeomTypeFromName(SubNames[1]) != "Edge") {
+        return isInvalid;
+    }
+
+    int GeoId0( TechDraw::DrawUtil::getIndexFromName(SubNames[0]) );
+    int GeoId1( TechDraw::DrawUtil::getIndexFromName(SubNames[1]) );
+    TechDraw::BaseGeomPtr geom0 = objFeat0->getGeomByIndex(GeoId0);
+    TechDraw::BaseGeomPtr geom1 = objFeat0->getGeomByIndex(GeoId1);
+
+    if (!geom0 || !geom1) {                                         // missing gometry
+        Base::Console().Error("Logic Error: no geometry for GeoId: %d or GeoId: %d\n",GeoId0,GeoId1);
+        return isInvalid;
+    }
+
+    if(geom0->geomType == TechDraw::GENERIC &&
+        geom1->geomType == TechDraw::GENERIC) {
+        TechDraw::GenericPtr gen0 = std::static_pointer_cast<TechDraw::Generic> (geom0);
+        TechDraw::GenericPtr gen1 = std::static_pointer_cast<TechDraw::Generic> (geom1);
+        if(gen0->points.size() > 2 ||
+            gen1->points.size() > 2) {                          //the edge is a polyline
+            return isInvalid;                                  //not supported yet
+        }
+        Base::Vector3d line0 = gen0->points.at(1) - gen0->points.at(0);
+        Base::Vector3d line1 = gen1->points.at(1) - gen1->points.at(0);
+        double xprod = fabs(line0.x * line1.y - line0.y * line1.x);
+        if (xprod > FLT_EPSILON) {                              //edges are not parallel
+            return isAngle;                                 //angle or distance
+        } else {
+            return isDiagonal;                              //distance || line
+        }
+    } else {
+        return isDiagonal;                                  //two edges, not both straight lines
+    }
+
+    return isInvalid;
 }
 
 //! verify that the Selection contains valid geometries for a Vertex to Edge Dimension
 bool _isValidVertexToEdge(Gui::Command* cmd) {
-    bool result = false;
     std::vector<Gui::SelectionObject> selection = cmd->getSelection().getSelectionEx();
     TechDraw::DrawViewPart* objFeat0 = static_cast<TechDraw::DrawViewPart *>(selection[0].getObject());
     const std::vector<std::string> SubNames = selection[0].getSubNames();
-    if(SubNames.size() == 2) {                                         //there are 2
-        int eId,vId;
-        TechDraw::BaseGeomPtr e;
-        TechDraw::VertexPtr v;
-        if (TechDraw::DrawUtil::getGeomTypeFromName(SubNames[0]) == "Edge" &&
-            TechDraw::DrawUtil::getGeomTypeFromName(SubNames[1]) == "Vertex") {
-            eId = TechDraw::DrawUtil::getIndexFromName(SubNames[0]);
-            vId = TechDraw::DrawUtil::getIndexFromName(SubNames[1]);
-        } else if (TechDraw::DrawUtil::getGeomTypeFromName(SubNames[1]) == "Edge" &&
-            TechDraw::DrawUtil::getGeomTypeFromName(SubNames[0]) == "Vertex") {
-            eId = TechDraw::DrawUtil::getIndexFromName(SubNames[1]);
-            vId = TechDraw::DrawUtil::getIndexFromName(SubNames[0]);
-        } else {
-            return false;
-        }
-        e = objFeat0->getGeomByIndex(eId);
-        v = objFeat0->getProjVertexByIndex(vId);
-        if ((!e) || (!v)) {
-            Base::Console().Error("Logic Error: no geometry for GeoId: %d or GeoId: %d\n",eId,vId);
-            return false;
-        }
-        result = true;
+    
+    //there has to be 2
+    if(SubNames.size() != 2) {
+        return false;
     }
-    return result;
+
+    int eId,vId;
+    TechDraw::BaseGeomPtr e;
+    TechDraw::VertexPtr v;
+    if (TechDraw::DrawUtil::getGeomTypeFromName(SubNames[0]) == "Edge" &&
+        TechDraw::DrawUtil::getGeomTypeFromName(SubNames[1]) == "Vertex") {
+        eId = TechDraw::DrawUtil::getIndexFromName(SubNames[0]);
+        vId = TechDraw::DrawUtil::getIndexFromName(SubNames[1]);
+    } else if (TechDraw::DrawUtil::getGeomTypeFromName(SubNames[1]) == "Edge" &&
+        TechDraw::DrawUtil::getGeomTypeFromName(SubNames[0]) == "Vertex") {
+        eId = TechDraw::DrawUtil::getIndexFromName(SubNames[1]);
+        vId = TechDraw::DrawUtil::getIndexFromName(SubNames[0]);
+    } else {
+        return false;
+    }
+    e = objFeat0->getGeomByIndex(eId);
+    v = objFeat0->getProjVertexByIndex(vId);
+    if (!e || !v) {
+        Base::Console().Error("Logic Error: no geometry for GeoId: %d or GeoId: %d\n",eId,vId);
+        return false;
+    }
+
+    return true;
 }
 
 char* _edgeTypeToText(int e)
 {
-    char* result;
     switch(e) {
         case isInvalid:
-            result = "invalid";
-            break;
+            return "invalid";
         case isHorizontal:
-            result = "horizontal";
-            break;
+            return "horizontal";
         case isVertical:
-            result = "vertical";
-            break;
+            return "vertical";
         case isDiagonal:
-            result = "diagonal";
-            break;
+            return "diagonal";
         case isCircle:
-            result = "circle";
-            break;
+            return "circle";
         case isEllipse:
-            result = "ellipse";
-            break;
+            return "ellipse";
         case isBSpline:
-            result = "bspline";
-            break;
+            return "bspline";
         case isBSplineCircle:
-            result = "circular bspline";
-            break;
+            return "circular bspline";
         case isAngle:
-            result = "angle";
-            break;
+            return "angle";
         case isAngle3Pt:
-            result = "angle3";
-            break;
+            return "angle3";
         default:
-            result = "unknown";
+            return "unknown";
     }
-    return result;
 }
 
 

@@ -29,26 +29,11 @@
 # include <QTextStream>
 #endif
 
-#include <QMessageBox>
-
-/// Here the FreeCAD includes sorted by Base,App,Gui......
-#include <Base/Console.h>
-#include <Base/Parameter.h>
-#include <Base/Exception.h>
-#include <Base/Sequencer.h>
-
-#include <App/Application.h>
-#include <App/Document.h>
 #include <App/DocumentObject.h>
-
 #include <Gui/Application.h>
-#include <Gui/BitmapFactory.h>
 #include <Gui/Control.h>
-#include <Gui/Command.h>
-#include <Gui/Document.h>
 #include <Gui/MainWindow.h>
 #include <Gui/Selection.h>
-#include <Gui/ViewProviderDocumentObject.h>
 
 #include <Mod/TechDraw/App/LineGroup.h>
 #include <Mod/TechDraw/App/DrawLeaderLine.h>
@@ -56,8 +41,6 @@
 #include <Mod/TechDraw/App/DrawWeldSymbol.h>
 
 #include "PreferencesGui.h"
-#include "MDIViewPage.h"
-#include "QGVPage.h"
 #include "QGIView.h"
 #include "TaskLeaderLine.h"
 #include "ViewProviderLeader.h"
@@ -73,14 +56,14 @@ const char* ViewProviderLeader::LineStyleEnums[] = { "NoLine",
                                                   "Dot",
                                                   "DashDot",
                                                   "DashDotDot",
-                                                  NULL };
+                                                  nullptr };
 
 //**************************************************************************
 // Construction/Destruction
 
 ViewProviderLeader::ViewProviderLeader()
 {
-    sPixmap = "actions/techdraw-LeaderLine";
+    sPixmap = "actions/TechDraw_LeaderLine";
 
     static const char *group = "Line Format";
 
@@ -102,16 +85,15 @@ void ViewProviderLeader::attach(App::DocumentObject *pcFeat)
 bool ViewProviderLeader::setEdit(int ModNum)
 {
 //    Base::Console().Message("VPL::setEdit(%d)\n",ModNum);
-    if (ModNum == ViewProvider::Default ) {
-        if (Gui::Control().activeDialog())  {         //TaskPanel already open!
-            return false;
-        }
-        Gui::Selection().clearSelection();
-        Gui::Control().showDialog(new TaskDlgLeaderLine(this));
-        return true;
-    } else {
+    if (ModNum != ViewProvider::Default) {
         return ViewProviderDrawingView::setEdit(ModNum);
     }
+
+    if (Gui::Control().activeDialog()) {
+        return false; //TaskPanel already open!
+    }
+    Gui::Selection().clearSelection();
+    Gui::Control().showDialog(new TaskDlgLeaderLine(this));
     return true;
 }
 
@@ -139,7 +121,7 @@ void ViewProviderLeader::updateData(const App::Property* p)
         if (p == &getFeature()->LeaderParent)  {
             App::DocumentObject* docObj = getFeature()->LeaderParent.getValue();
             TechDraw::DrawView* dv = dynamic_cast<TechDraw::DrawView*>(docObj);
-            if (dv != nullptr) {
+            if (dv) {
                 QGIView* qgiv = getQView();
                 if (qgiv) {
                     qgiv->onSourceChange(dv);
@@ -199,10 +181,9 @@ TechDraw::DrawLeaderLine* ViewProviderLeader::getFeature() const
 
 double ViewProviderLeader::getDefLineWeight(void)
 {
-    double result = 0.0;
     int lgNumber = Preferences::lineGroup();
     auto lg = TechDraw::LineGroup::lineGroupFactory(lgNumber);
-    result = lg->getWeight("Thin");
+    double result = lg->getWeight("Thin");
     delete lg;                                   //Coverity CID 174670
     return result;
 }
@@ -251,19 +232,18 @@ bool ViewProviderLeader::onDelete(const std::vector<std::string> &)
     // get childs
     auto childs = claimChildren();
 
-    if (!childs.empty()) {
-        QString bodyMessage;
-        QTextStream bodyMessageStream(&bodyMessage); 
-        bodyMessageStream << qApp->translate("Std_Delete",
-            "You cannot delete this leader line because\nit has a weld symbol that would become broken.");
-        QMessageBox::warning(Gui::getMainWindow(),
-            qApp->translate("Std_Delete", "Object dependencies"), bodyMessage,
-            QMessageBox::Ok);
-        return false;
-    }
-    else {
+    if (childs.empty()) {
         return true;
     }
+
+    QString bodyMessage;
+    QTextStream bodyMessageStream(&bodyMessage); 
+    bodyMessageStream << qApp->translate("Std_Delete",
+        "You cannot delete this leader line because\nit has a weld symbol that would become broken.");
+    QMessageBox::warning(Gui::getMainWindow(),
+        qApp->translate("Std_Delete", "Object dependencies"), bodyMessage,
+        QMessageBox::Ok);
+    return false;
 }
 
 bool ViewProviderLeader::canDelete(App::DocumentObject *obj) const

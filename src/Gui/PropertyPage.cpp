@@ -20,16 +20,17 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
 # include <QVBoxLayout>
 #endif
 
+#include <Base/Console.h>
+
 #include "PropertyPage.h"
 #include "PrefWidgets.h"
 #include "UiLoader.h"
-#include <Base/Console.h>
+
 
 using namespace Gui::Dialog;
 
@@ -116,7 +117,7 @@ void PreferencePage::changeEvent(QEvent *e)
 // ----------------------------------------------------------------
 
 PreferenceUiForm::PreferenceUiForm(const QString& fn, QWidget* parent)
-  : PreferencePage(parent), form(0)
+  : PreferencePage(parent), form(nullptr)
 {
     UiLoader loader;
     loader.setLanguageChangeEnabled(true);

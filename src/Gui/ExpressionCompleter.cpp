@@ -23,29 +23,26 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
-#include <QContextMenuEvent>
-#include <QStandardItem>
-#include <QStandardItemModel>
-#include <QLineEdit>
-#include <QAbstractItemView>
-#include <QMenu>
-#include <QTextBlock>
+# include <boost/algorithm/string/predicate.hpp>
+# include <QAbstractItemView>
+# include <QContextMenuEvent>
+# include <QLineEdit>
+# include <QMenu>
+# include <QTextBlock>
 #endif
 
-#include <boost/algorithm/string/predicate.hpp>
-
-#include <Base/Tools.h>
-#include <Base/Console.h>
 #include <App/Application.h>
 #include <App/Document.h>
 #include <App/DocumentObject.h>
-#include <App/DocumentObserver.h>
-#include <App/ObjectIdentifier.h>
-#include "ExpressionCompleter.h"
 #include <App/ExpressionParser.h>
-#include <App/PropertyLinks.h>
+#include <App/ObjectIdentifier.h>
+#include <Base/Tools.h>
+#include <CXX/Extensions.hxx>
 
-FC_LOG_LEVEL_INIT("Completer",true,true)
+#include "ExpressionCompleter.h"
+
+
+FC_LOG_LEVEL_INIT("Completer", true, true)
 
 Q_DECLARE_METATYPE(App::ObjectIdentifier)
 
@@ -146,7 +143,7 @@ public:
             return QVariant();
         QVariant v;
         Info info = getInfo(index);
-        _data(info,index.row(),&v,0,role==Qt::UserRole);
+        _data(info,index.row(),&v,nullptr,role==Qt::UserRole);
         FC_TRACE(info.d.doc << "," << info.d.obj << "," << index.row()
                 << ": " << v.toString().toUtf8().constData());
         return v;
@@ -160,8 +157,8 @@ public:
         int objSize = 0;
         int propSize = 0;
         std::vector<std::pair<const char*, App::Property*> > props;
-        App::Document *doc = 0;
-        App::DocumentObject *obj = 0;
+        App::Document *doc = nullptr;
+        App::DocumentObject *obj = nullptr;
         const char *propName = nullptr;
         if(idx>=0 && idx<docSize)
             doc = docs[idx/2];
@@ -316,7 +313,7 @@ public:
                 return 0;
         }
         int count = 0;
-        _data(info,row,0,&count);
+        _data(info,row,nullptr,&count);
         FC_TRACE(info.d.doc << "," << info.d.obj << "," << row << " row count " << count);
         return count;
     }
@@ -453,18 +450,29 @@ void ExpressionCompleter::slotUpdate(const QString & prefix, int pos)
 {
     init();
 
-    std::string completionPrefix;
+    // ExpressionParser::tokenize() only supports std::string but we need a tuple QString
+    // because due to UTF-8 encoding a std::string may be longer than a QString
+    // See https://forum.freecadweb.org/viewtopic.php?f=3&t=69931
+    auto tokenizeExpression = [](const QString & expr) {
+        std::vector<std::tuple<int, int, std::string> > result = ExpressionParser::tokenize(expr.toStdString());
+        std::vector<std::tuple<int, int, QString> > tokens;
+        std::transform(result.cbegin(), result.cend(), std::back_inserter(tokens), [](const std::tuple<int, int, std::string>& item) {
+            return std::make_tuple(get<0>(item), get<1>(item), QString::fromStdString(get<2>(item)));
+        });
+
+        return tokens;
+    };
+
+    QString completionPrefix;
 
     // Compute start; if prefix starts with =, start parsing from offset 1.
     int start = (prefix.size() > 0 && prefix.at(0) == QChar::fromLatin1('=')) ? 1 : 0;
 
-    std::string expression = Base::Tools::toStdString(prefix.mid(start));
-
     // Tokenize prefix
-    std::vector<std::tuple<int, int, std::string> > tokens = ExpressionParser::tokenize(expression);
+    std::vector<std::tuple<int, int, QString> > tokens = tokenizeExpression(prefix.mid(start));
 
     // No tokens
-    if (tokens.size() == 0) {
+    if (tokens.empty()) {
         if (auto p = popup())
             p->setVisible(false);
         return;
@@ -474,36 +482,35 @@ void ExpressionCompleter::slotUpdate(const QString & prefix, int pos)
 
     // Pop those trailing tokens depending on the given position, which may be
     // in the middle of a token, and we shall include that token.
-    for(auto it=tokens.begin();it!=tokens.end();++it) {
-        if(get<1>(*it) >= pos) {
+    for(auto it = tokens.begin(); it != tokens.end(); ++it) {
+        if (get<1>(*it) >= pos) {
             // Include the immediately followed '.' or '#', because we'll be
             // inserting these separators too, in ExpressionCompleteModel::pathFromIndex()
-            if(it!=tokens.begin() && get<0>(*it)!='.' && get<0>(*it)!='#')
-                it = it-1;
-            tokens.resize(it-tokens.begin()+1);
+            if (it != tokens.begin() && get<0>(*it) != '.' && get<0>(*it) != '#')
+                it = it - 1;
+            tokens.resize(it - tokens.begin() + 1);
             prefixEnd = start + get<1>(*it) + (int)get<2>(*it).size();
             break;
         }
     }
 
     int trim = 0;
-    if(prefixEnd > pos)
+    if (prefixEnd > pos)
         trim = prefixEnd - pos;
 
     // Extract last tokens that can be rebuilt to a variable
-    ssize_t i = static_cast<ssize_t>(tokens.size()) - 1;
+    long i = static_cast<long>(tokens.size()) - 1;
 
     // First, check if we have unclosing string starting from the end
     bool stringing = false;
-    for(; i>=0; --i) {
+    for(; i >= 0; --i) {
         int token = get<0>(tokens[i]);
-        if(token == ExpressionParser::STRING) {
+        if (token == ExpressionParser::STRING) {
             stringing = false;
             break;
         }
-        if(token==ExpressionParser::LT
-            && i && get<0>(tokens[i-1])==ExpressionParser::LT)
-        {
+
+        if (token == ExpressionParser::LT && i > 0 && get<0>(tokens[i-1])==ExpressionParser::LT) {
             --i;
             stringing = true;
             break;
@@ -511,45 +518,46 @@ void ExpressionCompleter::slotUpdate(const QString & prefix, int pos)
     }
 
     // Not an unclosed string and the last character is a space
-    if(!stringing && prefix.size() && prefix[prefixEnd-1] == QChar(32)) {
+    if (!stringing && !prefix.isEmpty() && prefix[prefixEnd-1] == QChar(32)) {
         if (auto p = popup())
             p->setVisible(false);
         return;
     }
 
-    if(!stringing) {
-        i = static_cast<ssize_t>(tokens.size()) - 1;
-        for(;i>=0;--i) {
+    if (!stringing) {
+        i = static_cast<long>(tokens.size()) - 1;
+        for (;i>=0;--i) {
             int token = get<0>(tokens[i]);
-            if (token != '.' && token != '#' &&
+            if (token != '.' &&
+                token != '#' &&
                 token != ExpressionParser::IDENTIFIER &&
                 token != ExpressionParser::STRING &&
                 token != ExpressionParser::UNIT)
                 break;
         }
-        ++i;
 
+        ++i;
     }
 
     // Set prefix start for use when replacing later
-    if (i == static_cast<ssize_t>(tokens.size()))
+    if (i == static_cast<long>(tokens.size()))
         prefixStart = prefixEnd;
     else
         prefixStart = start + get<1>(tokens[i]);
 
     // Build prefix from tokens
-    while (i < static_cast<ssize_t>(tokens.size())) {
+    while (i < static_cast<long>(tokens.size())) {
         completionPrefix += get<2>(tokens[i]);
         ++i;
     }
 
-    if(trim && trim<(int)completionPrefix.size() )
-        completionPrefix.resize(completionPrefix.size()-trim);
+    if (trim && trim < int(completionPrefix.size()))
+        completionPrefix.resize(completionPrefix.size() - trim);
 
     // Set completion prefix
-    setCompletionPrefix(Base::Tools::fromStdString(completionPrefix));
+    setCompletionPrefix(completionPrefix);
 
-    if (!completionPrefix.empty() && widget()->hasFocus())
+    if (!completionPrefix.isEmpty() && widget()->hasFocus())
         complete();
     else {
         if (auto p = popup())
@@ -580,7 +588,7 @@ void ExpressionLineEdit::setDocumentObject(const App::DocumentObject * currentDo
         completer->setDocumentObject(currentDocObj, checkInList);
         return;
     }
-    if (currentDocObj != 0) {
+    if (currentDocObj) {
         completer = new ExpressionCompleter(currentDocObj, this, noProperty, checkInList);
         completer->setWidget(this);
         completer->setCaseSensitivity(Qt::CaseInsensitive);
@@ -693,7 +701,7 @@ void ExpressionTextEdit::setDocumentObject(const App::DocumentObject * currentDo
         return;
     }
 
-    if (currentDocObj != nullptr) {
+    if (currentDocObj) {
         completer = new ExpressionCompleter(currentDocObj, this);
         if (!exactMatch)
             completer->setFilterMode(Qt::MatchContains);

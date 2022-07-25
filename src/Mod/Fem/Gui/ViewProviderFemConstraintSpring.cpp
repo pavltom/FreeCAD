@@ -64,9 +64,9 @@ bool ViewProviderFemConstraintSpring::setEdit(int ModNum)
         Gui::TaskView::TaskDialog *dlg = Gui::Control().activeDialog();
         TaskDlgFemConstraintSpring *constrDlg = qobject_cast<TaskDlgFemConstraintSpring *>(dlg); // check this out too
         if (constrDlg && constrDlg->getConstraintView() != this)
-            constrDlg = 0; // another constraint left open its task panel
+            constrDlg = nullptr; // another constraint left open its task panel
         if (dlg && !constrDlg) {
-            if (constraintDialog != NULL) {
+            if (constraintDialog) {
                 // Ignore the request to open another dialog
                 return false;
             } else {
@@ -86,7 +86,7 @@ bool ViewProviderFemConstraintSpring::setEdit(int ModNum)
         return true;
     }
     else {
-        return ViewProviderDocumentObject::setEdit(ModNum);
+        return ViewProviderDocumentObject::setEdit(ModNum); // clazy:exclude=skipped-base-method
     }
 }
 

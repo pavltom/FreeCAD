@@ -184,16 +184,19 @@
 #include <ShapeFix_ShapeTolerance.hxx>
 
 #include <BRepOffset_MakeOffset.hxx>
-
-#if OCC_VERSION_HEX >= 0x060600
 #include <BRepClass3d.hxx>
+#if OCC_VERSION_HEX < 0x070600
+#include <Adaptor3d_HCurve.hxx>
+#include <Adaptor3d_HCurveOnSurface.hxx>
+#include <BRepAdaptor_HCurve.hxx>
+#include <BRepAdaptor_HCompCurve.hxx>
+#include <Geom2dAdaptor_HCurve.hxx>
+#include <GeomAdaptor_HCurve.hxx>
 #endif
 
 #include <BRepAdaptor_CompCurve.hxx>
 #include <BRepAdaptor_Curve.hxx>
 #include <BRepAdaptor_Surface.hxx>
-#include <BRepAdaptor_HCurve.hxx>
-#include <BRepAdaptor_HCompCurve.hxx>
 #include <BRepAlgoAPI_Common.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
@@ -225,15 +228,11 @@
 #include <BRepLProp_SurfaceTool.hxx>
 #include <BRepGProp_Face.hxx>
 #include <BRepClass_FaceClassifier.hxx>
-#if OCC_VERSION_HEX >= 0x060600
 #include <BRepClass3d.hxx>
-#endif
 #include <BRepClass3d_SolidClassifier.hxx>
 #include <BRepExtrema_DistShapeShape.hxx>
 #include <BRepExtrema_MapOfIntegerPackedMapOfInteger.hxx>
-#if OCC_VERSION_HEX >= 0x060801
 #include <BRepExtrema_ShapeProximity.hxx>
-#endif
 #include <BRepFeat_SplitShape.hxx>
 #include <BRepFeat_MakePrism.hxx>
 #include <BRepFilletAPI_MakeChamfer.hxx>
@@ -325,7 +324,6 @@
 #include <Geom2d_Line.hxx>
 #include <Geom2d_TrimmedCurve.hxx>
 #include <Geom2dAdaptor_Curve.hxx>
-#include <Geom2dAdaptor_HCurve.hxx>
 #include <Geom2dAPI_ExtremaCurveCurve.hxx>
 #include <Geom2dAPI_InterCurveCurve.hxx>
 #include <Geom2dAPI_Interpolate.hxx>
@@ -363,7 +361,6 @@
 #include <Geom_Plane.hxx>
 #include <Geom_ToroidalSurface.hxx>
 #include <GeomAdaptor.hxx>
-#include <GeomAdaptor_HCurve.hxx>
 #include <GeomAdaptor_Surface.hxx>
 #include <GeomAPI.hxx>
 #include <GeomAPI_ExtremaCurveCurve.hxx>
@@ -432,10 +429,6 @@
 #include <gp_Vec2d.hxx>
 #include <gp_Quaternion.hxx>
 
-// Adaptors
-#include <Adaptor3d_HCurve.hxx>
-#include <Adaptor3d_HCurveOnSurface.hxx>
-
 #include <Approx_Curve3d.hxx>
 
 #include <BSplCLib.hxx>
@@ -447,15 +440,11 @@
 #include <HLRAppli_ReflectLines.hxx>
 #include <IntTools_FClass2d.hxx>
 #include <Law_Constant.hxx>
-#include <MMgt_TShared.hxx>
 #include <Message_MsgFile.hxx>
 #include <Precision.hxx>
 #include <UnitsAPI.hxx>
-#include <Quantity_Factor.hxx>
-#include <Quantity_Length.hxx>
 #include <Quantity_NameOfColor.hxx>
 #include <Quantity_PhysicalQuantity.hxx>
-#include <Quantity_PlaneAngle.hxx>
 #include <Quantity_TypeOfColor.hxx>
 
 // Shape
@@ -470,6 +459,7 @@
 #include <ShapeAnalysis_ShapeTolerance.hxx>
 #include <ShapeConstruct_Curve.hxx>
 #include <ShapeExtend_Explorer.hxx>
+#include <ShapeFix.hxx>
 #include <ShapeFix_Shape.hxx>
 #include <ShapeFix_ShapeTolerance.hxx>
 #include <ShapeFix_Wire.hxx>
@@ -510,18 +500,14 @@
 #include <ShapeAnalysis_FreeBoundsProperties.hxx>
 #include <ShapeAnalysis_FreeBoundData.hxx>
 
-#if OCC_VERSION_HEX >= 0x060600
 # include <BOPAlgo_ArgumentAnalyzer.hxx>
 # include <BOPAlgo_ListOfCheckResult.hxx>
-#endif
 
 #if OCC_VERSION_HEX >= 0x070300
 # include <BRepAlgoAPI_Defeaturing.hxx>
 #endif
 
-#if OCC_VERSION_HEX >= 0x060800
 #include <OSD_OpenFile.hxx>
-#endif
 
 #endif // __OpenCascadeAll__
 

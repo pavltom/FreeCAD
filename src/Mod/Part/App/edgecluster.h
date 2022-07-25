@@ -20,14 +20,16 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef PART_EDGECLUSTER_H
 #define PART_EDGECLUSTER_H
 
+#include <map>
+#include <vector>
+
 #include <gp_Pnt.hxx>
 #include <TopoDS_Edge.hxx>
-#include <vector>
-#include <map>
+
+#include <Mod/Part/PartGlobal.h>
 
 
 namespace Part {

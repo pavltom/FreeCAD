@@ -22,11 +22,14 @@
 
 #include "PreCompiled.h"
 
-#include "SoTouchEvents.h"
 #include <QApplication>
 #include <QGestureEvent>
 #include <QWidget>
+
 #include <Base/Exception.h>
+
+#include "SoTouchEvents.h"
+
 
 SO_EVENT_SOURCE(SoGestureEvent);
 
@@ -197,5 +200,5 @@ const SoEvent* GesturesDevice::translateEvent(QEvent* event)
             return new SoGesturePanEvent(pg,this->widget);
         }
     }
-    return 0;
+    return nullptr;
 }

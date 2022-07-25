@@ -64,7 +64,7 @@ using namespace Gui::TaskView;
 /* TRANSLATOR SketcherGui::SketcherValidation */
 
 SketcherValidation::SketcherValidation(Sketcher::SketchObject* Obj, QWidget* parent)
-: QWidget(parent), ui(new Ui_TaskSketcherValidation()), sketch(Obj), sketchAnalyser(Obj), coincidenceRoot(0)
+: QWidget(parent), ui(new Ui_TaskSketcherValidation()), sketch(Obj), sketchAnalyser(Obj), coincidenceRoot(nullptr)
 {
     ui->setupUi(this);
     ui->fixButton->setEnabled(false);
@@ -319,7 +319,8 @@ void SketcherValidation::on_delConstrExtr_clicked()
                         tr("Delete constraints to external geom."),
                         tr("You are about to delete ALL constraints that deal with external geometry. This is useful to rescue a sketch with broken/changed links to external geometry. Are you sure you want to delete the constraints?"),
                         QMessageBox::No|QMessageBox::Yes,QMessageBox::No);
-    if(reply!=QMessageBox::Yes) return;
+    if(reply!=QMessageBox::Yes)
+        return;
 
     App::Document* doc = sketch->getDocument();
     doc->openTransaction("Delete constraints");
@@ -431,7 +432,7 @@ TaskSketcherValidation::TaskSketcherValidation(Sketcher::SketchObject* Obj)
 {
     QWidget* widget = new SketcherValidation(Obj);
     Gui::TaskView::TaskBox* taskbox = new Gui::TaskView::TaskBox(
-        QPixmap(), widget->windowTitle(), true, 0);
+        QPixmap(), widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
     Content.push_back(taskbox);
 }

@@ -25,6 +25,7 @@ import FreeCADGui
 import Path
 import PathScripts
 from PathScripts import PathLog
+from PathScripts.PathDressup import toolController
 from PySide import QtCore
 import math
 import random
@@ -118,11 +119,11 @@ class ObjectArray:
             QT_TRANSLATE_NOOP("App::Property", "Maximum random offset of copies"),
         )
         obj.addProperty(
-		    "App::PropertyInteger",
-			"JitterSeed",
-			"Path",
-			QT_TRANSLATE_NOOP("App::Property","Seed value for jitter randomness"),
-		)
+            "App::PropertyInteger",
+            "JitterSeed",
+            "Path",
+            QT_TRANSLATE_NOOP("App::Property", "Seed value for jitter randomness"),
+        )
         obj.addProperty(
             "App::PropertyLink",
             "ToolController",
@@ -165,8 +166,14 @@ class ObjectArray:
             copiesXMode = copiesYMode = offsetMode = swapDirectionMode = 2
 
         if not hasattr(obj, "JitterSeed"):
-            obj.addProperty("App::PropertyInteger", "JitterSeed",
-                        "Path", QtCore.QT_TRANSLATE_NOOP("App::Property","Seed value for jitter randomness"))
+            obj.addProperty(
+                "App::PropertyInteger",
+                "JitterSeed",
+                "Path",
+                QtCore.QT_TRANSLATE_NOOP(
+                    "App::Property", "Seed value for jitter randomness"
+                ),
+            )
             obj.JitterSeed = 0
 
         obj.setEditorMode("Angle", angleMode)
@@ -201,69 +208,6 @@ class ObjectArray:
 
         self.setEditorModes(obj)
 
-    def rotatePath(self, path, angle, centre):
-        """
-        Rotates Path around given centre vector
-        Only X and Y is considered
-        """
-        CmdMoveRapid = ["G0", "G00"]
-        CmdMoveStraight = ["G1", "G01"]
-        CmdMoveCW = ["G2", "G02"]
-        CmdMoveCCW = ["G3", "G03"]
-        CmdDrill = ["G81", "G82", "G83"]
-        CmdMoveArc = CmdMoveCW + CmdMoveCCW
-        CmdMove = CmdMoveStraight + CmdMoveArc
-
-        commands = []
-        ang = angle / 180 * math.pi
-        currX = 0
-        currY = 0
-        for cmd in path.Commands:
-            if (
-                (cmd.Name in CmdMoveRapid)
-                or (cmd.Name in CmdMove)
-                or (cmd.Name in CmdDrill)
-            ):
-                params = cmd.Parameters
-                x = params.get("X")
-                if x is None:
-                    x = currX
-                currX = x
-                y = params.get("Y")
-                if y is None:
-                    y = currY
-                currY = y
-
-                # "move" the centre to origin
-                x = x - centre.x
-                y = y - centre.y
-
-                # rotation around origin:
-                nx = x * math.cos(ang) - y * math.sin(ang)
-                ny = y * math.cos(ang) + x * math.sin(ang)
-
-                # "move" the centre back and update
-                params.update({"X": nx + centre.x, "Y": ny + centre.y})
-
-                # Arcs need to have the I and J params rotated as well
-                if cmd.Name in CmdMoveArc:
-                    i = params.get("I")
-                    if i is None:
-                        i = 0
-                    j = params.get("J")
-                    if j is None:
-                        j = 0
-
-                    ni = i * math.cos(ang) - j * math.sin(ang)
-                    nj = j * math.cos(ang) + i * math.sin(ang)
-                    params.update({"I": ni, "J": nj})
-
-                cmd.Parameters = params
-            commands.append(cmd)
-        newPath = Path.Path(commands)
-
-        return newPath
-
     def execute(self, obj):
         # backwards compatibility for PathArrays created before support for multiple bases
         if isinstance(obj.Base, list):
@@ -274,7 +218,7 @@ class ObjectArray:
         if len(base) == 0:
             return
 
-        obj.ToolController = base[0].ToolController
+        obj.ToolController = toolController(base[0])
 
         # Do not generate paths and clear current Path data if operation not
         if not obj.Active:
@@ -342,6 +286,69 @@ class PathArray:
             else:
                 self.baseList = [baseList]
 
+    def rotatePath(self, path, angle, centre):
+        """
+        Rotates Path around given centre vector
+        Only X and Y is considered
+        """
+        CmdMoveRapid = ["G0", "G00"]
+        CmdMoveStraight = ["G1", "G01"]
+        CmdMoveCW = ["G2", "G02"]
+        CmdMoveCCW = ["G3", "G03"]
+        CmdDrill = ["G73", "G81", "G82", "G83"]
+        CmdMoveArc = CmdMoveCW + CmdMoveCCW
+        CmdMove = CmdMoveStraight + CmdMoveArc
+
+        commands = []
+        ang = angle / 180 * math.pi
+        currX = 0
+        currY = 0
+        for cmd in path.Commands:
+            if (
+                (cmd.Name in CmdMoveRapid)
+                or (cmd.Name in CmdMove)
+                or (cmd.Name in CmdDrill)
+            ):
+                params = cmd.Parameters
+                x = params.get("X")
+                if x is None:
+                    x = currX
+                currX = x
+                y = params.get("Y")
+                if y is None:
+                    y = currY
+                currY = y
+
+                # "move" the centre to origin
+                x = x - centre.x
+                y = y - centre.y
+
+                # rotation around origin:
+                nx = x * math.cos(ang) - y * math.sin(ang)
+                ny = y * math.cos(ang) + x * math.sin(ang)
+
+                # "move" the centre back and update
+                params.update({"X": nx + centre.x, "Y": ny + centre.y})
+
+                # Arcs need to have the I and J params rotated as well
+                if cmd.Name in CmdMoveArc:
+                    i = params.get("I")
+                    if i is None:
+                        i = 0
+                    j = params.get("J")
+                    if j is None:
+                        j = 0
+
+                    ni = i * math.cos(ang) - j * math.sin(ang)
+                    nj = j * math.cos(ang) + i * math.sin(ang)
+                    params.update({"I": ni, "J": nj})
+
+                cmd.Parameters = params
+            commands.append(cmd)
+        newPath = Path.Path(commands)
+
+        return newPath
+
     # Private method
     def _calculateJitter(self, pos):
         """_calculateJitter(pos) ...
@@ -375,9 +382,12 @@ class PathArray:
                 return
             if not b.Path:
                 return
-            if not b.ToolController:
+
+            b_tool_controller = toolController(b)
+            if not b_tool_controller:
                 return
-            if b.ToolController != base[0].ToolController:
+
+            if b_tool_controller != toolController(base[0]):
                 # this may be important if Job output is split by tool controller
                 PathLog.warning(
                     translate(
@@ -465,7 +475,7 @@ class PathArray:
                     ang = 360
                     if self.copies > 0:
                         ang = self.angle / self.copies * (1 + i)
-                    np = self.rotatePath(b.Path.Commands, ang, self.centre)
+                    np = self.rotatePath(b.Path, ang, self.centre)
                     output += np.toGCode()
 
         # return output
@@ -506,13 +516,11 @@ class CommandPathArray:
         }
 
     def IsActive(self):
-        if bool(FreeCADGui.Selection.getSelection()) is False:
-            return False
-        try:
-            obj = FreeCADGui.Selection.getSelectionEx()[0].Object
-            return isinstance(obj.Proxy, PathScripts.PathOp.ObjectOp)
-        except (IndexError, AttributeError):
-            return False
+        selections = [
+            sel.isDerivedFrom("Path::Feature")
+            for sel in FreeCADGui.Selection.getSelection()
+        ]
+        return selections and all(selections)
 
     def Activated(self):
 

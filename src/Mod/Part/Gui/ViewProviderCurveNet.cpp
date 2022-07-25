@@ -29,7 +29,6 @@
 # include <TColgp_Array1OfPnt.hxx>
 # include <TopoDS.hxx>
 # include <TopExp_Explorer.hxx>
-# include <Python.h>
 # include <Inventor/nodes/SoComplexity.h>
 # include <Inventor/nodes/SoCoordinate3.h>
 # include <Inventor/nodes/SoDrawStyle.h>
@@ -68,7 +67,7 @@ PROPERTY_SOURCE(PartGui::ViewProviderCurveNet,PartGui::ViewProviderPart)
 
        
 ViewProviderCurveNet::ViewProviderCurveNet()
-  : bInEdit(false),bMovePointMode(false),EdgeRoot(0),VertexRoot(0)
+  : bInEdit(false),bMovePointMode(false),EdgeRoot(nullptr),VertexRoot(nullptr)
 {
     LineWidth.setValue(4.0f);
     PointSize.setValue(0.05f);
@@ -90,7 +89,7 @@ ViewProviderCurveNet::~ViewProviderCurveNet()
 void ViewProviderCurveNet::attach(App::DocumentObject *pcFeat)
 {
     // call parent attach method
-    ViewProviderGeometryObject::attach(pcFeat);
+    ViewProviderGeometryObject::attach(pcFeat); // clazy:exclude=skipped-base-method
 
     // setup the root and material for the edges
     SoSeparator* ModeRoot = new SoSeparator();
@@ -112,7 +111,7 @@ void ViewProviderCurveNet::attach(App::DocumentObject *pcFeat)
 
 void ViewProviderCurveNet::updateData(const App::Property* prop)
 {
-    Gui::ViewProviderGeometryObject::updateData(prop);
+    Gui::ViewProviderGeometryObject::updateData(prop); // clazy:exclude=skipped-base-method
     if (prop->getTypeId() == Part::PropertyPartShape::getClassTypeId()) {
         TopoDS_Shape cShape = static_cast<const Part::PropertyPartShape*>(prop)->getValue();
         if (cShape.IsNull())

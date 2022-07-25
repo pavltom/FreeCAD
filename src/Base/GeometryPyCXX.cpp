@@ -27,7 +27,7 @@
 #endif
 
 #include "GeometryPyCXX.h"
-#include <Base/VectorPy.h>
+#include "VectorPy.h"
 
 
 int Py::Vector::Vector_TypeCheck(PyObject * obj)
@@ -61,7 +61,8 @@ Py::Vector::Vector (const Base::Vector3f& v)
 
 Py::Vector& Py::Vector::operator= (PyObject* rhsp)
 {
-    if(ptr() == rhsp) return *this;
+    if(ptr() == rhsp)
+        return *this;
     set (rhsp, false);
     return *this;
 }
@@ -89,6 +90,21 @@ Base::Vector3d Py::Vector::toVector() const
 }
 
 namespace Base {
+
+Py::PythonType& Vector2dPy::behaviors()
+{
+    return Py::PythonClass<Vector2dPy>::behaviors();
+}
+
+PyTypeObject* Vector2dPy::type_object()
+{
+    return Py::PythonClass<Vector2dPy>::type_object();
+}
+
+bool Vector2dPy::check( PyObject *p )
+{
+    return Py::PythonClass<Vector2dPy>::check(p);
+}
 
 Py::PythonClassObject<Vector2dPy> Vector2dPy::create(const Vector2d& v)
 {
@@ -127,7 +143,8 @@ Py::Object Vector2dPy::repr()
     Py::Float y(v.y);
     std::stringstream str;
     str << "Vector2 (";
-    str << (std::string)x.repr() << ", "<< (std::string)y.repr();
+    str << static_cast<std::string>(x.repr()) << ", "
+        << static_cast<std::string>(y.repr());
     str << ")";
 
     return Py::String(str.str());

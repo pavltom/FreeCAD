@@ -25,9 +25,9 @@
 
 #include <string>
 
-#include <QString>
 #include <QByteArray>
 #include <QPointF>
+#include <QString>
 
 #include <gp_Ax2.hxx>
 #include <gp_Dir.hxx>
@@ -36,17 +36,12 @@
 #include <gp_Pnt2d.hxx>
 #include <gp_Vec.hxx>
 #include <TopoDS.hxx>
-#include <TopoDS_Vertex.hxx>
 #include <TopoDS_Edge.hxx>
-#include <TopoDS_Wire.hxx>
 #include <TopoDS_Face.hxx>
 #include <TopoDS_Shape.hxx>
+#include <TopoDS_Vertex.hxx>
 
-#include <App/DocumentObject.h>
-#include <Base/Tools2D.h>
 #include <Base/Vector3D.h>
-#include <Base/Matrix.h>
-
 #include <Mod/Part/App/PartFeature.h>
 
 #include "LineGroup.h"
@@ -84,6 +79,9 @@ class TechDrawExport DrawUtil {
                                                                         double xRange,
                                                                         double yRange) ;
         static Base::Vector3d vertex2Vector(const TopoDS_Vertex& v);
+
+        static TopoDS_Shape vectorToCompound(std::vector<TopoDS_Edge> vecIn);
+
         static std::string formatVector(const Base::Vector3d& v);
         static std::string formatVector(const gp_Dir& v);
         static std::string formatVector(const gp_Dir2d& v);

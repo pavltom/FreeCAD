@@ -28,17 +28,16 @@
 #ifndef PARTATTACHER_H
 #define PARTATTACHER_H
 
-#include <App/PropertyStandard.h>
-#include <App/PropertyLinks.h>
+#include <gp_Vec.hxx>
+#include <GProp_GProps.hxx>
+
 #include <App/GeoFeature.h>
-#include <Base/Vector3D.h>
-#include <Base/Placement.h>
+#include <App/PropertyLinks.h>
 #include <Base/Exception.h>
+#include <Base/Placement.h>
 
 #include "PartFeature.h"
 
-#include <gp_Vec.hxx>
-#include <GProp_GProps.hxx>
 
 namespace Attacher
 {
@@ -269,7 +268,7 @@ public: //methods
                                       bool useRefOrg_Plane = false,
                                       bool makeYVertical = false,
                                       bool makeLegacyFlatFaceOrientation = false,
-                                      Base::Placement* placeOfRef = 0) const;
+                                      Base::Placement* placeOfRef = nullptr) const;
 
     /**
      * @brief suggestMapModes is the procedure that knows everything about

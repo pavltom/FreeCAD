@@ -222,6 +222,7 @@ SET(FreeCADBase_CPP_SRCS
     BoundBoxPyImp.cpp
     Builder3D.cpp
     Console.cpp
+    ConsoleObserver.cpp
     CoordinateSystem.cpp
     CoordinateSystemPyImp.cpp
     Debugger.cpp
@@ -241,6 +242,7 @@ SET(FreeCADBase_CPP_SRCS
     Matrix.cpp
     MatrixPyImp.cpp
     MemDebug.cpp
+    Mutex.cpp
     Parameter.xsd
     Parameter.cpp
     ParameterPy.cpp
@@ -250,10 +252,12 @@ SET(FreeCADBase_CPP_SRCS
     PlacementPyImp.cpp
     PyExport.cpp
     PyObjectBase.cpp
+    QtTools.cpp
     Reader.cpp
     Rotation.cpp
     RotationPyImp.cpp
     Sequencer.cpp
+    SmartPtrPy.cpp
     Stream.cpp
     Swap.cpp
     ${SWIG_SRCS}
@@ -284,6 +288,7 @@ SET(FreeCADBase_HPP_SRCS
     BoundBox.h
     Builder3D.h
     Console.h
+    ConsoleObserver.h
     Converter.h
     CoordinateSystem.h
     Debugger.h
@@ -303,15 +308,18 @@ SET(FreeCADBase_HPP_SRCS
     Interpreter.h
     Matrix.h
     MemDebug.h
+    Mutex.h
     Observer.h
     Parameter.h
     Persistence.h
     Placement.h
     PyExport.h
     PyObjectBase.h
+    QtTools.h
     Reader.h
     Rotation.h
     Sequencer.h
+    SmartPtrPy.h
     Stream.h
     Swap.h
     ${SWIG_HEADERS}

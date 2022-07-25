@@ -76,6 +76,7 @@
 
 #include <Mod/Part/App/PartFeature.h>
 
+#include "Cosmetic.h"
 #include "DrawUtil.h"
 #include "GeometryObject.h"
 #include "DrawViewPart.h"
@@ -493,7 +494,7 @@ void GeometryObject::addGeomFromCompound(TopoDS_Shape edgeCompound, edgeClass ca
         }
 
         base = BaseGeom::baseFactory(edge);
-        if (base == nullptr) {
+        if (!base) {
             Base::Console().Log("Error - GO::addGeomFromCompound - baseFactory failed for edge: %d\n",i);
             continue;
 //            throw Base::ValueError("GeometryObject::addGeomFromCompound - baseFactory failed");
@@ -715,9 +716,9 @@ void GeometryObject::addFaceGeom(FacePtr f)
 TechDraw::DrawViewDetail* GeometryObject::isParentDetail()
 {
     TechDraw::DrawViewDetail* result = nullptr;
-    if (m_parent != nullptr) {
+    if (m_parent) {
         TechDraw::DrawViewDetail* detail = dynamic_cast<TechDraw::DrawViewDetail*>(m_parent);
-        if (detail != nullptr) {
+        if (detail) {
             result = detail;
         }
     }
@@ -772,7 +773,7 @@ Base::BoundBox3d GeometryObject::calcBoundingBox() const
     if (!edgeGeom.empty()) {
         for (BaseGeomPtrVector::const_iterator it( edgeGeom.begin() );
                 it != edgeGeom.end(); ++it) {
-             BRepBndLib::Add((*it)->occEdge, testBox);
+             BRepBndLib::AddOptimal((*it)->occEdge, testBox);
         }
     }
     
@@ -937,9 +938,9 @@ gp_Pnt TechDraw::findCentroid(const TopoDS_Shape &shape,
     BRepBuilderAPI_Transform builder(shape, tempTransform);
 
     Bnd_Box tBounds;
-    BRepBndLib::Add(builder.Shape(), tBounds);
-
     tBounds.SetGap(0.0);
+    BRepBndLib::AddOptimal(builder.Shape(), tBounds, true, false);
+
     Standard_Real xMin, yMin, zMin, xMax, yMax, zMax;
     tBounds.Get(xMin, yMin, zMin, xMax, yMax, zMax);
 

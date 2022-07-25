@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2021 Chris Hennes <chennes@pioneerlibrarysystem.org>    *
+ *   Copyright (c) 2022 FreeCAD Project Association                        *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -24,24 +24,18 @@
 
 #ifndef _PreComp_
 # include <memory>
+# include <sstream>
+# include <boost/core/ignore_unused.hpp>
 #endif
 
 #include "Metadata.h"
 
 #include <xercesc/sax/HandlerBase.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/dom/DOM.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/dom/DOMImplementation.hpp>
-#include <xercesc/dom/DOMImplementationLS.hpp>
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
 
-
-#include "Base/XMLTools.h"
-#include "App/Expression.h"
 #include "App/Application.h"
+#include "App/Expression.h"
+#include "Base/XMLTools.h"
 
 /*
 *** From GCC: ***
@@ -63,6 +57,35 @@ using namespace App;
 namespace fs = boost::filesystem;
 XERCES_CPP_NAMESPACE_USE
 
+namespace MetadataInternal {
+    class XMLErrorHandler : public HandlerBase {
+        void warning(const SAXParseException& toCatch)
+        {
+            // Don't deal with warnings at all
+            boost::ignore_unused(toCatch);
+        }
+
+        void error(const SAXParseException& toCatch)
+        {
+            std::stringstream message;
+            message << "Error at file \"" << StrX(toCatch.getSystemId())
+                << "\", line " << toCatch.getLineNumber()
+                << ", column " << toCatch.getColumnNumber()
+                << "\n   Message: " << StrX(toCatch.getMessage()) << std::endl;
+            throw Base::XMLBaseException(message.str());
+        }
+
+        void fatalError(const SAXParseException& toCatch)
+        {
+            std::stringstream message;
+            message << "Fatal error at file \"" << StrX(toCatch.getSystemId())
+                << "\", line " << toCatch.getLineNumber()
+                << ", column " << toCatch.getColumnNumber()
+                << "\n   Message: " << StrX(toCatch.getMessage()) << std::endl;
+            throw Base::XMLBaseException(message.str());
+        }
+    };
+}
 
 Metadata::Metadata(const fs::path& metadataFile)
 {
@@ -73,7 +96,7 @@ Metadata::Metadata(const fs::path& metadataFile)
     _parser->setValidationScheme(XercesDOMParser::Val_Never);
     _parser->setDoNamespaces(true);
 
-    auto errHandler = std::make_unique<HandlerBase>();
+    auto errHandler = std::make_unique<MetadataInternal::XMLErrorHandler>();
     _parser->setErrorHandler(errHandler.get());
 
     _parser->parse(metadataFile.string().c_str());
@@ -320,6 +343,14 @@ void App::Metadata::addGenericMetadata(const std::string& tag, const Meta::Gener
     _genericMetadata.insert(std::make_pair(tag, genericMetadata));
 }
 
+void App::Metadata::removeContentItem(const std::string& tag, const std::string& itemName)
+{
+    auto tagRange = _content.equal_range(tag);
+    auto foundItem = std::find_if(tagRange.first, tagRange.second, [&itemName](const auto& check) -> bool { return itemName == check.second.name(); });
+    if (foundItem != tagRange.second)
+        _content.erase(foundItem);
+}
+
 
 DOMElement* appendSimpleXMLNode(DOMElement* baseNode, const std::string& nodeName, const std::string& nodeContents)
 {
@@ -428,7 +459,7 @@ bool Metadata::satisfies(const Meta::Dependency& dep)
         }
         auto parsedExpression = App::Expression::parse(nullptr, dep.condition);
         auto result = parsedExpression->eval();
-        if (boost::any_cast<bool> (result->getValueAsAny()) == false)
+        if (!boost::any_cast<bool> (result->getValueAsAny()))
             return false;
     }
 
@@ -453,6 +484,23 @@ bool Metadata::satisfies(const Meta::Dependency& dep)
         if (!(_version >= Meta::Version(dep.version_lt)))
             return false;
 
+    return true;
+}
+
+bool App::Metadata::supportsCurrentFreeCAD() const
+{
+    static auto fcVersion = Meta::Version();
+    if (fcVersion == Meta::Version()) {
+        std::map<std::string, std::string>& config = App::Application::Config();
+        std::stringstream ss;
+        ss << config["BuildVersionMajor"] << "." << config["BuildVersionMinor"] << "." << (config["BuildRevision"].empty() ? "0" : config["BuildRevision"]);
+        fcVersion = Meta::Version(ss.str());
+    }
+
+    if (_freecadmin != Meta::Version() && _freecadmin > fcVersion)
+        return false;
+    else if (_freecadmax != Meta::Version() && _freecadmax < fcVersion)
+        return false;
     return true;
 }
 
@@ -669,6 +717,8 @@ Meta::Url::Url(const XERCES_CPP_NAMESPACE::DOMElement* e)
         type = UrlType::readme;
     else if (typeAttribute == "documentation")
         type = UrlType::documentation;
+    else
+        type = UrlType::website;
 
     if (type == UrlType::repository) 
         branch = StrXUTF8(e->getAttribute(XUTF8Str("branch").unicodeForm())).str;

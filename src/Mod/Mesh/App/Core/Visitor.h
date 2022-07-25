@@ -24,7 +24,8 @@
 #ifndef VISITOR_H
 #define VISITOR_H
 
-#include "Definitions.h"
+#include <vector>
+#include <Base/Vector3D.h>
 #include <Mod/Mesh/MeshGlobal.h>
 
 namespace MeshCore {
@@ -32,6 +33,7 @@ namespace MeshCore {
 class MeshFacet;
 class MeshKernel;
 class MeshFacetVisitor;
+class MeshPoint;
 class PlaneFit;
 
 /**
@@ -98,7 +100,7 @@ inline bool MeshSearchNeighbourFacetsVisitor::Visit (const MeshFacet &rclFacet, 
 {
     (void)rclFrom;
     if (ulLevel > _ulCurrentLevel) {
-        if (_bFacetsFoundInCurrentLevel == false)
+        if (!_bFacetsFoundInCurrentLevel)
             return false;
         _ulCurrentLevel = ulLevel;
         _bFacetsFoundInCurrentLevel = false;

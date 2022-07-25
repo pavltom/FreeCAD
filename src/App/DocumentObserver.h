@@ -26,8 +26,9 @@
 
 #include <Base/BaseClass.h>
 #include <boost_signals2.hpp>
-#include <set>
 #include <memory>
+#include <set>
+
 
 namespace App
 {
@@ -176,6 +177,9 @@ public:
     SubObjectT(const DocumentObject*, const char *subname);
 
     /*! Constructor */
+    SubObjectT(const DocumentObject*);
+
+    /*! Constructor */
     SubObjectT(const char *docName, const char *objName, const char *subname);
 
     /*! Assignment operator */
@@ -184,15 +188,37 @@ public:
     /*! Assignment operator */
     SubObjectT &operator=(SubObjectT &&);
 
+    /*! Assignment operator */
+    SubObjectT &operator=(const DocumentObjectT&);
+
+    /*! Assignment operator */
+    SubObjectT &operator=(const App::DocumentObject*);
+
     /*! Equality operator */
     bool operator==(const SubObjectT&) const;
 
     /// Set the subname path to the sub-object
     void setSubName(const char *subname);
 
+    /// Set the subname path to the sub-object
+    void setSubName(const std::string &subname) {
+        setSubName(subname.c_str());
+    }
+
     /// Return the subname path
     const std::string &getSubName() const;
 
+    /** Return docname#objname (label)
+     * @param docName: optional document name. The document prefix will only be printed
+     * if it is different then the given 'doc'.
+     */
+    std::string getObjectFullName(const char *docName=nullptr) const;
+
+    /** Return docname#objname.subname (label)
+     * @param doc: optional document name. The document prefix will only be printed
+     * if it is different then the given 'doc'.
+     */
+    std::string getSubObjectFullName(const char *docName=nullptr) const;
     /// Return the subname path without sub-element
     std::string getSubNameNoElement() const;
 
@@ -205,7 +231,7 @@ public:
     /** Return the old style sub-element name
      * @param index: if given, then return the element type, and extract the index
      */
-    std::string getOldElementName(int *index=0) const;
+    std::string getOldElementName(int *index=nullptr) const;
 
     /// Return the sub-object
     DocumentObject *getSubObject() const;
@@ -269,10 +295,15 @@ public:
      */
     bool expired() const noexcept;
     /*!
+     * \brief operator *
+     * \return pointer to the document
+     */
+    App::Document* operator*() const noexcept;
+    /*!
      * \brief operator ->
      * \return pointer to the document
      */
-    App::Document* operator->() noexcept;
+    App::Document* operator->() const noexcept;
 
 private:
     // disable
@@ -308,10 +339,15 @@ public:
      */
     DocumentObjectWeakPtrT& operator= (App::DocumentObject* p);
     /*!
-     * \brief operator ->
-     * \return pointer to the document
+     * \brief operator *
+     * \return pointer to the document object
      */
-    App::DocumentObject* operator->() noexcept;
+    App::DocumentObject* operator*() const noexcept;
+    /*!
+     * \brief operator ->
+     * \return pointer to the document object
+     */
+    App::DocumentObject* operator->() const noexcept;
     /*!
      * \brief operator ==
      * \return true if both objects are equal, false otherwise
@@ -376,9 +412,16 @@ public:
     }
     /*!
      * \brief operator ->
-     * \return pointer to the document
+     * \return pointer to the document object
      */
-    T* operator->() {
+    T* operator*() const {
+        return ptr.get<T>();
+    }
+    /*!
+     * \brief operator ->
+     * \return pointer to the document object
+     */
+    T* operator->() const {
         return ptr.get<T>();
     }
     /*!

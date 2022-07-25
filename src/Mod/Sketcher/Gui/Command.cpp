@@ -41,6 +41,7 @@
 #include <Gui/MainWindow.h>
 #include <Gui/DlgEditFileIncludePropertyExternal.h>
 #include <Gui/SelectionFilter.h>
+#include <Gui/SelectionObject.h>
 
 #include <Mod/Sketcher/App/SketchObjectSF.h>
 #include <Mod/Sketcher/App/SketchObject.h>
@@ -81,16 +82,16 @@ namespace SketcherGui {
     };
 
 
-    Attacher::eMapMode SuggestAutoMapMode(Attacher::SuggestResult::eSuggestResult* pMsgId = 0,
-                                      QString* message = 0,
-                                      std::vector<Attacher::eMapMode>* allmodes = 0){
+    Attacher::eMapMode SuggestAutoMapMode(Attacher::SuggestResult::eSuggestResult* pMsgId = nullptr,
+                                      QString* message = nullptr,
+                                      std::vector<Attacher::eMapMode>* allmodes = nullptr){
         //convert pointers into valid references, to avoid checking for null pointers everywhere
         Attacher::SuggestResult::eSuggestResult buf;
-        if (pMsgId == 0)
+        if (!pMsgId)
             pMsgId = &buf;
         Attacher::SuggestResult::eSuggestResult &msg = *pMsgId;
         QString buf2;
-        if (message == 0)
+        if (!message)
             message = &buf2;
         QString &msg_str = *message;
 
@@ -180,7 +181,8 @@ void CmdSketcherNewSketch::activated(int iMsg)
                 qApp->translate("Sketcher_NewSketch", "Sketch attachment"),
                 qApp->translate("Sketcher_NewSketch", "Select the method to attach this sketch to selected object"),
                 items, iSugg, false, &ok, Qt::MSWindowsFixedSizeDialogHint);
-            if (!ok) return;
+            if (!ok)
+                return;
             int index = items.indexOf(text);
             if (index == 0){
                 bAttach = false;
@@ -398,7 +400,7 @@ void CmdSketcherReorientSketch::activated(int iMsg)
             QMessageBox::Yes|QMessageBox::No);
         if (ret == QMessageBox::No)
             return;
-        sketch->Support.setValue(0);
+        sketch->Support.setValue(nullptr);
     }
 
     // ask user for orientation
@@ -732,7 +734,7 @@ CmdSketcherValidateSketch::CmdSketcherValidateSketch()
 void CmdSketcherValidateSketch::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx(0, Sketcher::SketchObject::getClassTypeId());
+    std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx(nullptr, Sketcher::SketchObject::getClassTypeId());
     if (selection.size() != 1) {
         QMessageBox::warning(Gui::getMainWindow(),
             qApp->translate("CmdSketcherValidateSketch", "Wrong selection"),
@@ -771,7 +773,7 @@ CmdSketcherMirrorSketch::CmdSketcherMirrorSketch()
 void CmdSketcherMirrorSketch::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx(0, Sketcher::SketchObject::getClassTypeId());
+    std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx(nullptr, Sketcher::SketchObject::getClassTypeId());
     if (selection.size() < 1) {
         QMessageBox::warning(Gui::getMainWindow(),
             qApp->translate("CmdSketcherMirrorSketch", "Wrong selection"),
@@ -876,7 +878,7 @@ CmdSketcherMergeSketches::CmdSketcherMergeSketches()
 void CmdSketcherMergeSketches::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx(0, Sketcher::SketchObject::getClassTypeId());
+    std::vector<Gui::SelectionObject> selection = getSelection().getSelectionEx(nullptr, Sketcher::SketchObject::getClassTypeId());
     if (selection.size() < 2) {
         QMessageBox::warning(Gui::getMainWindow(),
                              qApp->translate("CmdSketcherMergeSketches", "Wrong selection"),
