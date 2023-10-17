@@ -41,7 +41,7 @@ using namespace Part;
 extern const char* gce_ErrorStatusText(gce_ErrorType et);
 
 // returns a string which represents the object e.g. when printed in python
-std::string Line2dSegmentPy::representation(void) const
+std::string Line2dSegmentPy::representation() const
 {
     return "<Line2dSegment object>";
 }
@@ -153,7 +153,7 @@ int Line2dSegmentPy::PyInit(PyObject* args, PyObject* /*kwd*/)
             return 0;
         }
         catch (Standard_Failure& e) {
-    
+
             PyErr_SetString(PartExceptionOCCError, e.GetMessageString());
             return -1;
         }
@@ -189,10 +189,10 @@ PyObject* Line2dSegmentPy::setParameterRange(PyObject *args)
         return nullptr;
     }
 
-    Py_Return; 
+    Py_Return;
 }
 
-Py::Object Line2dSegmentPy::getStartPoint(void) const
+Py::Object Line2dSegmentPy::getStartPoint() const
 {
     Handle(Geom2d_TrimmedCurve) this_curve = Handle(Geom2d_TrimmedCurve)::DownCast
         (this->getGeom2dLineSegmentPtr()->handle());
@@ -246,7 +246,7 @@ void Line2dSegmentPy::setStartPoint(Py::Object arg)
     }
 }
 
-Py::Object Line2dSegmentPy::getEndPoint(void) const
+Py::Object Line2dSegmentPy::getEndPoint() const
 {
     Handle(Geom2d_TrimmedCurve) this_curve = Handle(Geom2d_TrimmedCurve)::DownCast
         (this->getGeom2dLineSegmentPtr()->handle());
@@ -307,5 +307,5 @@ PyObject *Line2dSegmentPy::getCustomAttributes(const char* /*attr*/) const
 
 int Line2dSegmentPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)
 {
-    return 0; 
+    return 0;
 }

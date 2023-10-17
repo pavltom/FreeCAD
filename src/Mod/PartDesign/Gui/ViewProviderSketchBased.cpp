@@ -35,17 +35,12 @@ using namespace PartDesignGui;
 PROPERTY_SOURCE(PartDesignGui::ViewProviderSketchBased, PartDesignGui::ViewProvider)
 
 
-ViewProviderSketchBased::ViewProviderSketchBased()
-{
-}
+ViewProviderSketchBased::ViewProviderSketchBased() = default;
+
+ViewProviderSketchBased::~ViewProviderSketchBased() = default;
 
 
-ViewProviderSketchBased::~ViewProviderSketchBased()
-{
-}
-
-
-std::vector<App::DocumentObject*> ViewProviderSketchBased::claimChildren(void) const {
+std::vector<App::DocumentObject*> ViewProviderSketchBased::claimChildren() const {
     std::vector<App::DocumentObject*> temp;
     App::DocumentObject* sketch = static_cast<PartDesign::ProfileBased*>(getObject())->Profile.getValue();
     if (sketch && sketch->isDerivedFrom(Part::Part2DObject::getClassTypeId()))

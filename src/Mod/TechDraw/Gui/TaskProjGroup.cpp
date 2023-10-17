@@ -22,42 +22,28 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
-
 #ifndef _PreComp_
-#include <cmath>
+# include <cmath>
+# include <QMessageBox>
 #endif // #ifndef _PreComp_
 
-#include <QMessageBox>
-
 #include <Base/Console.h>
-
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
-#include <Gui/Control.h>
 #include <Gui/Document.h>
-#include <Gui/View3DInventor.h>
-#include <Gui/View3DInventorViewer.h>
 #include <Gui/WaitCursor.h>
-
-#include <Inventor/SbVec3f.h>
-
-#include <Mod/Part/App/PartFeature.h>
 
 #include <Mod/TechDraw/App/DrawPage.h>
 #include <Mod/TechDraw/App/DrawProjGroupItem.h>
 #include <Mod/TechDraw/App/DrawProjGroup.h>
-#include <Mod/TechDraw/App/DrawUtil.h>
-#include <Mod/TechDraw/App/DrawView.h>
-#include <Mod/TechDraw/App/DrawViewPart.h>
 
+#include "TaskProjGroup.h"
+#include "ui_TaskProjGroup.h"
 #include "MDIViewPage.h"
 #include "ViewProviderPage.h"
 #include "ViewProviderProjGroup.h"
-#include "ViewProviderProjGroupItem.h"
 
-#include "TaskProjGroup.h"
-#include <Mod/TechDraw/Gui/ui_TaskProjGroup.h>
 
 using namespace Gui;
 using namespace TechDraw;
@@ -101,29 +87,34 @@ TaskProjGroup::TaskProjGroup(TechDraw::DrawProjGroup* featView, bool mode) :
 
     // Rotation buttons
     // Note we don't do the custom one here, as it's handled by [a different function that's held up in customs]
-    connect(ui->butTopRotate,   SIGNAL(clicked()), this, SLOT(rotateButtonClicked(void)));
-    connect(ui->butCWRotate,    SIGNAL(clicked()), this, SLOT(rotateButtonClicked(void)));
-    connect(ui->butRightRotate, SIGNAL(clicked()), this, SLOT(rotateButtonClicked(void)));
-    connect(ui->butDownRotate,  SIGNAL(clicked()), this, SLOT(rotateButtonClicked(void)));
-    connect(ui->butLeftRotate,  SIGNAL(clicked()), this, SLOT(rotateButtonClicked(void)));
-    connect(ui->butCCWRotate,   SIGNAL(clicked()), this, SLOT(rotateButtonClicked(void)));
+    connect(ui->butTopRotate,   &QPushButton::clicked, this, &TaskProjGroup::rotateButtonClicked);
+    connect(ui->butCWRotate,    &QPushButton::clicked, this, &TaskProjGroup::rotateButtonClicked);
+    connect(ui->butRightRotate, &QPushButton::clicked, this, &TaskProjGroup::rotateButtonClicked);
+    connect(ui->butDownRotate,  &QPushButton::clicked, this, &TaskProjGroup::rotateButtonClicked);
+    connect(ui->butLeftRotate,  &QPushButton::clicked, this, &TaskProjGroup::rotateButtonClicked);
+    connect(ui->butCCWRotate,   &QPushButton::clicked, this, &TaskProjGroup::rotateButtonClicked);
 
 //    //Reset button
-//    connect(ui->butReset,   SIGNAL(clicked()), this, SLOT(onResetClicked(void)));
+//    connect(ui->butReset,   SIGNAL(clicked()), this, SLOT(onResetClicked()));
 
     // Slot for Scale Type
-    connect(ui->cmbScaleType, SIGNAL(currentIndexChanged(int)), this, SLOT(scaleTypeChanged(int)));
-    connect(ui->sbScaleNum,   SIGNAL(valueChanged(int)), this, SLOT(scaleManuallyChanged(int)));
-    connect(ui->sbScaleDen,   SIGNAL(valueChanged(int)), this, SLOT(scaleManuallyChanged(int)));
+    connect(ui->cmbScaleType, qOverload<int>(&QComboBox::currentIndexChanged), this, &TaskProjGroup::scaleTypeChanged);
+    connect(ui->sbScaleNum,   qOverload<int>(&QSpinBox::valueChanged), this, &TaskProjGroup::scaleManuallyChanged);
+    connect(ui->sbScaleDen,   qOverload<int>(&QSpinBox::valueChanged), this, &TaskProjGroup::scaleManuallyChanged);
 
     // Slot for Projection Type (layout)
-//    connect(ui->projection, SIGNAL(currentIndexChanged(int)), this, SLOT(projectionTypeChanged(int)));
-    connect(ui->projection, SIGNAL(currentIndexChanged(QString)), this, SLOT(projectionTypeChanged(QString)));
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+    connect(ui->projection, qOverload<const QString&>(&QComboBox::currentIndexChanged), this, &TaskProjGroup::projectionTypeChanged);
+#else
+    connect(ui->projection, qOverload<int>(&QComboBox::currentIndexChanged), this, [=](int index) {
+        projectionTypeChanged(ui->projection->itemText(index));
+    });
+#endif
 
     // Spacing
-    connect(ui->cbAutoDistribute, SIGNAL(clicked(bool)), this, SLOT(AutoDistributeClicked(bool)));
-    connect(ui->sbXSpacing, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(void)));
-    connect(ui->sbYSpacing, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(void)));
+    connect(ui->cbAutoDistribute, &QPushButton::clicked, this, &TaskProjGroup::AutoDistributeClicked);
+    connect(ui->sbXSpacing, qOverload<double>(&QuantitySpinBox::valueChanged), this, &TaskProjGroup::spacingChanged);
+    connect(ui->sbYSpacing, qOverload<double>(&QuantitySpinBox::valueChanged), this, &TaskProjGroup::spacingChanged);
     ui->sbXSpacing->setUnit(Base::Unit::Length);
     ui->sbYSpacing->setUnit(Base::Unit::Length);
 
@@ -135,10 +126,6 @@ TaskProjGroup::TaskProjGroup(TechDraw::DrawProjGroup* featView, bool mode) :
 
     setUiPrimary();
     saveGroupState();
-}
-
-TaskProjGroup::~TaskProjGroup()
-{
 }
 
 void TaskProjGroup::saveGroupState()
@@ -160,7 +147,7 @@ void TaskProjGroup::saveGroupState()
     for( const auto it : multiView->Views.getValues() ) {
         auto view( dynamic_cast<DrawProjGroupItem *>(it) );
         if (view) {
-            m_saveViewNames.push_back(view->Type.getValueAsString());
+            m_saveViewNames.emplace_back(view->Type.getValueAsString());
         }
     }
 }
@@ -192,7 +179,7 @@ void TaskProjGroup::viewToggled(bool toggle)
     bool changed = false;
     // Obtain name of checkbox
     QString viewName = sender()->objectName();
-    int index = viewName.midRef(7).toInt();
+    int index = viewName.mid(7).toInt();
     const char *viewNameCStr = viewChkIndexToCStr(index);
     if ( toggle && !multiView->hasProjection( viewNameCStr ) ) {
         Gui::Command::doCommand(Gui::Command::Doc,
@@ -200,8 +187,10 @@ void TaskProjGroup::viewToggled(bool toggle)
                                 multiView->getNameInDocument(), viewNameCStr);
         changed = true;
     } else if ( !toggle && multiView->hasProjection( viewNameCStr ) ) {
-        multiView->removeProjection( viewNameCStr );
-        changed = true;
+        if (multiView->canDelete(viewNameCStr)) {
+            multiView->removeProjection( viewNameCStr );
+            changed = true;
+        }
     }
     if (changed) {
         if (multiView->ScaleType.isValue("Automatic")) {
@@ -212,7 +201,7 @@ void TaskProjGroup::viewToggled(bool toggle)
     wc.restoreCursor();
 }
 
-void TaskProjGroup::rotateButtonClicked(void)
+void TaskProjGroup::rotateButtonClicked()
 {
     if ( multiView && ui ) {
         const QObject *clicked = sender();
@@ -223,7 +212,7 @@ void TaskProjGroup::rotateButtonClicked(void)
         else if (clicked == ui->butRightRotate) multiView->rotate("Right");
         else if (clicked == ui->butLeftRotate) multiView->rotate("Left");
         else if (clicked == ui->butCWRotate ) multiView->spin("CW");
-        else if (clicked == ui->butCCWRotate) multiView->spin("CCW"); 
+        else if (clicked == ui->butCCWRotate) multiView->spin("CCW");
 
         setUiPrimary();
     }
@@ -264,7 +253,7 @@ void TaskProjGroup::scaleTypeChanged(int index)
         // Automatic Scale Type
         //block recompute
         multiView->ScaleType.setValue("Automatic");
-        double autoScale = multiView->calculateAutomaticScale();
+        double autoScale = multiView->autoScale();
         multiView->Scale.setValue(autoScale);
         //unblock recompute
 
@@ -280,22 +269,19 @@ void TaskProjGroup::scaleTypeChanged(int index)
         double scale = (double) a / (double) b;
         multiView->Scale.setValue(scale);
         //unblock recompute
-    } else {
-        Base::Console().Log("Error - TaskProjGroup::scaleTypeChanged - unknown scale type: %d\n",index);
-        return;
     }
 }
 
-void TaskProjGroup::AutoDistributeClicked(bool b)
+void TaskProjGroup::AutoDistributeClicked(bool clicked)
 {
     if (blockUpdate) {
         return;
     }
-    multiView->AutoDistribute.setValue(b);
+    multiView->AutoDistribute.setValue(clicked);
     multiView->recomputeFeature();
 }
 
-void TaskProjGroup::spacingChanged(void)
+void TaskProjGroup::spacingChanged()
 {
     if (blockUpdate) {
         return;
@@ -404,9 +390,9 @@ void TaskProjGroup::setFractionalScale(double newScale)
     blockUpdate = false;
 }
 
-void TaskProjGroup::scaleManuallyChanged(int i)
+void TaskProjGroup::scaleManuallyChanged(int unused)
 {
-    Q_UNUSED(i);
+    Q_UNUSED(unused);
     if(blockUpdate)
         return;
     if (!multiView->ScaleType.isValue("Custom")) {                               //ignore if not custom!
@@ -423,9 +409,9 @@ void TaskProjGroup::scaleManuallyChanged(int i)
     multiView->recomputeFeature();
 }
 
-void TaskProjGroup::changeEvent(QEvent *e)
+void TaskProjGroup::changeEvent(QEvent *event)
 {
-    if (e->type() == QEvent::LanguageChange) {
+    if (event->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
     }
 }
@@ -477,12 +463,15 @@ void TaskProjGroup::setupViewCheckboxes(bool addConnections)
     for (int i = 0; i < 10; ++i) {
         QCheckBox *box = viewCheckboxes[i];
         if (addConnections) {
-            connect(box, SIGNAL(toggled(bool)), this, SLOT(viewToggled(bool)));
+            connect(box, &QCheckBox::toggled, this, &TaskProjGroup::viewToggled);
         }
 
         const char *viewStr = viewChkIndexToCStr(i);
         if (viewStr && multiView->hasProjection(viewStr)) {
             box->setCheckState(Qt::Checked);
+            if (!multiView->canDelete(viewStr)) {
+                box->setEnabled(false);
+            }
         } else {
             box->setCheckState(Qt::Unchecked);
         }
@@ -495,12 +484,12 @@ void TaskProjGroup::setUiPrimary()
     ui->lePrimary->setText(formatVector(frontDir));
 }
 
-QString TaskProjGroup::formatVector(Base::Vector3d v)
+QString TaskProjGroup::formatVector(Base::Vector3d vec)
 {
     QString data = QString::fromLatin1("[%1 %2 %3]")
-        .arg(QLocale().toString(v.x, 'f', 2),
-             QLocale().toString(v.y, 'f', 2),
-             QLocale().toString(v.z, 'f', 2));
+        .arg(QLocale().toString(vec.x, 'f', 2),
+             QLocale().toString(vec.y, 'f', 2),
+             QLocale().toString(vec.z, 'f', 2));
     return data;
 }
 
@@ -533,7 +522,7 @@ bool TaskProjGroup::accept()
     multiView->recomputeChildren();
     multiView->recomputeFeature();
 
-    Gui::Command::doCommand(Gui::Command::Gui,"Gui.ActiveDocument.resetEdit()");
+    Gui::Command::doCommand(Gui::Command::Gui, "Gui.ActiveDocument.resetEdit()");
 
     return true;
 }
@@ -549,12 +538,12 @@ bool TaskProjGroup::reject()
         std::string multiViewName = multiView->getNameInDocument();
         std::string PageName = multiView->findParentPage()->getNameInDocument();
 
-        Gui::Command::doCommand(Gui::Command::Gui,"App.activeDocument().%s.purgeProjections()",
+        Gui::Command::doCommand(Gui::Command::Gui, "App.activeDocument().%s.purgeProjections()",
                                 multiViewName.c_str());
-        Gui::Command::doCommand(Gui::Command::Gui,"App.activeDocument().%s.removeView(App.activeDocument().%s)",
-                                PageName.c_str(),multiViewName.c_str());
-        Gui::Command::doCommand(Gui::Command::Gui,"App.activeDocument().removeObject('%s')",multiViewName.c_str());
-        Gui::Command::doCommand(Gui::Command::Gui,"Gui.ActiveDocument.resetEdit()");
+        Gui::Command::doCommand(Gui::Command::Gui, "App.activeDocument().%s.removeView(App.activeDocument().%s)",
+                                PageName.c_str(), multiViewName.c_str());
+        Gui::Command::doCommand(Gui::Command::Gui, "App.activeDocument().removeObject('%s')", multiViewName.c_str());
+        Gui::Command::doCommand(Gui::Command::Gui, "Gui.ActiveDocument.resetEdit()");
     } else {
         //set the DPG and it's views back to entry state.
         if (Gui::Command::hasPendingCommand()) {
@@ -563,11 +552,9 @@ bool TaskProjGroup::reject()
 //            Gui::Application::Instance->activeDocument()->undo(1);
 //            multiView->rebuildViewList();
 //            apply();
-        } else {
-            Base::Console().Log("TaskProjGroup: Edit mode - NO command is active\n");
         }
     }
-    Gui::Command::runCommand(Gui::Command::Gui,"Gui.ActiveDocument.resetEdit()");
+    Gui::Command::runCommand(Gui::Command::Gui, "Gui.ActiveDocument.resetEdit()");
     return false;
 }
 
@@ -579,7 +566,7 @@ TaskDlgProjGroup::TaskDlgProjGroup(TechDraw::DrawProjGroup* featView, bool mode)
     , multiView(featView)
 {
     //viewProvider = dynamic_cast<const ViewProviderProjGroup *>(featView);
-    widget  = new TaskProjGroup(featView,mode);
+    widget  = new TaskProjGroup(featView, mode);
     taskbox = new Gui::TaskView::TaskBox(Gui::BitmapFactory().pixmap("actions/TechDraw_ProjectionGroup"),
                                          widget->windowTitle(), true, nullptr);
     taskbox->groupLayout()->addWidget(widget);
@@ -595,9 +582,9 @@ void TaskDlgProjGroup::update()
     widget->updateTask();
 }
 
-void TaskDlgProjGroup::setCreateMode(bool b)
+void TaskDlgProjGroup::setCreateMode(bool mode)
 {
-    widget->setCreateMode(b);
+    widget->setCreateMode(mode);
 }
 
 void TaskDlgProjGroup::modifyStandardButtons(QDialogButtonBox* box)
@@ -619,7 +606,7 @@ void TaskDlgProjGroup::open()
 void TaskDlgProjGroup::clicked(int i)
 {
 //    Q_UNUSED(i);
-//    Base::Console().Message("TDPG::clicked(%X)\n",i);
+//    Base::Console().Message("TDPG::clicked(%X)\n", i);
     if (i == QMessageBox::Apply) {
         widget->apply();
     }

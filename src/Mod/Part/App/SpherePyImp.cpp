@@ -37,7 +37,7 @@
 using namespace Part;
 
 // returns a string which represents the object e.g. when printed in python
-std::string SpherePy::representation(void) const
+std::string SpherePy::representation() const
 {
     Handle(Geom_SphericalSurface) sphere = Handle(Geom_SphericalSurface)::DownCast
         (getGeomSpherePtr()->handle());
@@ -48,9 +48,9 @@ std::string SpherePy::representation(void) const
 
     std::stringstream str;
     str << "Sphere (";
-    str << "Radius : " << fRad << ", "; 
-    str << "Center : (" << loc.X() << ", "<< loc.Y() << ", "<< loc.Z() << "), "; 
-    str << "Direction : (" << dir.X() << ", "<< dir.Y() << ", "<< dir.Z() << ")"; 
+    str << "Radius : " << fRad << ", ";
+    str << "Center : (" << loc.X() << ", "<< loc.Y() << ", "<< loc.Z() << "), ";
+    str << "Direction : (" << dir.X() << ", "<< dir.Y() << ", "<< dir.Z() << ")";
     str << ")";
 
     return str.str();
@@ -58,7 +58,7 @@ std::string SpherePy::representation(void) const
 
 PyObject *SpherePy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // Python wrapper
 {
-    // create a new instance of SpherePy and the Twin object 
+    // create a new instance of SpherePy and the Twin object
     return new SpherePy(new GeomSphere);
 }
 
@@ -75,11 +75,11 @@ int SpherePy::PyInit(PyObject* args, PyObject* /*kwd*/)
     return -1;
 }
 
-Py::Float SpherePy::getRadius(void) const
+Py::Float SpherePy::getRadius() const
 {
     Handle(Geom_SphericalSurface) sphere = Handle(Geom_SphericalSurface)::DownCast
         (getGeomSpherePtr()->handle());
-    return Py::Float(sphere->Radius()); 
+    return Py::Float(sphere->Radius());
 }
 
 void  SpherePy::setRadius(Py::Float arg)
@@ -89,21 +89,21 @@ void  SpherePy::setRadius(Py::Float arg)
     sphere->SetRadius((double)arg);
 }
 
-Py::Float SpherePy::getArea(void) const
+Py::Float SpherePy::getArea() const
 {
     Handle(Geom_SphericalSurface) sphere = Handle(Geom_SphericalSurface)::DownCast
         (getGeomSpherePtr()->handle());
-    return Py::Float(sphere->Area()); 
+    return Py::Float(sphere->Area());
 }
 
-Py::Float SpherePy::getVolume(void) const
+Py::Float SpherePy::getVolume() const
 {
     Handle(Geom_SphericalSurface) sphere = Handle(Geom_SphericalSurface)::DownCast
         (getGeomSpherePtr()->handle());
-    return Py::Float(sphere->Volume()); 
+    return Py::Float(sphere->Volume());
 }
 
-Py::Object SpherePy::getCenter(void) const
+Py::Object SpherePy::getCenter() const
 {
     Handle(Geom_SphericalSurface) sphere = Handle(Geom_SphericalSurface)::DownCast
         (getGeomSpherePtr()->handle());
@@ -133,7 +133,7 @@ void SpherePy::setCenter(Py::Object arg)
     }
 }
 
-Py::Object SpherePy::getAxis(void) const
+Py::Object SpherePy::getAxis() const
 {
     Handle(Geom_ElementarySurface) s = Handle(Geom_ElementarySurface)::DownCast
         (getGeometryPtr()->handle());
@@ -183,5 +183,5 @@ PyObject *SpherePy::getCustomAttributes(const char* /*attr*/) const
 
 int SpherePy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)
 {
-    return 0; 
+    return 0;
 }

@@ -27,17 +27,17 @@
 
 #include "DrawProjGroup.h"
 #include "DrawProjGroupItem.h"
-
 // inclusion of the generated files (generated out of DrawProjGroupPy.xml)
 #include <Mod/TechDraw/App/DrawProjGroupPy.h>
 #include <Mod/TechDraw/App/DrawProjGroupPy.cpp>
 #include <Mod/TechDraw/App/DrawProjGroupItemPy.h>
 #include <Base/VectorPy.h>
 
+
 using namespace TechDraw;
 
 // returns a string which represents the object e.g. when printed in python
-std::string DrawProjGroupPy::representation(void) const
+std::string DrawProjGroupPy::representation() const
 {
     return std::string("<DrawProjGroup object>");
 }

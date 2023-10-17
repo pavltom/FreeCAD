@@ -45,7 +45,7 @@ int AxisOriginPy::PyInit(PyObject* /*args*/, PyObject* /*kwd*/)
 
 
 // returns a string which represent the object e.g. when printed in python
-std::string AxisOriginPy::representation(void) const
+std::string AxisOriginPy::representation() const
 {
     return "<AxisOrigin>";
 }
@@ -63,7 +63,7 @@ PyObject* AxisOriginPy::getElementPicked(PyObject* args)
         return nullptr;
     }
 
-    SoPickedPoint *pp = static_cast<SoPickedPoint*>(ptr);
+    auto pp = static_cast<SoPickedPoint*>(ptr);
     std::string name;
     if (!getAxisOriginPtr()->getElementPicked(pp,name))
         Py_Return;
@@ -85,7 +85,7 @@ PyObject* AxisOriginPy::getDetailPath(PyObject* args)
         return nullptr;
     }
 
-    SoPath *pPath = static_cast<SoPath*>(ptr);
+    auto pPath = static_cast<SoPath*>(ptr);
     SoDetail *det = nullptr;
     if (!getAxisOriginPtr()->getDetailPath(sub, static_cast<SoFullPath*>(pPath), det)) {
         delete det;
@@ -175,7 +175,7 @@ void AxisOriginPy::setLabels(Py::Dict dict)
     getAxisOriginPtr()->setLabels(labels);
 }
 
-Py::Object AxisOriginPy::getNode(void) const
+Py::Object AxisOriginPy::getNode() const
 {
     SoGroup* node = getAxisOriginPtr()->getNode();
     PyObject* Ptr = Base::Interpreter().createSWIGPointerObj("pivy.coin","SoGroup *", node, 1);

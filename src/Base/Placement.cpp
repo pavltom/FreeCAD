@@ -29,41 +29,32 @@
 
 using namespace Base;
 
-Placement::Placement()
-{
-
-}
+Placement::Placement() = default;
 
 Placement::Placement(const Base::Matrix4D& matrix)
 {
     fromMatrix(matrix);
 }
 
-Placement::Placement(const Placement& that)
-{
-    this->_pos = that._pos;
-    this->_rot = that._rot;
-}
-
 Placement::Placement(const Vector3d& Pos, const Rotation &Rot)
+    : _pos(Pos)
+    , _rot(Rot)
 {
-    this->_pos = Pos;
-    this->_rot = Rot;
 }
 
 Placement::Placement(const Vector3d& Pos, const Rotation &Rot, const Vector3d& Cnt)
+    : _rot(Rot)
 {
     Vector3d RotC = Cnt;
     Rot.multVec(RotC, RotC);
     this->_pos = Pos + Cnt - RotC;
-    this->_rot = Rot;
 }
 
 Placement Placement::fromDualQuaternion(DualQuat qq)
 {
     Rotation rot(qq.x.re, qq.y.re, qq.z.re, qq.w.re);
     DualQuat mvq = 2 * qq.dual() * qq.real().conj();
-    return Placement(Vector3d(mvq.x.re,mvq.y.re, mvq.z.re), rot);
+    return {Vector3d(mvq.x.re,mvq.y.re, mvq.z.re), rot};
 }
 
 Base::Matrix4D Placement::toMatrix() const
@@ -100,6 +91,23 @@ bool Placement::isIdentity() const
     return none;
 }
 
+bool Placement::isIdentity(double tol) const
+{
+    return isSame(Placement(), tol);
+}
+
+bool Placement::isSame(const Placement& p) const
+{
+    return this->_rot.isSame(p._rot) &&
+           this->_pos.IsEqual(p._pos, 0);
+}
+
+bool Placement::isSame(const Placement& p, double tol) const
+{
+    return this->_rot.isSame(p._rot, tol) &&
+           this->_pos.IsEqual(p._pos, tol);
+}
+
 void Placement::invert()
 {
     this->_rot = this->_rot.inverse();
@@ -129,13 +137,15 @@ bool Placement::operator != (const Placement& that) const
     return !(*this == that);
 }
 
+/*!
+  Let this placement be right-multiplied by \a p. Returns reference to
+  self.
+
+  \sa multRight()
+*/
 Placement & Placement::operator*=(const Placement & p)
 {
-    Base::Vector3d tmp(p._pos);
-    this->_rot.multVec(tmp, tmp);
-    this->_pos += tmp;
-    this->_rot *= p._rot;
-    return *this;
+    return multRight(p);
 }
 
 Placement Placement::operator*(const Placement & p) const
@@ -145,16 +155,37 @@ Placement Placement::operator*(const Placement & p) const
     return plm;
 }
 
-Placement& Placement::operator = (const Placement& New)
-{
-    this->_pos = New._pos;
-    this->_rot = New._rot;
-    return *this;
-}
-
 Placement Placement::pow(double t, bool shorten) const
 {
     return Placement::fromDualQuaternion(this->toDualQuaternion().pow(t, shorten));
+}
+
+/*!
+  Let this placement be right-multiplied by \a p. Returns reference to
+  self.
+
+  \sa multLeft()
+*/
+Placement& Placement::multRight(const Base::Placement& p)
+{
+    Base::Vector3d tmp(p._pos);
+    this->_rot.multVec(tmp, tmp);
+    this->_pos += tmp;
+    this->_rot.multRight(p._rot);
+    return *this;
+}
+
+/*!
+  Let this placement be left-multiplied by \a p. Returns reference to
+  self.
+
+  \sa multRight()
+*/
+Placement& Placement::multLeft(const Base::Placement& p)
+{
+    p.multVec(this->_pos, this->_pos);
+    this->_rot.multLeft(p._rot);
+    return *this;
 }
 
 void Placement::multVec(const Vector3d & src, Vector3d & dst) const
@@ -163,11 +194,17 @@ void Placement::multVec(const Vector3d & src, Vector3d & dst) const
     dst += this->_pos;
 }
 
+void Placement::multVec(const Vector3f & src, Vector3f & dst) const
+{
+    this->_rot.multVec(src, dst);
+    dst += Base::toVector<float>(this->_pos);
+}
+
 Placement Placement::slerp(const Placement & p0, const Placement & p1, double t)
 {
     Rotation rot = Rotation::slerp(p0.getRotation(), p1.getRotation(), t);
     Vector3d pos = p0.getPosition() * (1.0-t) + p1.getPosition() * t;
-    return Placement(pos, rot);
+    return {pos, rot};
 }
 
 Placement Placement::sclerp(const Placement& p0, const Placement& p1, double t, bool shorten)

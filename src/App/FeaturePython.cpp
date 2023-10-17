@@ -38,7 +38,7 @@
 using namespace App;
 
 FeaturePythonImp::FeaturePythonImp(App::DocumentObject* o)
-    : object(o), has__object__(false)
+    : object(o)
 {
 }
 
@@ -232,6 +232,28 @@ void FeaturePythonImp::onDocumentRestored()
     }
 }
 
+void FeaturePythonImp::unsetupObject()
+{
+    _FC_PY_CALL_CHECK(unsetupObject, return);
+
+    // Run the execute method of the proxy object.
+    Base::PyGILStateLocker lock;
+    try {
+        if (has__object__) {
+            Base::pyCall(py_unsetupObject.ptr());
+        }
+        else {
+            Py::Tuple args(1);
+            args.setItem(0, Py::Object(object->getPyObject(), true));
+            Base::pyCall(py_unsetupObject.ptr(), args.ptr());
+        }
+    }
+    catch (Py::Exception&) {
+        Base::PyException e; // extract the Python error text
+        e.ReportException();
+    }
+}
+
 bool FeaturePythonImp::getSubObject(DocumentObject *&ret, const char *subname,
     PyObject **pyObj, Base::Matrix4D *_mat, bool transform, int depth) const
 {
@@ -374,7 +396,7 @@ bool FeaturePythonImp::getLinkedObject(DocumentObject *&ret, bool recurse,
     }
 }
 
-PyObject *FeaturePythonImp::getPyObject(void)
+PyObject *FeaturePythonImp::getPyObject()
 {
     // ref counter is set to 1
     return new FeaturePythonPyT<DocumentObjectPy>(object);
@@ -458,7 +480,7 @@ std::string FeaturePythonImp::getViewProviderName()
         e.ReportException();
     }
 
-    return std::string();
+    return {};
 }
 
 FeaturePythonImp::ValueT
@@ -584,10 +606,10 @@ bool FeaturePythonImp::editProperty(const char *name)
 
 namespace App {
 PROPERTY_SOURCE_TEMPLATE(App::FeaturePython, App::DocumentObject)
-template<> const char* App::FeaturePython::getViewProviderName(void) const {
+template<> const char* App::FeaturePython::getViewProviderName() const {
     return "Gui::ViewProviderPythonFeature";
 }
-template<> PyObject* App::FeaturePython::getPyObject(void) {
+template<> PyObject* App::FeaturePython::getPyObject() {
     if (PythonObject.is(Py::_None())) {
         // ref counter is set to 1
         PythonObject = Py::Object(new FeaturePythonPyT<DocumentObjectPy>(this),true);
@@ -602,7 +624,7 @@ template class AppExport FeaturePythonT<DocumentObject>;
 
 namespace App {
 PROPERTY_SOURCE_TEMPLATE(App::GeometryPython, App::GeoFeature)
-template<> const char* App::GeometryPython::getViewProviderName(void) const {
+template<> const char* App::GeometryPython::getViewProviderName() const {
     return "Gui::ViewProviderPythonGeometry";
 }
 // explicit template instantiation

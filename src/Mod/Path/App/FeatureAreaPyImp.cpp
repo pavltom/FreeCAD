@@ -22,9 +22,8 @@
 
 #include "PreCompiled.h"
 
-#include <CXX/Objects.hxx>
+#include <Base/PyWrapParseTupleAndKeywords.h>
 #include <Mod/Part/App/TopoShapePy.h>
-#include "FeatureArea.h"
 
 // inclusion of the generated files (generated out of FeatureAreaPy.xml)
 #include "FeatureAreaPy.h"
@@ -32,11 +31,11 @@
 
 #include "AreaPy.h"
 
+
 using namespace Path;
 
-
 // returns a string which represent the object e.g. when printed in python
-std::string FeatureAreaPy::representation(void) const
+std::string FeatureAreaPy::representation() const
 {
     return std::string("<Path::FeatureArea>");
 }
@@ -52,7 +51,7 @@ PyObject* FeatureAreaPy::getArea(PyObject *args)
 
 PyObject* FeatureAreaPy::setParams(PyObject *args, PyObject *keywds)
 {
-    static char *kwlist[] = {PARAM_FIELD_STRINGS(NAME,AREA_PARAMS_CONF),nullptr};
+    static const std::array<const char *, 43> kwlist {PARAM_FIELD_STRINGS(NAME,AREA_PARAMS_CONF),nullptr};
 
     //Declare variables defined in the NAME field of the CONF parameter list
     PARAM_PY_DECLARE(PARAM_FNAME,AREA_PARAMS_CONF);
@@ -65,9 +64,9 @@ PyObject* FeatureAreaPy::setParams(PyObject *args, PyObject *keywds)
     //populate the CONF variables with values in properties
     PARAM_FOREACH(AREA_SET,AREA_PARAMS_CONF)
 
-    //Parse arguments to overwrite CONF variables 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, 
-                "|" PARAM_PY_KWDS(AREA_PARAMS_CONF), kwlist, 
+    //Parse arguments to overwrite CONF variables
+    if (!Base::Wrapped_ParseTupleAndKeywords(args, keywds,
+                "|" PARAM_PY_KWDS(AREA_PARAMS_CONF), kwlist,
                 PARAM_REF(PARAM_FNAME,AREA_PARAMS_CONF)))
         return nullptr;
 
@@ -81,7 +80,7 @@ PyObject* FeatureAreaPy::setParams(PyObject *args, PyObject *keywds)
     return Py_None;
 }
 
-Py::Object FeatureAreaPy::getWorkPlane(void) const {
+Py::Object FeatureAreaPy::getWorkPlane() const {
     return Part::shape2pyshape(getFeatureAreaPtr()->getArea().getPlane());
 }
 

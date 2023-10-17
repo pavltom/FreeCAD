@@ -38,6 +38,7 @@
 #endif
 
 #include <Base/GeometryPyCXX.h>
+#include <Base/PyWrapParseTupleAndKeywords.h>
 
 #include "Geom2d/BSplineCurve2dPy.h"
 #include "Geom2d/BSplineCurve2dPy.cpp"
@@ -48,7 +49,7 @@
 using namespace Part;
 
 // returns a string which represents the object e.g. when printed in python
-std::string BSplineCurve2dPy::representation(void) const
+std::string BSplineCurve2dPy::representation() const
 {
     return "<BSplineCurve2d object>";
 }
@@ -618,35 +619,35 @@ PyObject* BSplineCurve2dPy::getMultiplicities(PyObject * args)
     }
 }
 
-Py::Long BSplineCurve2dPy::getDegree(void) const
+Py::Long BSplineCurve2dPy::getDegree() const
 {
     Handle(Geom2d_BSplineCurve) curve = Handle(Geom2d_BSplineCurve)::DownCast
         (getGeometry2dPtr()->handle());
-    return Py::Long(curve->Degree()); 
+    return Py::Long(curve->Degree());
 }
 
-Py::Long BSplineCurve2dPy::getMaxDegree(void) const
+Py::Long BSplineCurve2dPy::getMaxDegree() const
 {
     Handle(Geom2d_BSplineCurve) curve = Handle(Geom2d_BSplineCurve)::DownCast
         (getGeometry2dPtr()->handle());
-    return Py::Long(curve->MaxDegree()); 
+    return Py::Long(curve->MaxDegree());
 }
 
-Py::Long BSplineCurve2dPy::getNbPoles(void) const
+Py::Long BSplineCurve2dPy::getNbPoles() const
 {
     Handle(Geom2d_BSplineCurve) curve = Handle(Geom2d_BSplineCurve)::DownCast
         (getGeometry2dPtr()->handle());
-    return Py::Long(curve->NbPoles()); 
+    return Py::Long(curve->NbPoles());
 }
 
-Py::Long BSplineCurve2dPy::getNbKnots(void) const
+Py::Long BSplineCurve2dPy::getNbKnots() const
 {
     Handle(Geom2d_BSplineCurve) curve = Handle(Geom2d_BSplineCurve)::DownCast
         (getGeometry2dPtr()->handle());
-    return Py::Long(curve->NbKnots()); 
+    return Py::Long(curve->NbKnots());
 }
 
-Py::Object BSplineCurve2dPy::getStartPoint(void) const
+Py::Object BSplineCurve2dPy::getStartPoint() const
 {
     Handle(Geom2d_BSplineCurve) c = Handle(Geom2d_BSplineCurve)::DownCast
         (getGeometry2dPtr()->handle());
@@ -654,7 +655,7 @@ Py::Object BSplineCurve2dPy::getStartPoint(void) const
     return Base::Vector2dPy::create(pnt.X(), pnt.Y());
 }
 
-Py::Object BSplineCurve2dPy::getEndPoint(void) const
+Py::Object BSplineCurve2dPy::getEndPoint() const
 {
     Handle(Geom2d_BSplineCurve) c = Handle(Geom2d_BSplineCurve)::DownCast
         (getGeometry2dPtr()->handle());
@@ -662,21 +663,21 @@ Py::Object BSplineCurve2dPy::getEndPoint(void) const
     return Base::Vector2dPy::create(pnt.X(), pnt.Y());
 }
 
-Py::Object BSplineCurve2dPy::getFirstUKnotIndex(void) const
+Py::Object BSplineCurve2dPy::getFirstUKnotIndex() const
 {
     Handle(Geom2d_BSplineCurve) curve = Handle(Geom2d_BSplineCurve)::DownCast
         (getGeometry2dPtr()->handle());
-    return Py::Long(curve->FirstUKnotIndex()); 
+    return Py::Long(curve->FirstUKnotIndex());
 }
 
-Py::Object BSplineCurve2dPy::getLastUKnotIndex(void) const
+Py::Object BSplineCurve2dPy::getLastUKnotIndex() const
 {
     Handle(Geom2d_BSplineCurve) curve = Handle(Geom2d_BSplineCurve)::DownCast
         (getGeometry2dPtr()->handle());
-    return Py::Long(curve->LastUKnotIndex()); 
+    return Py::Long(curve->LastUKnotIndex());
 }
 
-Py::List BSplineCurve2dPy::getKnotSequence(void) const
+Py::List BSplineCurve2dPy::getKnotSequence() const
 {
     Handle(Geom2d_BSplineCurve) curve = Handle(Geom2d_BSplineCurve)::DownCast
         (getGeometry2dPtr()->handle());
@@ -711,9 +712,9 @@ PyObject* BSplineCurve2dPy::toBiArcs(PyObject * args)
         arcs = curve->toBiArcs(tolerance);
 
         Py::List list;
-        for (std::list<Geometry2d*>::iterator it = arcs.begin(); it != arcs.end(); ++it) {
-            list.append(Py::asObject((*it)->getPyObject()));
-            delete (*it);
+        for (auto arc : arcs) {
+            list.append(Py::asObject(arc->getPyObject()));
+            delete arc;
         }
 
         return Py::new_reference_to(list);
@@ -736,17 +737,19 @@ PyObject* BSplineCurve2dPy::approximate(PyObject *args, PyObject *kwds)
     double weight1 = 0;
     double weight2 = 0;
     double weight3 = 0;
-    
-    static char* kwds_interp[] = {"Points", "DegMax", "Continuity", "Tolerance", "DegMin", "ParamType", "Parameters",
-                                  "LengthWeight", "CurvatureWeight", "TorsionWeight", nullptr};
-    
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|isdisOddd",kwds_interp,
-                                     &obj, &degMax,
-                                     &continuity, &tol3d, &degMin, 
-                                     &parType, &par,
-                                     &weight1, &weight2, &weight3))
+
+    static const std::array<const char *, 11> kwds_interp{"Points", "DegMax", "Continuity", "Tolerance", "DegMin",
+                                                          "ParamType", "Parameters", "LengthWeight", "CurvatureWeight",
+                                                          "TorsionWeight", nullptr};
+
+    if (!Base::Wrapped_ParseTupleAndKeywords(args, kwds, "O|isdisOddd",kwds_interp,
+                                             &obj, &degMax,
+                                             &continuity, &tol3d, &degMin,
+                                             &parType, &par,
+                                             &weight1, &weight2, &weight3)) {
         return nullptr;
-    
+    }
+
     try {
         Py::Sequence list(obj);
         TColgp_Array1OfPnt2d pnts(1,list.size());
@@ -759,7 +762,7 @@ PyObject* BSplineCurve2dPy::approximate(PyObject *args, PyObject *kwds)
         if (degMin > degMax) {
             Standard_Failure::Raise("DegMin must be lower or equal to DegMax");
         }
-        
+
         GeomAbs_Shape c;
         std::string str = continuity;
         if (str == "C0")
@@ -778,7 +781,7 @@ PyObject* BSplineCurve2dPy::approximate(PyObject *args, PyObject *kwds)
             c = GeomAbs_CN;
         else
             c = GeomAbs_C2;
-        
+
         if (weight1 || weight2 || weight3) {
             // It seems that this function only works with Continuity = C0, C1 or C2
             if (!(c == GeomAbs_C0 || c == GeomAbs_C1 || c == GeomAbs_C2)) {
@@ -796,7 +799,7 @@ PyObject* BSplineCurve2dPy::approximate(PyObject *args, PyObject *kwds)
                 return nullptr; // goes to the catch block
             }
         }
-        
+
         if (par) {
             Py::Sequence plist(par);
             TColStd_Array1OfReal parameters(1,plist.size());
@@ -805,7 +808,7 @@ PyObject* BSplineCurve2dPy::approximate(PyObject *args, PyObject *kwds)
                 Py::Float f(*it);
                 parameters(index++) = static_cast<double>(f);
             }
-            
+
             Geom2dAPI_PointsToBSpline fit(pnts, parameters, degMin, degMax, c, tol3d);
             Handle(Geom2d_BSplineCurve) spline = fit.Curve();
             if (!spline.IsNull()) {
@@ -817,7 +820,7 @@ PyObject* BSplineCurve2dPy::approximate(PyObject *args, PyObject *kwds)
                 return nullptr; // goes to the catch block
             }
         }
-        
+
         Approx_ParametrizationType pt;
         std::string pstr = parType;
         if (pstr == "Uniform")
@@ -850,8 +853,8 @@ PyObject* BSplineCurve2dPy::getCardinalSplineTangents(PyObject *args, PyObject *
     PyObject* tgs;
     double parameter;
 
-    static char* kwds_interp1[] = {"Points", "Parameter", nullptr};
-    if (PyArg_ParseTupleAndKeywords(args, kwds, "Od",kwds_interp1, &pts, &parameter)) {
+    static const std::array<const char *, 3> kwds_interp1 {"Points", "Parameter", nullptr};
+    if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "Od", kwds_interp1, &pts, &parameter)) {
         Py::Sequence list(pts);
         std::vector<gp_Pnt2d> interpPoints;
         interpPoints.reserve(list.size());
@@ -872,8 +875,8 @@ PyObject* BSplineCurve2dPy::getCardinalSplineTangents(PyObject *args, PyObject *
     }
 
     PyErr_Clear();
-    static char* kwds_interp2[] = {"Points", "Parameters", nullptr};
-    if (PyArg_ParseTupleAndKeywords(args, kwds, "OO",kwds_interp2, &pts, &tgs)) {
+    static const std::array<const char *, 3> kwds_interp2 {"Points", "Parameters", nullptr};
+    if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "OO", kwds_interp2, &pts, &tgs)) {
         Py::Sequence list(pts);
         std::vector<gp_Pnt2d> interpPoints;
         interpPoints.reserve(list.size());
@@ -913,15 +916,17 @@ PyObject* BSplineCurve2dPy::interpolate(PyObject *args, PyObject *kwds)
     PyObject* t1 = nullptr; PyObject* t2 = nullptr;
     PyObject* ts = nullptr; PyObject* fl = nullptr;
 
-    static char* kwds_interp[] = {"Points", "PeriodicFlag", "Tolerance", "InitialTangent", "FinalTangent",
-                                  "Tangents", "TangentFlags", "Parameters", nullptr};
+    static const std::array<const char *, 9> kwds_interp{"Points", "PeriodicFlag", "Tolerance", "InitialTangent",
+                                                         "FinalTangent", "Tangents", "TangentFlags", "Parameters",
+                                                         nullptr};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O!dO!O!OOO",kwds_interp,
-                                     &obj, &PyBool_Type, &periodic, &tol3d,
-                                     Base::Vector2dPy::type_object(), &t1,
-                                     Base::Vector2dPy::type_object(), &t2,
-                                     &ts, &fl, &par))
+    if (!Base::Wrapped_ParseTupleAndKeywords(args, kwds, "O|O!dO!O!OOO",kwds_interp,
+                                             &obj, &PyBool_Type, &periodic, &tol3d,
+                                             Base::Vector2dPy::type_object(), &t1,
+                                             Base::Vector2dPy::type_object(), &t2,
+                                             &ts, &fl, &par)) {
         return nullptr;
+    }
 
     try {
         Py::Sequence list(obj);
@@ -949,12 +954,16 @@ PyObject* BSplineCurve2dPy::interpolate(PyObject *args, PyObject *kwds)
 
         std::unique_ptr<Geom2dAPI_Interpolate> aBSplineInterpolation;
         if (parameters.IsNull()) {
-            aBSplineInterpolation.reset(new Geom2dAPI_Interpolate(interpolationPoints,
-                Base::asBoolean(periodic), tol3d));
+            aBSplineInterpolation = std::make_unique<Geom2dAPI_Interpolate>(
+                interpolationPoints,
+                Base::asBoolean(periodic), tol3d
+            );
         }
         else {
-            aBSplineInterpolation.reset(new Geom2dAPI_Interpolate(interpolationPoints, parameters,
-                Base::asBoolean(periodic), tol3d));
+            aBSplineInterpolation = std::make_unique<Geom2dAPI_Interpolate>(
+                interpolationPoints, parameters,
+                Base::asBoolean(periodic), tol3d
+            );
         }
 
         if (t1 && t2) {
@@ -1081,7 +1090,8 @@ PyObject* BSplineCurve2dPy::buildFromPoles(PyObject *args)
 
 PyObject* BSplineCurve2dPy::buildFromPolesMultsKnots(PyObject *args, PyObject *keywds)
 {
-    static char *kwlist[] = {"poles", "mults", "knots", "periodic", "degree", "weights", nullptr};
+    static const std::array<const char *, 7> kwlist{"poles", "mults", "knots", "periodic", "degree", "weights",
+                                                    nullptr};
     PyObject* periodic = Py_False;
     PyObject* poles = Py_None;
     PyObject* mults = Py_None;
@@ -1091,11 +1101,12 @@ PyObject* BSplineCurve2dPy::buildFromPolesMultsKnots(PyObject *args, PyObject *k
     int number_of_poles = 0;
     int number_of_knots = 0;
     int sum_of_mults = 0;
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|OOO!iO", kwlist,
+    if (!Base::Wrapped_ParseTupleAndKeywords(args, keywds, "O|OOO!iO", kwlist,
         &poles, &mults, &knots,
         &PyBool_Type, &periodic,
-        &degree, &weights))
+        &degree, &weights)) {
         return nullptr;
+    }
     try {
         // poles have to be present
         Py::Sequence list(poles);
@@ -1278,5 +1289,5 @@ PyObject* BSplineCurve2dPy::getCustomAttributes(const char* /*attr*/) const
 
 int BSplineCurve2dPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)
 {
-    return 0; 
+    return 0;
 }

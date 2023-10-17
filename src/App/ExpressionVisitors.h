@@ -34,18 +34,19 @@ namespace App {
 
 template<class P> class RenameObjectIdentifierExpressionVisitor : public ExpressionModifier<P> {
 public:
-    RenameObjectIdentifierExpressionVisitor(P & _prop,
-                                            const std::map<ObjectIdentifier, ObjectIdentifier> &_paths, const ObjectIdentifier & _owner)
+    RenameObjectIdentifierExpressionVisitor(
+        P &_prop,
+        const std::map<ObjectIdentifier, ObjectIdentifier> &_paths,
+        const ObjectIdentifier &_owner)
         : ExpressionModifier<P>(_prop)
-        , paths(_paths)
-        , owner(_owner)
+        , paths( _paths )
+        , owner( _owner )
     {
     }
 
-    void visit(Expression &node) {
+    void visit(Expression &node) override {
         this->renameObjectIdentifier(node,paths,owner);
     }
-
 
 private:
    const std::map<ObjectIdentifier, ObjectIdentifier> &paths; /**< Map with current and new object identifiers */
@@ -55,12 +56,12 @@ private:
 template<class P> class UpdateElementReferenceExpressionVisitor : public ExpressionModifier<P> {
 public:
 
-    UpdateElementReferenceExpressionVisitor(P & _prop, App::DocumentObject *feature=nullptr, bool reverse=false)
+    explicit UpdateElementReferenceExpressionVisitor(P & _prop, App::DocumentObject *feature=nullptr, bool reverse=false)
         : ExpressionModifier<P>(_prop),feature(feature),reverse(reverse)
     {
     }
 
-    void visit(Expression &node) {
+    void visit(Expression &node) override {
         this->updateElementReference(node,feature,reverse);
     }
 
@@ -76,12 +77,12 @@ private:
 class RelabelDocumentExpressionVisitor : public ExpressionVisitor {
 public:
 
-    RelabelDocumentExpressionVisitor(const App::Document &doc)
+    explicit RelabelDocumentExpressionVisitor(const App::Document &doc)
          : doc(doc)
     {
     }
 
-    void visit(Expression &node) {
+    void visit(Expression &node) override {
         this->relabeledDocument(node,doc.getOldLabel(),doc.Label.getStrValue());
     }
 
@@ -95,7 +96,7 @@ public:
         : ExpressionModifier<P>(prop),address(address),rowCount(rowCount),colCount(colCount)
     {}
 
-    void visit(Expression &node) {
+    void visit(Expression &node) override {
         this->moveCells(node,address,rowCount,colCount);
     }
 
@@ -111,7 +112,7 @@ public:
         : ExpressionModifier<P>(prop),rowOffset(rowOffset),colOffset(colOffset)
     {}
 
-    void visit(Expression &node) {
+    void visit(Expression &node) override {
         this->offsetCells(node,rowOffset,colOffset);
     }
 

@@ -52,12 +52,12 @@ public:
             NumMigrationType        // Must be the last
     };
 
-    GeometryMigrationExtension();
-    virtual ~GeometryMigrationExtension() override = default;
+    GeometryMigrationExtension() = default;
+    ~GeometryMigrationExtension() override = default;
 
-    virtual std::unique_ptr<Part::GeometryExtension> copy(void) const override;
+    std::unique_ptr<Part::GeometryExtension> copy() const override;
 
-    virtual PyObject *getPyObject(void) override;
+    PyObject *getPyObject() override;
 
 
     virtual bool getConstruction() const {return ConstructionState;}
@@ -67,7 +67,7 @@ public:
     virtual void setMigrationType(int flag, bool v=true) { GeometryMigrationFlags.set((size_t)(flag), v); };
 
 protected:
-    virtual void copyAttributes(Part::GeometryExtension * cpy) const override;
+    void copyAttributes(Part::GeometryExtension * cpy) const override;
 
 private:
     GeometryMigrationExtension(const GeometryMigrationExtension&) = default;
@@ -75,7 +75,7 @@ private:
 private:
     using MigrationTypeFlagType = std::bitset<32>;
     MigrationTypeFlagType           GeometryMigrationFlags;
-    bool                            ConstructionState;
+    bool                            ConstructionState{false};
 
 };
 

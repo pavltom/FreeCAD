@@ -1,4 +1,4 @@
- /**************************************************************************
+/**************************************************************************
  *   Copyright (c) 2016 FreeCAD Developers                                 *
  *   Author: Bernd Hahnebach <bernd@bimstatik.ch>                          *
  *   Based on src/Mod/Fem/Gui/DlgSettingsFemCcx.h                          *
@@ -22,22 +22,23 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef FEMGUI_DLGSETTINGSFEMELMERIMP_H
 #define FEMGUI_DLGSETTINGSFEMELMERIMP_H
 
 #include <Gui/PropertyPage.h>
 #include <memory>
 
-namespace FemGui {
+
+namespace FemGui
+{
 class Ui_DlgSettingsFemElmerImp;
-class DlgSettingsFemElmerImp : public Gui::Dialog::PreferencePage
+class DlgSettingsFemElmerImp: public Gui::Dialog::PreferencePage
 {
     Q_OBJECT
 
 public:
-    DlgSettingsFemElmerImp( QWidget* parent = nullptr );
-    ~DlgSettingsFemElmerImp();
+    explicit DlgSettingsFemElmerImp(QWidget* parent = nullptr);
+    ~DlgSettingsFemElmerImp() override;
 
 protected Q_SLOTS:
     void onfileNameChanged(QString FileName);
@@ -45,15 +46,15 @@ protected Q_SLOTS:
     void onCoresValueChanged(int cores);
 
 protected:
-    void saveSettings();
-    void loadSettings();
-    void changeEvent(QEvent *e);
+    void saveSettings() override;
+    void loadSettings() override;
+    void changeEvent(QEvent* e) override;
 
 private:
     std::unique_ptr<Ui_DlgSettingsFemElmerImp> ui;
-    unsigned int processor_count;
+    int processor_count;
 };
 
-} // namespace FemGui
+}  // namespace FemGui
 
-#endif // FEMGUI_DLGSETTINGSFEMELMERIMP_H
+#endif  // FEMGUI_DLGSETTINGSFEMELMERIMP_H

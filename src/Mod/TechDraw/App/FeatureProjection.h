@@ -25,9 +25,11 @@
 #ifndef TECHDRAW_FEATUREPROJECTION
 #define TECHDRAW_FEATUREPROJECTION
 
+#include <Mod/TechDraw/TechDrawGlobal.h>
+
 #include <App/DocumentObject.h>
-#include <App/PropertyGeo.h>
 #include <Mod/Part/App/PartFeature.h>
+
 
 namespace TechDraw
 {
@@ -36,12 +38,12 @@ namespace TechDraw
  */
 class TechDrawExport FeatureProjection : public Part::Feature
 {
-    PROPERTY_HEADER(TechDraw::FeatureProjection);
+    PROPERTY_HEADER_WITH_OVERRIDE(TechDraw::FeatureProjection);
 
 public:
     /// Constructor
     FeatureProjection();
-    virtual ~FeatureProjection();
+    ~FeatureProjection() override;
 
     App::PropertyLink   Source;
     App::PropertyVector Direction;
@@ -59,7 +61,7 @@ public:
     /** @name methods override feature */
     //@{
     /// recalculate the Feature
-    virtual App::DocumentObjectExecReturn *execute(void);
+    App::DocumentObjectExecReturn *execute() override;
     //@}
 };
 

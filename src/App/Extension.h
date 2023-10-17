@@ -146,7 +146,7 @@ template<> void _class_::init(void){\
  *     EXTENSION_ADD_PROPERTY(MyProp, (0)) *
  *     initExtension(MyExtension::getExtensionClassTypeId());
  * }
- * typedef ExtensionPythonT<MyExtension> MyExtensionPython;
+ * using MyExtensionPython = ExtensionPythonT<MyExtension>;
  * @endcode
  *
  * The special python extension type created above is important, as only those python extensions
@@ -212,7 +212,7 @@ template<> void _class_::init(void){\
  * To ensure that your wrapper is used when a extension is created from python the extension type must
  * be exposed as follows:
  * @code
- * typedef ExtensionPythonT<MyExtensionPythonT<MyExtension>> MyExtensionPython;
+ * using MyExtensionPython = ExtensionPythonT<MyExtensionPythonT<MyExtension>>;
  * @endcode
  *
  * This boilerplate is absolutely necessary to allow overridable methods in python and it is the
@@ -228,7 +228,7 @@ class AppExport Extension
 
 public:
 
-    Extension();
+    Extension() = default;
     virtual ~Extension();
 
     virtual void initExtension(App::ExtensionContainer* obj);
@@ -284,6 +284,11 @@ protected:
     //@}
 
     virtual void extensionOnChanged(const Property* p) {(void)(p);}
+
+    /// returns true if the property name change was handled by the extension.
+    virtual bool extensionHandleChangedPropertyName(Base::XMLReader &reader, const char * TypeName, const char *PropName);
+    /// returns true if the property type change was handled by the extension.
+    virtual bool extensionHandleChangedPropertyType(Base::XMLReader &reader, const char * TypeName, Property * prop);
 
     friend class App::ExtensionContainer;
 

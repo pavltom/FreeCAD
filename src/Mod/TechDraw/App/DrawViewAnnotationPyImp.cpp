@@ -20,17 +20,12 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
 # include <sstream>
 #endif
 
-#include <App/DocumentObject.h>
-#include <Base/Console.h>
-
-#include "DrawPage.h"
 #include "DrawView.h"
 #include "DrawViewAnnotation.h"
 
@@ -39,10 +34,11 @@
 #include <Mod/TechDraw/App/DrawViewAnnotationPy.h>
 #include <Mod/TechDraw/App/DrawViewAnnotationPy.cpp>
 
+
 using namespace TechDraw;
 
 // returns a string which represents the object e.g. when printed in python
-std::string DrawViewAnnotationPy::representation(void) const
+std::string DrawViewAnnotationPy::representation() const
 {
     return std::string("<DrawViewAnnotation object>");
 }

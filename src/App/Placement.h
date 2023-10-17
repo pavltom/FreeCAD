@@ -34,21 +34,21 @@ namespace App
  */
 class AppExport Placement: public App::GeoFeature
 {
-    PROPERTY_HEADER(App::Placement);
+    PROPERTY_HEADER_WITH_OVERRIDE(App::Placement);
 
 public:
   /// Constructor
-  Placement(void);
-  virtual ~Placement();
+  Placement();
+  ~Placement() override;
 
   /// returns the type name of the ViewProvider
-  virtual const char* getViewProviderName(void) const {
+  const char* getViewProviderName() const override {
       return "Gui::ViewProviderPlacement";
   }
 
 
 };
-typedef App::FeaturePythonT<App::Placement> PlacementPython;
+using PlacementPython = App::FeaturePythonT<App::Placement>;
 
 
 } //namespace App

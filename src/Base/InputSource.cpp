@@ -23,6 +23,15 @@
 
 #include "PreCompiled.h"
 
+#include <qglobal.h>
+#if QT_VERSION < 0x060000
+#include <QTextCodec>
+#else
+#include <QByteArray>
+#include <QStringDecoder>
+#include <QStringEncoder>
+#endif
+
 #include "InputSource.h"
 #include "XMLTools.h"
 
@@ -36,57 +45,77 @@ using namespace std;
 // ---------------------------------------------------------------------------
 //  StdInputStream: Constructors and Destructor
 // ---------------------------------------------------------------------------
+
+#if QT_VERSION < 0x060000
+struct StdInputStream::TextCodec
+{
+    QTextCodec::ConverterState state;
+    TextCodec() {
+        state.flags |= QTextCodec::IgnoreHeader;
+        state.flags |= QTextCodec::ConvertInvalidToNull;
+    }
+
+    void validateBytes(XMLByte* const  toFill, std::streamsize len) {
+        QTextCodec *textCodec = QTextCodec::codecForName("UTF-8");
+        if (textCodec) {
+            const QString text = textCodec->toUnicode(reinterpret_cast<char *>(toFill), static_cast<int>(len), &state);
+            if (state.invalidChars > 0) {
+                // In case invalid characters were found decode back to 'utf-8' and replace
+                // them with '?'
+                // First, Qt replaces invalid characters with '\0' (see ConvertInvalidToNull)
+                // but Xerces doesn't like this because it handles this as termination. Thus,
+                // we have to go through the array and replace '\0' with '?'.
+                std::streamsize pos = 0;
+                QByteArray ba = textCodec->fromUnicode(text);
+                for (int i=0; i<ba.length(); i++, pos++) {
+                    if (pos < len && ba[i] == '\0') {
+                        toFill[i] = '?';
+                    }
+                }
+            }
+        }
+    }
+};
+#else
+struct StdInputStream::TextCodec
+{
+    void validateBytes(XMLByte* const  toFill, std::streamsize len) {
+        QByteArray encodedString(reinterpret_cast<char *>(toFill), static_cast<int>(len));
+        auto toUtf16 = QStringDecoder(QStringDecoder::Utf8);
+        QString text = toUtf16(encodedString);
+        if (toUtf16.hasError()) {
+            // In case invalid characters were found decode back to 'utf-8' and replace
+            // them with '?'
+            // First, Qt replaces invalid characters with '\0'
+            // but Xerces doesn't like this because it handles this as termination. Thus,
+            // we have to go through the array and replace '\0' with '?'.
+            std::streamsize pos = 0;
+            auto fromUtf16 = QStringEncoder(QStringEncoder::Utf8);
+            QByteArray ba = fromUtf16(text);
+            for (int i=0; i<ba.length(); i++, pos++) {
+                if (pos < len && ba[i] == '\0') {
+                    toFill[i] = '?';
+                }
+            }
+        }
+    }
+};
+#endif
+
 StdInputStream::StdInputStream( std::istream& Stream, XERCES_CPP_NAMESPACE_QUALIFIER MemoryManager* const manager )
-  : stream(Stream), fMemoryManager(manager)
+  : stream(Stream)
+  , codec(new TextCodec)
 {
-    state.flags |= QTextCodec::IgnoreHeader;
-    state.flags |= QTextCodec::ConvertInvalidToNull;
+    (void)manager;
 }
 
 
-StdInputStream::~StdInputStream()
-{
-}
+StdInputStream::~StdInputStream() = default;
 
 
 // ---------------------------------------------------------------------------
 //  StdInputStream: Implementation of the input stream interface
 // ---------------------------------------------------------------------------
-#if (XERCES_VERSION_MAJOR == 2)
-unsigned int StdInputStream::curPos() const
-{
-  return stream.tellg();
-}
-
-unsigned int StdInputStream::readBytes( XMLByte* const  toFill, const unsigned int maxToRead )
-{
-  //
-  //  Read up to the maximum bytes requested. We return the number
-  //  actually read.
-  //
-
-  stream.read((char *)toFill,maxToRead);
-  XMLSize_t len = stream.gcount();
-
-  QTextCodec *codec = QTextCodec::codecForName("UTF-8");
-  const QString text = codec->toUnicode((char *)toFill, len, &state);
-  if (state.invalidChars > 0) {
-      // In case invalid characters were found decode back to 'utf-8' and replace
-      // them with '?'
-      // First, Qt replaces invalid characters with '\0' (see ConvertInvalidToNull)
-      // but Xerces doesn't like this because it handles this as termination. Thus,
-      // we have to go through the array and replace '\0' with '?'.
-      XMLSize_t pos = 0;
-      QByteArray ba = codec->fromUnicode(text);
-      for (int i=0; i<ba.length(); i++, pos++) {
-          if (pos < len && ba[i] == '\0')
-              toFill[i] = '?';
-      }
-  }
-
-  return len;
-}
-#else
 XMLFilePos StdInputStream::curPos() const
 {
   return static_cast<XMLFilePos>(stream.tellg());
@@ -102,25 +131,10 @@ XMLSize_t StdInputStream::readBytes(XMLByte* const  toFill, const XMLSize_t maxT
   stream.read(reinterpret_cast<char *>(toFill), static_cast<std::streamsize>(maxToRead));
   std::streamsize len = stream.gcount();
 
-  QTextCodec *codec = QTextCodec::codecForName("UTF-8");
-  const QString text = codec->toUnicode(reinterpret_cast<char *>(toFill), static_cast<int>(len), &state);
-  if (state.invalidChars > 0) {
-      // In case invalid characters were found decode back to 'utf-8' and replace
-      // them with '?'
-      // First, Qt replaces invalid characters with '\0' (see ConvertInvalidToNull)
-      // but Xerces doesn't like this because it handles this as termination. Thus,
-      // we have to go through the array and replace '\0' with '?'.
-      std::streamsize pos = 0;
-      QByteArray ba = codec->fromUnicode(text);
-      for (int i=0; i<ba.length(); i++, pos++) {
-          if (pos < len && ba[i] == '\0')
-              toFill[i] = '?';
-      }
-  }
+  codec->validateBytes(toFill, len);
 
   return static_cast<XMLSize_t>(len);
 }
-#endif
 
 
 // ---------------------------------------------------------------------------
@@ -135,9 +149,7 @@ StdInputSource::StdInputSource ( std::istream& Stream, const char* filePath, XER
 }
 
 
-StdInputSource::~StdInputSource()
-{
-}
+StdInputSource::~StdInputSource() = default;
 
 
 // ---------------------------------------------------------------------------

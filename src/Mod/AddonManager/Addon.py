@@ -1,61 +1,73 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
 # ***************************************************************************
 # *                                                                         *
-# *   Copyright (c) 2022 FreeCAD Project Association                        *
+# *   Copyright (c) 2022-2023 FreeCAD Project Association                   *
 # *                                                                         *
-# *   This program is free software; you can redistribute it and/or modify  *
-# *   it under the terms of the GNU Lesser General Public License (LGPL)    *
-# *   as published by the Free Software Foundation; either version 2 of     *
-# *   the License, or (at your option) any later version.                   *
-# *   for detail see the LICENCE text file.                                 *
+# *   This file is part of FreeCAD.                                         *
 # *                                                                         *
-# *   This program is distributed in the hope that it will be useful,       *
-# *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-# *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-# *   GNU Library General Public License for more details.                  *
+# *   FreeCAD is free software: you can redistribute it and/or modify it    *
+# *   under the terms of the GNU Lesser General Public License as           *
+# *   published by the Free Software Foundation, either version 2.1 of the  *
+# *   License, or (at your option) any later version.                       *
 # *                                                                         *
-# *   You should have received a copy of the GNU Library General Public     *
-# *   License along with this program; if not, write to the Free Software   *
-# *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
-# *   USA                                                                   *
+# *   FreeCAD is distributed in the hope that it will be useful, but        *
+# *   WITHOUT ANY WARRANTY; without even the implied warranty of            *
+# *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      *
+# *   Lesser General Public License for more details.                       *
+# *                                                                         *
+# *   You should have received a copy of the GNU Lesser General Public      *
+# *   License along with FreeCAD. If not, see                               *
+# *   <https://www.gnu.org/licenses/>.                                      *
 # *                                                                         *
 # ***************************************************************************
 
-import FreeCAD
+""" Defines the Addon class to encapsulate information about FreeCAD Addons """
 
 import os
+import re
 from urllib.parse import urlparse
-from typing import Dict, Set
+from typing import Dict, Set, List, Optional
 from threading import Lock
+from enum import IntEnum, auto
 
+import addonmanager_freecad_interface as fci
 from addonmanager_macro import Macro
 import addonmanager_utilities as utils
+from addonmanager_utilities import construct_git_url
+from addonmanager_metadata import (
+    Metadata,
+    MetadataReader,
+    UrlType,
+    Version,
+    DependencyType,
+)
 
-translate = FreeCAD.Qt.translate
+translate = fci.translate
 
-INTERNAL_WORKBENCHES = {}
-INTERNAL_WORKBENCHES["arch"] = "Arch"
-INTERNAL_WORKBENCHES["draft"] = "Draft"
-INTERNAL_WORKBENCHES["fem"] = "FEM"
-INTERNAL_WORKBENCHES["mesh"] = "Mesh"
-INTERNAL_WORKBENCHES["openscad"] = "OpenSCAD"
-INTERNAL_WORKBENCHES["part"] = "Part"
-INTERNAL_WORKBENCHES["partdesign"] = "PartDesign"
-INTERNAL_WORKBENCHES["path"] = "Path"
-INTERNAL_WORKBENCHES["plot"] = "Plot"
-INTERNAL_WORKBENCHES["points"] = "Points"
-INTERNAL_WORKBENCHES["raytracing"] = "Raytracing"
-INTERNAL_WORKBENCHES["robot"] = "Robot"
-INTERNAL_WORKBENCHES["sketcher"] = "Sketcher"
-INTERNAL_WORKBENCHES["spreadsheet"] = "Spreadsheet"
-INTERNAL_WORKBENCHES["techdraw"] = "TechDraw"
+INTERNAL_WORKBENCHES = {
+    "arch": "Arch",
+    "draft": "Draft",
+    "fem": "FEM",
+    "mesh": "Mesh",
+    "openscad": "OpenSCAD",
+    "part": "Part",
+    "partdesign": "PartDesign",
+    "path": "Path",
+    "plot": "Plot",
+    "points": "Points",
+    "robot": "Robot",
+    "sketcher": "Sketcher",
+    "spreadsheet": "Spreadsheet",
+    "techdraw": "TechDraw",
+}
 
 
 class Addon:
-    "Encapsulate information about a FreeCAD addon"
-
-    from enum import IntEnum
+    """Encapsulates information about a FreeCAD addon"""
 
     class Kind(IntEnum):
+        """The type of Addon: Workbench, macro, or package"""
+
         WORKBENCH = 1
         MACRO = 2
         PACKAGE = 3
@@ -63,18 +75,22 @@ class Addon:
         def __str__(self) -> str:
             if self.value == 1:
                 return "Workbench"
-            elif self.value == 2:
+            if self.value == 2:
                 return "Macro"
-            elif self.value == 3:
+            if self.value == 3:
                 return "Package"
+            return "ERROR_TYPE"
 
     class Status(IntEnum):
+        """The installation status of an Addon"""
+
         NOT_INSTALLED = 0
         UNCHECKED = 1
         NO_UPDATE_AVAILABLE = 2
         UPDATE_AVAILABLE = 3
         PENDING_RESTART = 4
         CANNOT_CHECK = 5  # If we don't have git, etc.
+        UNKNOWN = 100
 
         def __lt__(self, other):
             if self.__class__ is other.__class__:
@@ -83,32 +99,59 @@ class Addon:
 
         def __str__(self) -> str:
             if self.value == 0:
-                return "Not installed"
+                result = "Not installed"
             elif self.value == 1:
-                return "Unchecked"
+                result = "Unchecked"
             elif self.value == 2:
-                return "No update available"
+                result = "No update available"
             elif self.value == 3:
-                return "Update available"
+                result = "Update available"
             elif self.value == 4:
-                return "Restart required"
+                result = "Restart required"
             elif self.value == 5:
-                return "Can't check"
+                result = "Can't check"
+            else:
+                result = "ERROR_STATUS"
+            return result
 
     class Dependencies:
+        """Addon dependency information"""
+
         def __init__(self):
             self.required_external_addons = []  # A list of Addons
             self.blockers = []  # A list of Addons
             self.replaces = []  # A list of Addons
             self.internal_workbenches: Set[str] = set()  # Required internal workbenches
-            self.python_required: Set[str] = set()
+            self.python_requires: Set[str] = set()
             self.python_optional: Set[str] = set()
+            self.python_min_version = {"major": 3, "minor": 0}
+
+    class DependencyType(IntEnum):
+        """Several types of dependency information is stored"""
+
+        INTERNAL_WORKBENCH = auto()
+        REQUIRED_ADDON = auto()
+        BLOCKED_ADDON = auto()
+        REPLACED_ADDON = auto()
+        REQUIRED_PYTHON = auto()
+        OPTIONAL_PYTHON = auto()
 
     class ResolutionFailed(RuntimeError):
-        def __init__(self, msg):
-            super().__init__(msg)
+        """An exception type for dependency resolution failure."""
 
-    def __init__(self, name: str, url: str, status: Status, branch: str):
+    # The location of Addon Manager cache files: overridden by testing code
+    cache_directory = os.path.join(fci.DataPaths().cache_dir, "AddonManager")
+
+    # The location of the Mod directory: overridden by testing code
+    mod_directory = fci.DataPaths().mod_dir
+
+    def __init__(
+        self,
+        name: str,
+        url: str = "",
+        status: Status = Status.UNKNOWN,
+        branch: str = "",
+    ):
         self.name = name.strip()
         self.display_name = self.name
         self.url = url.strip()
@@ -119,22 +162,20 @@ class Addon:
         self.repo_type = Addon.Kind.WORKBENCH
         self.description = None
         self.tags = set()  # Just a cache, loaded from Metadata
+        self.last_updated = None
 
-        # To prevent multiple threads from running git actions on this repo at the same time
+        # To prevent multiple threads from running git actions on this repo at the
+        # same time
         self.git_lock = Lock()
 
         # To prevent multiple threads from accessing the status at the same time
         self.status_lock = Lock()
-        self.set_status(status)
-
-        from addonmanager_utilities import construct_git_url
+        self.update_status = status
 
         # The url should never end in ".git", so strip it if it's there
         parsed_url = urlparse(self.url)
         if parsed_url.path.endswith(".git"):
-            self.url = (
-                parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path[:-4]
-            )
+            self.url = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path[:-4]
             if parsed_url.query:
                 self.url += "?" + parsed_url.query
             if parsed_url.fragment:
@@ -144,35 +185,39 @@ class Addon:
             self.metadata_url = construct_git_url(self, "package.xml")
         else:
             self.metadata_url = None
-        self.metadata = None
-        self.icon = None
-        self.cached_icon_filename = ""
+        self.metadata: Optional[Metadata] = None
+        self.icon = None  # A QIcon version of this Addon's icon
+        self.icon_file: str = ""  # Absolute local path to cached icon file
+        self.best_icon_relative_path = ""
         self.macro = None  # Bridge to Gaël Écorchard's macro management class
         self.updated_timestamp = None
         self.installed_version = None
 
         # Each repo is also a node in a directed dependency graph (referenced by name so
-        # they cen be serialized):
+        # they can be serialized):
         self.requires: Set[str] = set()
         self.blocks: Set[str] = set()
 
-        # And maintains a list of required and optional Python dependencies from metadata.txt
+        # And maintains a list of required and optional Python dependencies
         self.python_requires: Set[str] = set()
         self.python_optional: Set[str] = set()
+        self.python_min_version = {"major": 3, "minor": 0}
+
+        self._icon_file = None
 
     def __str__(self) -> str:
         result = f"FreeCAD {self.repo_type}\n"
         result += f"Name: {self.name}\n"
         result += f"URL: {self.url}\n"
-        result += (
-            "Has metadata\n" if self.metadata is not None else "No metadata found\n"
-        )
+        result += "Has metadata\n" if self.metadata is not None else "No metadata found\n"
         if self.macro is not None:
             result += "Has linked Macro object\n"
         return result
 
     @classmethod
-    def from_macro(self, macro: Macro):
+    def from_macro(cls, macro: Macro):
+        """Create an Addon object from a Macro wrapper object"""
+
         if macro.is_installed():
             status = Addon.Status.UNCHECKED
         else:
@@ -184,17 +229,16 @@ class Addon:
         return instance
 
     @classmethod
-    def from_cache(self, cache_dict: Dict):
-        """Load basic data from cached dict data. Does not include Macro or Metadata information, which must be populated separately."""
+    def from_cache(cls, cache_dict: Dict):
+        """Load basic data from cached dict data. Does not include Macro or Metadata
+        information, which must be populated separately."""
 
-        mod_dir = os.path.join(FreeCAD.getUserAppDataDir(), "Mod", cache_dict["name"])
+        mod_dir = os.path.join(cls.mod_directory, cache_dict["name"])
         if os.path.isdir(mod_dir):
             status = Addon.Status.UNCHECKED
         else:
             status = Addon.Status.NOT_INSTALLED
-        instance = Addon(
-            cache_dict["name"], cache_dict["url"], status, cache_dict["branch"]
-        )
+        instance = Addon(cache_dict["name"], cache_dict["url"], status, cache_dict["branch"])
 
         for key, value in cache_dict.items():
             instance.__dict__[key] = value
@@ -203,8 +247,7 @@ class Addon:
         if instance.repo_type == Addon.Kind.PACKAGE:
             # There must be a cached metadata file, too
             cached_package_xml_file = os.path.join(
-                FreeCAD.getUserCachePath(),
-                "AddonManager",
+                instance.cache_directory,
                 "PackageMetadata",
                 instance.name,
             )
@@ -220,7 +263,8 @@ class Addon:
         return instance
 
     def to_cache(self) -> Dict:
-        """Returns a dictionary with cache information that can be used later with from_cache to recreate this object."""
+        """Returns a dictionary with cache information that can be used later with
+        from_cache to recreate this object."""
 
         return {
             "name": self.name,
@@ -230,6 +274,7 @@ class Addon:
             "repo_type": int(self.repo_type),
             "description": self.description,
             "cached_icon_filename": self.get_cached_icon_filename(),
+            "best_icon_relative_path": self.get_best_icon_relative_path(),
             "python2": self.python2,
             "obsolete": self.obsolete,
             "rejected": self.rejected,
@@ -240,84 +285,85 @@ class Addon:
         }
 
     def load_metadata_file(self, file: str) -> None:
+        """Read a given metadata file and set it as this object's metadata"""
+
         if os.path.exists(file):
-            metadata = FreeCAD.Metadata(file)
+            metadata = MetadataReader.from_file(file)
             self.set_metadata(metadata)
         else:
-            FreeCAD.Console.PrintLog("Internal error: {} does not exist".format(file))
+            fci.Console.PrintLog(f"Internal error: {file} does not exist")
 
-    def set_metadata(self, metadata: FreeCAD.Metadata) -> None:
+    def set_metadata(self, metadata: Metadata) -> None:
+        """Set the given metadata object as this object's metadata, updating the
+        object's display name and package type information to match, as well as
+        updating any dependency information, etc.
+        """
+
         self.metadata = metadata
-        self.display_name = metadata.Name
+        self.display_name = metadata.name
         self.repo_type = Addon.Kind.PACKAGE
-        self.description = metadata.Description
-        for url in metadata.Urls:
-            if "type" in url and url["type"] == "repository":
-                self.url = url["location"]
-                if "branch" in url:
-                    self.branch = url["branch"]
-                else:
-                    self.branch = "master"
+        self.description = metadata.description
+        for url in metadata.url:
+            if url.type == UrlType.repository:
+                self.url = url.location
+                self.branch = url.branch if url.branch else "master"
         self.extract_tags(self.metadata)
         self.extract_metadata_dependencies(self.metadata)
 
-    def version_is_ok(self, metadata) -> bool:
-        dep_fc_min = metadata.FreeCADMin
-        dep_fc_max = metadata.FreeCADMax
+    @staticmethod
+    def version_is_ok(metadata: Metadata) -> bool:
+        """Checks to see if the current running version of FreeCAD meets the
+        requirements set by the passed-in metadata parameter."""
 
-        fc_major = int(FreeCAD.Version()[0])
-        fc_minor = int(FreeCAD.Version()[1])
+        from_fci = list(fci.Version())
+        fc_version = Version(from_list=from_fci)
 
-        try:
-            if dep_fc_min and dep_fc_min != "0.0.0":
-                required_version = dep_fc_min.split(".")
-                if fc_major < int(required_version[0]):
-                    return False  # Major version is too low
-                elif fc_major == int(required_version[0]):
-                    if len(required_version) > 1 and fc_minor < int(
-                        required_version[1]
-                    ):
-                        return False  # Same major, and minor is too low
-        except ValueError:
-            FreeCAD.Console.PrintMessage(
-                f"Metadata file for {self.name} has invalid FreeCADMin version info\n"
-            )
+        dep_fc_min = metadata.freecadmin if metadata.freecadmin else fc_version
+        dep_fc_max = metadata.freecadmax if metadata.freecadmax else fc_version
 
-        try:
-            if dep_fc_max and dep_fc_max != "0.0.0":
-                required_version = dep_fc_max.split(".")
-                if fc_major > int(required_version[0]):
-                    return False  # Major version is too high
-                elif fc_major == int(required_version[0]):
-                    if len(required_version) > 1 and fc_minor > int(
-                        required_version[1]
-                    ):
-                        return False  # Same major, and minor is too high
-        except ValueError:
-            FreeCAD.Console.PrintMessage(
-                f"Metadata file for {self.name} has invalid FreeCADMax version info\n"
-            )
+        return dep_fc_min <= fc_version <= dep_fc_max
 
-        return True
-
-    def extract_metadata_dependencies(self, metadata):
+    def extract_metadata_dependencies(self, metadata: Metadata):
+        """Read dependency information from a metadata object and store it in this
+        Addon"""
 
         # Version check: if this piece of metadata doesn't apply to this version of
         # FreeCAD, just skip it.
-        if not self.version_is_ok(metadata):
+        if not Addon.version_is_ok(metadata):
             return
 
-        for dep in metadata.Depend:
-            # Simple version for now: eventually support all of the version params...
-            self.requires.add(dep["package"])
-            FreeCAD.Console.PrintLog(
-                f"Package {self.name}: Adding dependency on {dep['package']}\n"
-            )
-        for dep in metadata.Conflict:
-            self.blocks.add(dep["package"])
+        if metadata.pythonmin:
+            self.python_min_version["major"] = metadata.pythonmin.version_as_list[0]
+            self.python_min_version["minor"] = metadata.pythonmin.version_as_list[1]
+
+        for dep in metadata.depend:
+            if dep.dependency_type == DependencyType.internal:
+                if dep.package in INTERNAL_WORKBENCHES:
+                    self.requires.add(dep.package)
+                else:
+                    fci.Console.PrintWarning(
+                        translate(
+                            "AddonsInstaller",
+                            "{}: Unrecognized internal workbench '{}'",
+                        ).format(self.name, dep.package)
+                    )
+            elif dep.dependency_type == DependencyType.addon:
+                self.requires.add(dep.package)
+            elif dep.dependency_type == DependencyType.python:
+                if dep.optional:
+                    self.python_optional.add(dep.package)
+                else:
+                    self.python_requires.add(dep.package)
+            else:
+                # Automatic resolution happens later, once we have a complete list of
+                # Addons
+                self.requires.add(dep.package)
+
+        for dep in metadata.conflict:
+            self.blocks.add(dep.package)
 
         # Recurse
-        content = metadata.Content
+        content = metadata.content
         for _, value in content.items():
             for item in value:
                 self.extract_metadata_dependencies(item)
@@ -328,7 +374,7 @@ class Addon:
         the wrong branch name."""
 
         if self.url != url:
-            FreeCAD.Console.PrintWarning(
+            fci.Console.PrintWarning(
                 translate(
                     "AddonsInstaller",
                     "Addon Developer Warning: Repository URL set in package.xml file for addon {} ({}) does not match the URL it was fetched from ({})",
@@ -336,7 +382,7 @@ class Addon:
                 + "\n"
             )
         if self.branch != branch:
-            FreeCAD.Console.PrintWarning(
+            fci.Console.PrintWarning(
                 translate(
                     "AddonsInstaller",
                     "Addon Developer Warning: Repository branch set in package.xml file for addon {} ({}) does not match the branch it was fetched from ({})",
@@ -344,18 +390,19 @@ class Addon:
                 + "\n"
             )
 
-    def extract_tags(self, metadata: FreeCAD.Metadata) -> None:
+    def extract_tags(self, metadata: Metadata) -> None:
+        """Read the tags from the metadata object"""
 
         # Version check: if this piece of metadata doesn't apply to this version of
         # FreeCAD, just skip it.
-        if not self.version_is_ok(metadata):
+        if not Addon.version_is_ok(metadata):
             return
 
-        for new_tag in metadata.Tag:
+        for new_tag in metadata.tag:
             self.tags.add(new_tag)
 
-        content = metadata.Content
-        for key, value in content.items():
+        content = metadata.content
+        for _, value in content.items():
             for item in value:
                 self.extract_tags(item)
 
@@ -364,86 +411,106 @@ class Addon:
 
         if self.repo_type == Addon.Kind.WORKBENCH:
             return True
-        elif self.repo_type == Addon.Kind.PACKAGE:
+        if self.repo_type == Addon.Kind.PACKAGE:
             if self.metadata is None:
-                FreeCAD.Console.PrintLog(
+                fci.Console.PrintLog(
                     f"Addon Manager internal error: lost metadata for package {self.name}\n"
                 )
                 return False
-            content = self.metadata.Content
+            content = self.metadata.content
             if not content:
-                FreeCAD.Console.PrintLog(
-                    f"Package {self.display_name} does not list any content items in its package.xml metadata file.\n"
-                )
                 return False
             return "workbench" in content
-        else:
-            return False
+        return False
 
     def contains_macro(self) -> bool:
         """Determine if this package contains (or is) a macro"""
 
         if self.repo_type == Addon.Kind.MACRO:
             return True
-        elif self.repo_type == Addon.Kind.PACKAGE:
+        if self.repo_type == Addon.Kind.PACKAGE:
             if self.metadata is None:
-                FreeCAD.Console.PrintLog(
+                fci.Console.PrintLog(
                     f"Addon Manager internal error: lost metadata for package {self.name}\n"
                 )
                 return False
-            content = self.metadata.Content
+            content = self.metadata.content
             return "macro" in content
-        else:
-            return False
+        return False
 
     def contains_preference_pack(self) -> bool:
         """Determine if this package contains a preference pack"""
 
         if self.repo_type == Addon.Kind.PACKAGE:
             if self.metadata is None:
-                FreeCAD.Console.PrintLog(
+                fci.Console.PrintLog(
                     f"Addon Manager internal error: lost metadata for package {self.name}\n"
                 )
                 return False
-            content = self.metadata.Content
+            content = self.metadata.content
             return "preferencepack" in content
-        else:
-            return False
+        return False
+
+    def get_best_icon_relative_path(self) -> str:
+        """Get the path within the repo the addon's icon. Usually specified by
+        top-level metadata, but some authors omit it and specify only icons for the
+        contents. Find the first one of those, in such cases."""
+
+        if self.best_icon_relative_path:
+            return self.best_icon_relative_path
+
+        if not self.metadata:
+            return ""
+
+        real_icon = self.metadata.icon
+        if not real_icon:
+            # If there is no icon set for the entire package, see if there are any
+            # workbenches, which are required to have icons, and grab the first one
+            # we find:
+            content = self.metadata.content
+            if "workbench" in content:
+                wb = content["workbench"][0]
+                if wb.icon:
+                    if wb.subdirectory:
+                        subdir = wb.subdirectory
+                    else:
+                        subdir = wb.name
+                    real_icon = subdir + wb.icon
+
+        self.best_icon_relative_path = real_icon
+        return self.best_icon_relative_path
 
     def get_cached_icon_filename(self) -> str:
-        """Get the filename for the locally-cached copy of the icon"""
+        """NOTE: This function is deprecated and will be removed in a coming update."""
 
-        if self.cached_icon_filename:
+        if hasattr(self, "cached_icon_filename") and self.cached_icon_filename:
             return self.cached_icon_filename
 
         if not self.metadata:
             return ""
 
-        real_icon = self.metadata.Icon
+        real_icon = self.metadata.icon
         if not real_icon:
-            # If there is no icon set for the entire package, see if there are any workbenches, which
-            # are required to have icons, and grab the first one we find:
-            content = self.metadata.Content
+            # If there is no icon set for the entire package, see if there are any
+            # workbenches, which are required to have icons, and grab the first one
+            # we find:
+            content = self.metadata.content
             if "workbench" in content:
                 wb = content["workbench"][0]
-                if wb.Icon:
-                    if wb.Subdirectory:
-                        subdir = wb.Subdirectory
+                if wb.icon:
+                    if wb.subdirectory:
+                        subdir = wb.subdirectory
                     else:
-                        subdir = wb.Name
-                    real_icon = subdir + wb.Icon
+                        subdir = wb.name
+                    real_icon = subdir + wb.icon
 
         real_icon = real_icon.replace(
             "/", os.path.sep
         )  # Required path separator in the metadata.xml file to local separator
 
         _, file_extension = os.path.splitext(real_icon)
-        store = os.path.join(
-            FreeCAD.getUserCachePath(), "AddonManager", "PackageMetadata"
-        )
-        self.cached_icon_filename = os.path.join(
-            store, self.name, "cached_icon" + file_extension
-        )
+        store = os.path.join(self.cache_directory, "PackageMetadata")
+        self.cached_icon_filename = os.path.join(store, self.name, "cached_icon" + file_extension)
 
         return self.cached_icon_filename
 
@@ -454,11 +521,22 @@ class Addon:
         information that may be needed.
         """
 
-        deps.python_required |= self.python_requires
+        deps.python_requires |= self.python_requires
         deps.python_optional |= self.python_optional
+
+        deps.python_min_version["major"] = max(
+            deps.python_min_version["major"], self.python_min_version["major"]
+        )
+        if deps.python_min_version["major"] == 3:
+            deps.python_min_version["minor"] = max(
+                deps.python_min_version["minor"], self.python_min_version["minor"]
+            )
+        else:
+            fci.Console.PrintWarning("Unrecognized Python version information")
+
         for dep in self.requires:
             if dep in all_repos:
-                if not dep in deps.required_external_addons:
+                if dep not in deps.required_external_addons:
                     deps.required_external_addons.append(all_repos[dep])
                     all_repos[dep].walk_dependency_tree(all_repos, deps)
             else:
@@ -474,44 +552,243 @@ class Addon:
                     deps.internal_workbenches.add(INTERNAL_WORKBENCHES[real_name])
                 else:
                     # Assume it's a Python requirement of some kind:
-                    deps.python_required.add(dep)
+                    deps.python_requires.add(dep)
 
         for dep in self.blocks:
             if dep in all_repos:
                 deps.blockers[dep] = all_repos[dep]
 
     def status(self):
+        """Threadsafe access to the current update status"""
         with self.status_lock:
             return self.update_status
 
     def set_status(self, status):
+        """Threadsafe setting of the update status"""
         with self.status_lock:
             self.update_status = status
 
     def is_disabled(self):
-        # Check for existence of disabling stopfile:
-        stopfile = os.path.join(
-            FreeCAD.getUserAppDataDir(), "Mod", self.name, "ADDON_DISABLED"
-        )
-        if os.path.exists(stopfile):
-            return True
-        else:
-            return False
+        """Check to see if the disabling stopfile exists"""
+
+        stopfile = os.path.join(self.mod_directory, self.name, "ADDON_DISABLED")
+        return os.path.exists(stopfile)
 
     def disable(self):
-        stopfile = os.path.join(
-            FreeCAD.getUserAppDataDir(), "Mod", self.name, "ADDON_DISABLED"
-        )
-        with open(stopfile, "w") as f:
+        """Disable this addon from loading when FreeCAD starts up by creating a
+        stopfile"""
+
+        stopfile = os.path.join(self.mod_directory, self.name, "ADDON_DISABLED")
+        with open(stopfile, "w", encoding="utf-8") as f:
             f.write(
                 "The existence of this file prevents FreeCAD from loading this Addon. To re-enable, delete the file."
             )
 
+        if self.contains_workbench():
+            self.disable_workbench()
+
     def enable(self):
-        stopfile = os.path.join(
-            FreeCAD.getUserAppDataDir(), "Mod", self.name, "ADDON_DISABLED"
-        )
+        """Re-enable loading this addon by deleting the stopfile"""
+
+        stopfile = os.path.join(self.mod_directory, self.name, "ADDON_DISABLED")
         try:
             os.unlink(stopfile)
-        except Exception:
+        except FileNotFoundError:
             pass
+
+        if self.contains_workbench():
+            self.enable_workbench()
+
+    def enable_workbench(self):
+        wbName = self.get_workbench_name()
+
+        # Remove from the list of disabled.
+        self.remove_from_disabled_wbs(wbName)
+
+    def disable_workbench(self):
+        pref = fci.ParamGet("User parameter:BaseApp/Preferences/Workbenches")
+        wbName = self.get_workbench_name()
+
+        # Add the wb to the list of disabled if it was not already
+        disabled_wbs = pref.GetString("Disabled", "NoneWorkbench,TestWorkbench,AssemblyWorkbench")
+        # print(f"start disabling {disabled_wbs}")
+        disabled_wbs_list = disabled_wbs.split(",")
+        if not (wbName in disabled_wbs_list):
+            disabled_wbs += "," + wbName
+        pref.SetString("Disabled", disabled_wbs)
+        # print(f"done disabling :  {disabled_wbs} \n")
+
+    def desinstall_workbench(self):
+        pref = fci.ParamGet("User parameter:BaseApp/Preferences/Workbenches")
+        wbName = self.get_workbench_name()
+
+        # Remove from the list of ordered.
+        ordered_wbs = pref.GetString("Ordered", "")
+        # print(f"start remove from ordering {ordered_wbs}")
+        ordered_wbs_list = ordered_wbs.split(",")
+        ordered_wbs = ""
+        for wb in ordered_wbs_list:
+            if wb != wbName:
+                if ordered_wbs != "":
+                    ordered_wbs += ","
+                ordered_wbs += wb
+        pref.SetString("Ordered", ordered_wbs)
+        # print(f"end remove from ordering {ordered_wbs}")
+
+        # Remove from the list of disabled.
+        self.remove_from_disabled_wbs(wbName)
+
+    def remove_from_disabled_wbs(self, wbName: str):
+        pref = fci.ParamGet("User parameter:BaseApp/Preferences/Workbenches")
+
+        disabled_wbs = pref.GetString("Disabled", "NoneWorkbench,TestWorkbench,AssemblyWorkbench")
+        # print(f"start enabling : {disabled_wbs}")
+        disabled_wbs_list = disabled_wbs.split(",")
+        disabled_wbs = ""
+        for wb in disabled_wbs_list:
+            if wb != wbName:
+                if disabled_wbs != "":
+                    disabled_wbs += ","
+                disabled_wbs += wb
+        pref.SetString("Disabled", disabled_wbs)
+        # print(f"Done enabling {disabled_wbs} \n")
+
+    def get_workbench_name(self) -> str:
+        """Find the name of the workbench class (ie the name under which it's
+        registered in freecad core)'"""
+        wb_name = ""
+
+        if self.repo_type == Addon.Kind.PACKAGE:
+            for wb in self.metadata.content["workbench"]:  # we may have more than one wb.
+                if wb_name != "":
+                    wb_name += ","
+                wb_name += wb.classname
+        if self.repo_type == Addon.Kind.WORKBENCH or wb_name == "":
+            wb_name = self.try_find_wbname_in_files()
+        if wb_name == "":
+            wb_name = self.name
+        return wb_name
+
+    def try_find_wbname_in_files(self) -> str:
+        """Attempt to locate a line with an addWorkbench command in the workbench's
+        Python files. If it is directly instantiating a workbench, then we can use
+        the line to determine classname for this workbench. If it uses a variable,
+        or if the line doesn't exist at all, an empty string is returned."""
+        mod_dir = os.path.join(self.mod_directory, self.name)
+
+        for root, _, files in os.walk(mod_dir):
+            for f in files:
+                current_file = os.path.join(root, f)
+                if not os.path.isdir(current_file):
+                    filename, extension = os.path.splitext(current_file)
+                    if extension == ".py":
+                        wb_classname = self._find_classname_in_file(current_file)
+                        print(f"Current file: {current_file} ")
+                        if wb_classname:
+                            print(f"Found name {wb_classname} \n")
+                            return wb_classname
+        return ""
+
+    @staticmethod
+    def _find_classname_in_file(current_file) -> str:
+        try:
+            with open(current_file, "r", encoding="utf-8") as python_file:
+                content = python_file.read()
+                search_result = re.search(r"Gui.addWorkbench\s*\(\s*(\w+)\s*\(\s*\)\s*\)", content)
+                if search_result:
+                    return search_result.group(1)
+        except OSError:
+            pass
+        return ""
+
+
+# @dataclass(frozen)
+class MissingDependencies:
+    """Encapsulates a group of four types of dependencies:
+    * Internal workbenches -> wbs
+    * External addons -> external_addons
+    * Required Python packages -> python_requires
+    * Optional Python packages -> python_optional
+    """
+
+    def __init__(self, repo: Addon, all_repos: List[Addon]):
+        deps = Addon.Dependencies()
+        repo_name_dict = {}
+        for r in all_repos:
+            repo_name_dict[r.name] = r
+            if hasattr(r, "display_name"):
+                # Test harness might not provide a display name
+                repo_name_dict[r.display_name] = r
+
+        if hasattr(repo, "walk_dependency_tree"):
+            # Sometimes the test harness doesn't provide this function, to override
+            # any dependency checking
+            repo.walk_dependency_tree(repo_name_dict, deps)
+
+        self.external_addons = []
+        for dep in deps.required_external_addons:
+            if dep.status() == Addon.Status.NOT_INSTALLED:
+                self.external_addons.append(dep.name)
+
+        # Now check the loaded addons to see if we are missing an internal workbench:
+        if fci.FreeCADGui:
+            wbs = [wb.lower() for wb in fci.FreeCADGui.listWorkbenches()]
+        else:
+            wbs = []
+
+        self.wbs = []
+        for dep in deps.internal_workbenches:
+            if dep.lower() + "workbench" not in wbs:
+                if dep.lower() == "plot":
+                    # Special case for plot, which is no longer a full workbench:
+                    try:
+                        __import__("Plot")
+                    except ImportError:
+                        # Plot might fail for a number of reasons
+                        self.wbs.append(dep)
+                        fci.Console.PrintLog("Failed to import Plot module")
+                else:
+                    self.wbs.append(dep)
+
+        # Check the Python dependencies:
+        self.python_min_version = deps.python_min_version
+        self.python_requires = []
+        for py_dep in deps.python_requires:
+            if py_dep not in self.python_requires:
+                try:
+                    __import__(py_dep)
+                except ImportError:
+                    self.python_requires.append(py_dep)
+                except (OSError, NameError, TypeError, RuntimeError) as e:
+                    fci.Console.PrintWarning(
+                        translate(
+                            "AddonsInstaller",
+                            "Got an error when trying to import {}",
+                        ).format(py_dep)
+                        + ":\n"
+                        + str(e)
+                    )
+
+        self.python_optional = []
+        for py_dep in deps.python_optional:
+            try:
+                __import__(py_dep)
+            except ImportError:
+                self.python_optional.append(py_dep)
+            except (OSError, NameError, TypeError, RuntimeError) as e:
+                fci.Console.PrintWarning(
+                    translate(
+                        "AddonsInstaller",
+                        "Got an error when trying to import {}",
+                    ).format(py_dep)
+                    + ":\n"
+                    + str(e)
+                )
+
+        self.wbs.sort()
+        self.external_addons.sort()
+        self.python_requires.sort()
+        self.python_optional.sort()
+        self.python_optional = [
+            option for option in self.python_optional if option not in self.python_requires
+        ]

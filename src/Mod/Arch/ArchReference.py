@@ -21,14 +21,13 @@
 
 __title__  = "FreeCAD Arch External Reference"
 __author__ = "Yorik van Havre"
-__url__    = "https://www.freecadweb.org"
+__url__    = "https://www.freecad.org"
 
 
 import FreeCAD
 import os
 import zipfile
 import re
-import sys
 if FreeCAD.GuiUp:
     import FreeCADGui
     from PySide import QtCore, QtGui
@@ -36,7 +35,7 @@ if FreeCAD.GuiUp:
     from PySide.QtCore import QT_TRANSLATE_NOOP
 else:
     # \cond
-    def translate(ctxt,txt, utf8_decode=False):
+    def translate(ctxt,txt):
         return txt
     def QT_TRANSLATE_NOOP(ctxt,txt):
         return txt
@@ -52,16 +51,16 @@ else:
 
 
 
-def makeReference(filepath=None,partname=None,name="External Reference"):
+def makeReference(filepath=None,partname=None,name=None):
 
 
-    "makeReference([filepath,partname]): Creates an Arch Reference object"
+    "makeReference([filepath],[partname],[name]): Creates an Arch Reference object"
 
     if not FreeCAD.ActiveDocument:
         FreeCAD.Console.PrintError("No active document. Aborting\n")
         return
     obj = FreeCAD.ActiveDocument.addObject("Part::FeaturePython","ArchReference")
-    obj.Label = name
+    obj.Label = name if name else translate("Arch","External Reference")
     ArchReference(obj)
     if FreeCAD.GuiUp:
         ViewProviderArchReference(obj.ViewObject)
@@ -114,11 +113,11 @@ class ArchReference:
             if obj.ViewObject and obj.ViewObject.Proxy:
                 obj.ViewObject.Proxy.loadInventor(obj)
 
-    def __getstate__(self):
+    def dumps(self):
 
         return None
 
-    def __setstate__(self,state):
+    def loads(self,state):
 
         return None
 
@@ -160,8 +159,7 @@ class ArchReference:
                             f = zdoc.open(self.parts[obj.Part][1])
                             shapedata = f.read()
                             f.close()
-                            if sys.version_info.major >= 3:
-                                shapedata = shapedata.decode("utf8")
+                            shapedata = shapedata.decode("utf8")
                             shape = self.cleanShape(shapedata,obj,self.parts[obj.Part][2])
                             obj.Shape = shape
                             if not pl.isIdentity():
@@ -215,6 +213,18 @@ class ArchReference:
                 print(obj.Label,": error removing splitter")
         return shape
 
+    def exists(self,filepath):
+
+        "case-insensitive version of os.path.exists. Returns the actual file path or None"
+
+        if os.path.exists(filepath):
+            return filepath
+        base, ext = os.path.splitext(filepath)
+        for e in [".fcstd",".FCStd",".FCSTD"]:
+            if os.path.exists(base + e):
+                return base + e
+        return None
+
     def getFile(self,obj,filename=None):
 
         "gets a valid file, if possible"
@@ -225,15 +235,15 @@ class ArchReference:
             return None
         if not filename.lower().endswith(".fcstd"):
             return None
-        if not os.path.exists(filename):
+        if not self.exists(filename):
             # search for the file in the current directory if not found
             basename = os.path.basename(filename)
             currentdir = os.path.dirname(obj.Document.FileName)
             altfile = os.path.join(currentdir,basename)
             if altfile == obj.Document.FileName:
                 return None
-            elif os.path.exists(altfile):
-                return altfile
+            elif self.exists(altfile):
+                return self.exists(altfile)
             else:
                 # search for subpaths in current folder
                 altfile = None
@@ -241,10 +251,10 @@ class ArchReference:
                 for i in range(len(subdirs)):
                     subpath = [currentdir]+subdirs[-i:]+[basename]
                     altfile = os.path.join(*subpath)
-                    if os.path.exists(altfile):
-                        return altfile
+                    if self.exists(altfile):
+                        return self.exists(altfile)
                 return None
-        return filename
+        return self.exists(filename)
 
     def getPartsList(self,obj,filename=None):
 
@@ -263,8 +273,7 @@ class ArchReference:
             materials = {}
             writemode = False
             for line in docf:
-                if sys.version_info.major >= 3:
-                    line = line.decode("utf8")
+                line = line.decode("utf8")
                 if "<Object name=" in line:
                     n = re.findall('name=\"(.*?)\"',line)
                     if n:
@@ -320,8 +329,7 @@ class ArchReference:
             writemode1 = False
             writemode2 = False
             for line in docf:
-                if sys.version_info.major >= 3:
-                    line = line.decode("utf8")
+                line = line.decode("utf8")
                 if ("<ViewProvider name=" in line) and (part in line):
                     writemode1 = True
                 elif writemode1 and ("<Property name=\"DiffuseColor\"" in line):
@@ -341,10 +349,7 @@ class ArchReference:
         buf = cf.read()
         cf.close()
         for i in range(1,int(len(buf)/4)):
-            if sys.version_info.major >= 3:
-                colors.append((buf[i*4+3]/255.0,buf[i*4+2]/255.0,buf[i*4+1]/255.0,buf[i*4]/255.0))
-            else:
-                colors.append((ord(buf[i*4+3])/255.0,ord(buf[i*4+2])/255.0,ord(buf[i*4+1])/255.0,ord(buf[i*4])/255.0))
+            colors.append((buf[i*4+3]/255.0,buf[i*4+2]/255.0,buf[i*4+1]/255.0,buf[i*4]/255.0))
         if colors:
             return colors
         return None
@@ -393,19 +398,6 @@ class ViewProviderArchReference:
         import Arch_rc
         return ":/icons/Arch_Reference.svg"
 
-    def setEdit(self,vobj,mode=0):
-
-        taskd = ArchReferenceTaskPanel(vobj.Object)
-        FreeCADGui.Control.showDialog(taskd)
-        return True
-
-    def unsetEdit(self,vobj,mode):
-
-        FreeCADGui.Control.closeDialog()
-        from DraftGui import todo
-        todo.delay(vobj.Proxy.recolorize,vobj)
-        return
-
     def attach(self,vobj):
 
         self.Object = vobj.Object
@@ -415,15 +407,11 @@ class ViewProviderArchReference:
         s = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Arch").GetInt("ReferenceCheckInterval",60)
         self.timer.start(1000*s)
 
-    def doubleClicked(self,vobj):
-
-        self.setEdit(vobj)
-
-    def __getstate__(self):
+    def dumps(self):
 
         return None
 
-    def __setstate__(self,state):
+    def loads(self,state):
 
         return None
 
@@ -492,14 +480,50 @@ class ViewProviderArchReference:
             del self.timer
             return True
 
-    def setupContextMenu(self,vobj,menu):
+    def setEdit(self, vobj, mode):
+        if mode != 0:
+            return None
 
-        action1 = QtGui.QAction(QtGui.QIcon(":/icons/view-refresh.svg"),"Reload reference",menu)
-        QtCore.QObject.connect(action1,QtCore.SIGNAL("triggered()"),self.onReload)
-        menu.addAction(action1)
-        action2 = QtGui.QAction(QtGui.QIcon(":/icons/document-open.svg"),"Open reference",menu)
-        QtCore.QObject.connect(action2,QtCore.SIGNAL("triggered()"),self.onOpen)
-        menu.addAction(action2)
+        taskd = ArchReferenceTaskPanel(vobj.Object)
+        FreeCADGui.Control.showDialog(taskd)
+        return True
+
+    def unsetEdit(self, vobj, mode):
+        if mode != 0:
+            return None
+
+        FreeCADGui.Control.closeDialog()
+        from DraftGui import todo
+        todo.delay(vobj.Proxy.recolorize,vobj)
+        return True
+
+    def setupContextMenu(self, vobj, menu):
+
+        actionEdit = QtGui.QAction(translate("Arch", "Edit"),
+                                   menu)
+        QtCore.QObject.connect(actionEdit,
+                               QtCore.SIGNAL("triggered()"),
+                               self.edit)
+        menu.addAction(actionEdit)
+
+        actionOnReload = QtGui.QAction(QtGui.QIcon(":/icons/view-refresh.svg"),
+                                       translate("Arch", "Reload reference"),
+                                       menu)
+        QtCore.QObject.connect(actionOnReload,
+                               QtCore.SIGNAL("triggered()"),
+                               self.onReload)
+        menu.addAction(actionOnReload)
+
+        actionOnOpen = QtGui.QAction(QtGui.QIcon(":/icons/document-open.svg"),
+                                     translate("Arch", "Open reference"),
+                                     menu)
+        QtCore.QObject.connect(actionOnOpen,
+                               QtCore.SIGNAL("triggered()"),
+                               self.onOpen)
+        menu.addAction(actionOnOpen)
+
+    def edit(self):
+        FreeCADGui.ActiveDocument.setEdit(self.Object, 0)
 
     def onReload(self):
 
@@ -610,8 +634,7 @@ class ViewProviderArchReference:
             writemode1 = False
             writemode2 = False
             for line in docf:
-                if sys.version_info.major >= 3:
-                    line = line.decode("utf8")
+                line = line.decode("utf8")
                 if ("<Object name=" in line) and (part in line):
                     writemode1 = True
                 elif writemode1 and ("<Property name=\"SavedInventor\"" in line):
@@ -628,8 +651,7 @@ class ViewProviderArchReference:
             return None
         f = zdoc.open(ivfile)
         buf = f.read()
-        if sys.version_info.major >= 3:
-            buf = buf.decode("utf8")
+        buf = buf.decode("utf8")
         f.close()
         buf = buf.replace("lineWidth 2","lineWidth "+str(int(obj.ViewObject.LineWidth)))
         return buf
@@ -654,7 +676,7 @@ class ArchReferenceTaskPanel:
         self.openButton.setText("Open")
         if not self.obj.File:
             self.openButton.setEnabled(False)
-        l2 = QtGui.QHBoxLayout(self.form)
+        l2 = QtGui.QHBoxLayout()
         layout.addLayout(l2)
         l2.addWidget(self.fileButton)
         l2.addWidget(self.openButton)
@@ -670,11 +692,12 @@ class ArchReferenceTaskPanel:
             parts = self.obj.Proxy.parts
         else:
             parts = self.obj.Proxy.getPartsList(self.obj)
-        for k in sorted(parts.keys()):
+        sortedkeys = sorted(parts)
+        for k in sortedkeys:
             self.partCombo.addItem(parts[k][0],k)
         if self.obj.Part:
-            if self.obj.Part in parts.keys():
-                self.partCombo.setCurrentIndex(sorted(parts.keys()).index(self.obj.Part))
+            if self.obj.Part in sortedkeys:
+                self.partCombo.setCurrentIndex(sortedkeys.index(self.obj.Part))
         QtCore.QObject.connect(self.fileButton, QtCore.SIGNAL("clicked()"), self.chooseFile)
         QtCore.QObject.connect(self.openButton, QtCore.SIGNAL("clicked()"), self.openFile)
 
@@ -712,11 +735,12 @@ class ArchReferenceTaskPanel:
             parts = self.obj.Proxy.getPartsList(self.obj,self.filename)
             if parts:
                 self.partCombo.clear()
-                for k in sorted(parts.keys()):
+                sortedkeys = sorted(parts)
+                for k in sortedkeys:
                     self.partCombo.addItem(parts[k][0],k)
                 if self.obj.Part:
-                    if self.obj.Part in parts.keys():
-                        self.partCombo.setCurrentIndex(sorted(parts.keys()).index(self.obj.Part))
+                    if self.obj.Part in sortedkeys:
+                        self.partCombo.setCurrentIndex(sortedkeys.index(self.obj.Part))
 
     def openFile(self):
 

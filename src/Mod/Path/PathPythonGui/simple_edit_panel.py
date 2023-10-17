@@ -1,4 +1,3 @@
-from __future__ import print_function
 
 import FreeCAD
 import FreeCADGui
@@ -78,7 +77,7 @@ class SimpleEditPanel:
         elif prop_type in PROP_TYPE_NUMERIC and widget_type == "QDoubleSpinBox":
             self._fc[prop_name] = widget.value, widget.setValue
         elif prop_type in PROP_TYPE_QTYES and widget_type == "QLineEdit":
-            self._fc[prop_name] = widget.text, lambda v: widget.setText(str(v))
+            self._fc[prop_name] = widget.text, lambda v: widget.setText(v.UserString)
         else:
             raise ValueError(
                 f"Unsupported connection between '{prop_type}' property and '{widget_type}' widget"

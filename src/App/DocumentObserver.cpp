@@ -26,7 +26,7 @@
 #include <Base/Tools.h>
 
 #include "Application.h"
-#include "ComplexGeoData.h"
+#include "ElementNamingUtils.h"
 #include "Document.h"
 #include "DocumentObserver.h"
 #include "GeoFeature.h"
@@ -35,9 +35,7 @@ using namespace App;
 namespace sp = std::placeholders;
 
 
-DocumentT::DocumentT()
-{
-}
+DocumentT::DocumentT() = default;
 
 DocumentT::DocumentT(Document* doc)
 {
@@ -54,9 +52,7 @@ DocumentT::DocumentT(const DocumentT& doc)
     document = doc.document;
 }
 
-DocumentT::~DocumentT()
-{
-}
+DocumentT::~DocumentT() = default;
 
 void DocumentT::operator=(const DocumentT& doc)
 {
@@ -94,9 +90,7 @@ std::string DocumentT::getDocumentPython() const
 
 // -----------------------------------------------------------------------------
 
-DocumentObjectT::DocumentObjectT()
-{
-}
+DocumentObjectT::DocumentObjectT() = default;
 
 DocumentObjectT::DocumentObjectT(const DocumentObjectT &other)
 {
@@ -133,9 +127,7 @@ DocumentObjectT::DocumentObjectT(const char *docName, const char *objName)
         object = objName;
 }
 
-DocumentObjectT::~DocumentObjectT()
-{
-}
+DocumentObjectT::~DocumentObjectT() = default;
 
 DocumentObjectT &DocumentObjectT::operator=(const DocumentObjectT& obj)
 {
@@ -251,7 +243,7 @@ std::string DocumentObjectT::getPropertyPython() const
 {
     std::stringstream str;
     str << getObjectPython();
-    if (property.size())
+    if (!property.empty())
         str << '.' << property;
     return str.str();
 }
@@ -265,13 +257,9 @@ Property *DocumentObjectT::getProperty() const {
 
 // -----------------------------------------------------------------------------
 
-SubObjectT::SubObjectT()
-{}
+SubObjectT::SubObjectT() = default;
 
-SubObjectT::SubObjectT(const SubObjectT &other)
-    :DocumentObjectT(other), subname(other.subname)
-{
-}
+SubObjectT::SubObjectT(const SubObjectT &) = default;
 
 SubObjectT::SubObjectT(SubObjectT &&other)
     :DocumentObjectT(std::move(other)), subname(std::move(other.subname))
@@ -362,18 +350,18 @@ const std::string &SubObjectT::getSubName() const {
 }
 
 std::string SubObjectT::getSubNameNoElement() const {
-    return Data::ComplexGeoData::noElementName(subname.c_str());
+    return Data::noElementName(subname.c_str());
 }
 
 const char *SubObjectT::getElementName() const {
-    return Data::ComplexGeoData::findElementName(subname.c_str());
+    return Data::findElementName(subname.c_str());
 }
 
 std::string SubObjectT::getNewElementName() const {
     std::pair<std::string, std::string> element;
     auto obj = getObject();
     if(!obj)
-        return std::string();
+        return {};
     GeoFeature::resolveElement(obj,subname.c_str(),element);
     return std::move(element.first);
 }
@@ -382,7 +370,7 @@ std::string SubObjectT::getOldElementName(int *index) const {
     std::pair<std::string, std::string> element;
     auto obj = getObject();
     if(!obj)
-        return std::string();
+        return {};
     GeoFeature::resolveElement(obj,subname.c_str(),element);
     if(!index)
         return std::move(element.second);
@@ -431,7 +419,7 @@ std::string SubObjectT::getObjectFullName(const char *docName) const
         ss << "#";
     }
     ss << getObjectName();
-    if (getObjectLabel().size() && getObjectLabel() != getObjectName())
+    if (!getObjectLabel().empty() && getObjectLabel() != getObjectName())
         ss << " (" << getObjectLabel() << ")";
     return ss.str();
 }
@@ -553,10 +541,12 @@ std::string PropertyLinkT::getPropertyPython() const
 
 class DocumentWeakPtrT::Private {
 public:
-    Private(App::Document* doc) : _document(doc) {
+    explicit Private(App::Document* doc) : _document(doc) {
         if (doc) {
+            //NOLINTBEGIN
             connectApplicationDeletedDocument = App::GetApplication().signalDeleteDocument.connect(std::bind
                 (&Private::deletedDocument, this, sp::_1));
+            //NOLINTEND
         }
     }
 
@@ -570,7 +560,7 @@ public:
     }
 
     App::Document* _document;
-    typedef boost::signals2::scoped_connection Connection;
+    using Connection = boost::signals2::scoped_connection;
     Connection connectApplicationDeletedDocument;
 };
 
@@ -579,9 +569,7 @@ DocumentWeakPtrT::DocumentWeakPtrT(App::Document* doc) noexcept
 {
 }
 
-DocumentWeakPtrT::~DocumentWeakPtrT()
-{
-}
+DocumentWeakPtrT::~DocumentWeakPtrT() = default;
 
 void DocumentWeakPtrT::reset() noexcept
 {
@@ -607,7 +595,7 @@ App::Document* DocumentWeakPtrT::operator->() const noexcept
 
 class DocumentObjectWeakPtrT::Private {
 public:
-    Private(App::DocumentObject* obj) : object(obj), indocument(false) {
+    explicit Private(App::DocumentObject* obj) : object(obj) {
         set(obj);
     }
     void deletedDocument(const App::Document& doc) {
@@ -637,6 +625,7 @@ public:
     void set(App::DocumentObject* obj) {
         object = obj;
         if (obj) {
+            //NOLINTBEGIN
             indocument = true;
             connectApplicationDeletedDocument = App::GetApplication().signalDeleteDocument.connect(std::bind
             (&Private::deletedDocument, this, sp::_1));
@@ -645,6 +634,7 @@ public:
             (&Private::createdObject, this, sp::_1));
             connectDocumentDeletedObject = doc->signalDeletedObject.connect(std::bind
             (&Private::deletedObject, this, sp::_1));
+            //NOLINTEND
         }
     }
     App::DocumentObject* get() const noexcept {
@@ -652,8 +642,8 @@ public:
     }
 
     App::DocumentObject* object;
-    bool indocument;
-    typedef boost::signals2::scoped_connection Connection;
+    bool indocument{false};
+    using Connection = boost::signals2::scoped_connection;
     Connection connectApplicationDeletedDocument;
     Connection connectDocumentCreatedObject;
     Connection connectDocumentDeletedObject;
@@ -664,10 +654,7 @@ DocumentObjectWeakPtrT::DocumentObjectWeakPtrT(App::DocumentObject* obj)
 {
 }
 
-DocumentObjectWeakPtrT::~DocumentObjectWeakPtrT()
-{
-
-}
+DocumentObjectWeakPtrT::~DocumentObjectWeakPtrT() = default;
 
 App::DocumentObject* DocumentObjectWeakPtrT::_get() const noexcept
 {
@@ -715,12 +702,14 @@ bool DocumentObjectWeakPtrT::operator!= (const DocumentObjectWeakPtrT& p) const 
 
 DocumentObserver::DocumentObserver() : _document(nullptr)
 {
+    //NOLINTBEGIN
     this->connectApplicationCreatedDocument = App::GetApplication().signalNewDocument.connect(std::bind
         (&DocumentObserver::slotCreatedDocument, this, sp::_1));
     this->connectApplicationDeletedDocument = App::GetApplication().signalDeleteDocument.connect(std::bind
         (&DocumentObserver::slotDeletedDocument, this, sp::_1));
     this->connectApplicationActivateDocument = App::GetApplication().signalActiveDocument.connect(std::bind
         (&DocumentObserver::slotActivateDocument, this, sp::_1));
+    //NOLINTEND
 }
 
 DocumentObserver::DocumentObserver(Document* doc) : DocumentObserver()
@@ -749,6 +738,7 @@ void DocumentObserver::attachDocument(Document* doc)
         detachDocument();
         _document = doc;
 
+        //NOLINTBEGIN
         this->connectDocumentCreatedObject = _document->signalNewObject.connect(std::bind
             (&DocumentObserver::slotCreatedObject, this, sp::_1));
         this->connectDocumentDeletedObject = _document->signalDeletedObject.connect(std::bind
@@ -759,6 +749,7 @@ void DocumentObserver::attachDocument(Document* doc)
             (&DocumentObserver::slotRecomputedObject, this, sp::_1));
         this->connectDocumentRecomputed = _document->signalRecomputed.connect(std::bind
             (&DocumentObserver::slotRecomputedDocument, this, sp::_1));
+        //NOLINTEND
     }
 }
 
@@ -809,13 +800,9 @@ void DocumentObserver::slotRecomputedDocument(const Document& /*doc*/)
 
 // -----------------------------------------------------------------------------
 
-DocumentObjectObserver::DocumentObjectObserver()
-{
-}
+DocumentObjectObserver::DocumentObjectObserver() = default;
 
-DocumentObjectObserver::~DocumentObjectObserver()
-{
-}
+DocumentObjectObserver::~DocumentObjectObserver() = default;
 
 DocumentObjectObserver::const_iterator DocumentObjectObserver::begin() const
 {

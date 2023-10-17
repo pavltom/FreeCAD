@@ -21,50 +21,20 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
-
 #ifndef _PreComp_
-#include <cmath>
-#include <BRepBndLib.hxx>
-#include <Bnd_Box.hxx>
-
-#endif // #ifndef _PreComp_
-
-#include <BRepBuilderAPI_MakeEdge.hxx>
-
-#include <QButtonGroup>
-#include <QStatusBar>
-#include <QGraphicsScene>
-
-#include <Base/Console.h>
-#include <Base/Tools.h>
-#include <Base/UnitsApi.h>
+# include <cmath>
+#endif
 
 #include <App/DocumentObject.h>
-
-#include <Gui/Application.h>
+#include <Base/Tools.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
-#include <Gui/Control.h>
-#include <Gui/Document.h>
-#include <Gui/MainWindow.h>
-#include <Gui/Selection.h>
-#include <Gui/ViewProvider.h>
-#include <Gui/WaitCursor.h>
+#include <Mod/TechDraw/App/DrawViewBalloon.h>
+#include <Mod/TechDraw/App/DrawViewDimension.h>
 
-# include <Mod/TechDraw/App/DrawViewDimension.h>
-# include <Mod/TechDraw/App/DrawViewBalloon.h>
-# include <Mod/TechDraw/Gui/ui_TaskCustomizeFormat.h>
+#include "TaskCustomizeFormat.h"
+#include "ui_TaskCustomizeFormat.h"
 
-#include "PreferencesGui.h"
-#include "QGVPage.h"
-#include "QGIView.h"
-#include "QGIPrimPath.h"
-#include "MDIViewPage.h"
-#include "ViewProviderPage.h"
-#include "ViewProviderViewPart.h"
-#include "Rez.h"
-
-# include "TaskCustomizeFormat.h"
 
 using namespace Gui;
 using namespace TechDraw;
@@ -78,7 +48,7 @@ TaskCustomizeFormat::TaskCustomizeFormat(App::DocumentObject * object) :
     selectedObject(object),
     isDimension(true),
     dimRawValue(0.0),
-    ui(new Ui_TaskCustomizeFormat) 
+    ui(new Ui_TaskCustomizeFormat)
 {
 
     ui->setupUi(this);
@@ -122,67 +92,67 @@ void TaskCustomizeFormat::setUiEdit()
         std::string balloonText = balloon->Text.getStrValue();
         ui->leFormat->setText(Base::Tools::fromStdString(balloonText));
     }
-    // GD&T 
-    connect(ui->pbA01, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA02, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA03, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA04, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA05, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA06, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA07, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA08, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA09, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA10, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA11, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA12, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA13, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbA14, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
+    // GD&T
+    connect(ui->pbA01, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA02, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA03, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA04, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA05, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA06, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA07, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA08, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA09, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA10, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA11, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA12, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA13, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbA14, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
     // Modifiers
-    connect(ui->pbB01, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB02, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB03, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB04, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB05, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB06, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB07, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB08, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB09, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB10, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB11, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB12, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB13, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbB14, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
+    connect(ui->pbB01, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB02, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB03, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB04, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB05, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB06, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB07, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB08, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB09, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB10, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB11, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB12, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB13, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbB14, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
     // Radius & Diameter
-    connect(ui->pbC01, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbC02, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbC03, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbC04, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbC05, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
+    connect(ui->pbC01, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbC02, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbC03, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbC04, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbC05, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
     // Angles
-    connect(ui->pbD01, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbD02, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbD03, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbD04, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
+    connect(ui->pbD01, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbD02, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbD03, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbD04, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
     // Other
-    connect(ui->pbE01, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbE02, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbE03, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbE04, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbE05, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbE06, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbE07, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbE08, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbE09, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
+    connect(ui->pbE01, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbE02, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbE03, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbE04, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbE05, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbE06, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbE07, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbE08, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbE09, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
     // Greek Letters
-    connect(ui->pbF01, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbF02, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbF03, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbF04, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbF05, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbF06, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
-    connect(ui->pbF07, SIGNAL(clicked()), this, SLOT(onSymbolClicked()));
+    connect(ui->pbF01, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbF02, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbF03, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbF04, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbF05, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbF06, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
+    connect(ui->pbF07, &QPushButton::clicked, this, &TaskCustomizeFormat::onSymbolClicked);
 
-    connect(ui->leFormat, SIGNAL(textChanged(QString)), this, SLOT(onFormatChanged()));
+    connect(ui->leFormat, &QLineEdit::textChanged, this, &TaskCustomizeFormat::onFormatChanged);
     onFormatChanged();
 }
 
@@ -207,7 +177,7 @@ void TaskCustomizeFormat::onFormatChanged()
         constexpr int size(80);
         char buffer[size];
         std::string formatString = formatPreview.toUtf8().constData();
-        auto usedSize = snprintf(buffer,size, formatString.c_str(),dimRawValue);
+        auto usedSize = snprintf(buffer, size, formatString.c_str(), dimRawValue);
         formatPreview = QString::fromUtf8(buffer, usedSize);
     }
     ui->lbShowPreview->setText(formatPreview);

@@ -28,6 +28,7 @@
 #include <QObject>
 #include <QPlainTextEdit>
 #include <App/DocumentObserver.h>
+#include <App/ExpressionTokenizer.h>
 
 class QStandardItem;
 
@@ -48,16 +49,15 @@ class GuiExport ExpressionCompleter : public QCompleter
 {
     Q_OBJECT
 public:
-    ExpressionCompleter(const App::DocumentObject * currentDocObj, 
+    ExpressionCompleter(const App::DocumentObject * currentDocObj,
             QObject *parent = nullptr, bool noProperty = false, bool checkInList = true);
 
     void getPrefixRange(int &start, int &end) const {
-        start = prefixStart;
-        end = prefixEnd;
+        tokenizer.getPrefixRange(start, end);
     }
 
     void updatePrefixEnd(int end) {
-        prefixEnd = end;
+        tokenizer.updatePrefixEnd(end);
     }
 
     void setDocumentObject(const App::DocumentObject*, bool checkInList=true);
@@ -69,13 +69,11 @@ public Q_SLOTS:
 
 private:
     void init();
-    virtual QString pathFromIndex ( const QModelIndex & index ) const;
-    virtual QStringList splitPath ( const QString & path ) const;
-
-    int prefixStart = 0;
-    int prefixEnd = 0;
+    QString pathFromIndex ( const QModelIndex & index ) const override;
+    QStringList splitPath ( const QString & input ) const override;
 
     App::DocumentObjectT currentObj;
+    App::ExpressionTokenizer tokenizer;
     bool noProperty;
     bool checkInList;
 };
@@ -95,10 +93,13 @@ Q_SIGNALS:
     void textChanged2(QString text, int pos);
 public Q_SLOTS:
     void slotTextChanged(const QString & text);
-    void slotCompleteText(const QString & completionPrefix);
+    // activated == pressed enter on the completion item
+    void slotCompleteText(const QString& completionPrefix, bool isActivated);
+    void slotCompleteTextHighlighted(const QString& completionPrefix);
+    void slotCompleteTextSelected(const QString& completionPrefix);
 protected:
-    void keyPressEvent(QKeyEvent * event);
-    void contextMenuEvent(QContextMenuEvent * event);
+    void keyPressEvent(QKeyEvent * event) override;
+    void contextMenuEvent(QContextMenuEvent * event) override;
 private:
     ExpressionCompleter * completer;
     bool block;
@@ -117,8 +118,8 @@ public:
     void hideCompleter();
     void setExactMatch(bool enabled=true);
 protected:
-    void keyPressEvent(QKeyEvent * event);
-    void contextMenuEvent(QContextMenuEvent * event);
+    void keyPressEvent(QKeyEvent * event) override;
+    void contextMenuEvent(QContextMenuEvent * event) override;
 Q_SIGNALS:
     void textChanged2(QString text, int pos);
 public Q_SLOTS:

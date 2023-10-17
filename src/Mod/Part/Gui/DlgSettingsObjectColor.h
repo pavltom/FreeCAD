@@ -36,18 +36,18 @@ class Ui_DlgSettingsObjectColor;
  * @author Werner Mayer
  */
 class DlgSettingsObjectColor : public Gui::Dialog::PreferencePage
-{ 
+{
   Q_OBJECT
 
 public:
-  DlgSettingsObjectColor(QWidget* parent = nullptr);
-  ~DlgSettingsObjectColor();
+  explicit DlgSettingsObjectColor(QWidget* parent = nullptr);
+  ~DlgSettingsObjectColor() override;
 
-  void saveSettings();
-  void loadSettings();
+  void saveSettings() override;
+  void loadSettings() override;
 
 protected:
-  void changeEvent(QEvent *e);
+  void changeEvent(QEvent *e) override;
 
 private:
   std::unique_ptr<Ui_DlgSettingsObjectColor> ui;

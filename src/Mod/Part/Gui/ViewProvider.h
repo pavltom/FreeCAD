@@ -36,22 +36,22 @@ namespace PartGui {
 class ViewProviderShapeBuilder : public Gui::ViewProviderBuilder
 {
 public:
-    ViewProviderShapeBuilder(){}
-    ~ViewProviderShapeBuilder(){}
-    virtual void buildNodes(const App::Property*, std::vector<SoNode*>&) const;
+    ViewProviderShapeBuilder() = default;
+    ~ViewProviderShapeBuilder() override = default;
+    void buildNodes(const App::Property*, std::vector<SoNode*>&) const override;
     void createShape(const App::Property*, SoSeparator*) const;
 };
 
 class PartGuiExport ViewProviderPart : public ViewProviderPartExt
 {
-    PROPERTY_HEADER(PartGui::ViewProviderPart);
+    PROPERTY_HEADER_WITH_OVERRIDE(PartGui::ViewProviderPart);
 
 public:
     /// constructor
     ViewProviderPart();
     /// destructor
-    virtual ~ViewProviderPart();
-    virtual bool doubleClicked(void);
+    ~ViewProviderPart() override;
+    bool doubleClicked() override;
 
 protected:
     void applyColor(const Part::ShapeHistory& hist,

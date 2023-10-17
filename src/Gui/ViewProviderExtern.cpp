@@ -44,15 +44,9 @@ using namespace Gui;
 PROPERTY_SOURCE(Gui::ViewProviderExtern, Gui::ViewProvider)
 
 
-ViewProviderExtern::ViewProviderExtern()
-{
+ViewProviderExtern::ViewProviderExtern() = default;
 
-}
-
-ViewProviderExtern::~ViewProviderExtern()
-{
-
-}
+ViewProviderExtern::~ViewProviderExtern() = default;
 
 void ViewProviderExtern::setModeByString(const char* name, const char* ivFragment)
 {
@@ -97,7 +91,7 @@ void ViewProviderExtern::setModeBySoInput(const char* name, SoInput &ivFileInput
            ::iterator,string>(modes.begin(),modes.end(),string(name));
         if (pos == modes.end()) {
             // new mode
-            modes.push_back(name);
+            modes.emplace_back(name);
             addDisplayMaskMode(root, name);
             setDisplayMaskMode(name);
         }
@@ -129,7 +123,7 @@ void ViewProviderExtern::adjustRecursiveDocumentName(SoNode* child, const char* 
         static_cast<SoFCSelection*>(child)->documentName = docname;
     }
     else if (child->getTypeId().isDerivedFrom( SoGroup::getClassTypeId())) {
-        SoGroup* group = (SoGroup*)child;
+        SoGroup* group = static_cast<SoGroup*>(child);
         for (int i=0; i<group->getNumChildren(); i++) {
             SoNode* subchild = group->getChild(i);
             adjustRecursiveDocumentName(subchild, docname);
@@ -143,7 +137,7 @@ const char* ViewProviderExtern::getDefaultDisplayMode() const
     return (modes.empty() ? "" : modes.front().c_str());
 }
 
-std::vector<std::string> ViewProviderExtern::getDisplayModes(void) const
+std::vector<std::string> ViewProviderExtern::getDisplayModes() const
 {
     return modes;
 }

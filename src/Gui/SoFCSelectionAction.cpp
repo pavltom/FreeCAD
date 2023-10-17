@@ -138,9 +138,7 @@ SoFCHighlightAction::SoFCHighlightAction (const SelectionChanges &SelCh)
 }
 
 
-SoFCHighlightAction::~SoFCHighlightAction()
-{
-}
+SoFCHighlightAction::~SoFCHighlightAction() = default;
 
 
 void SoFCHighlightAction::beginTraversal(SoNode *node)
@@ -224,9 +222,7 @@ SoFCSelectionAction::SoFCSelectionAction (const SelectionChanges &SelCh)
 }
 
 
-SoFCSelectionAction::~SoFCSelectionAction()
-{
-}
+SoFCSelectionAction::~SoFCSelectionAction() = default;
 
 
 void SoFCSelectionAction::beginTraversal(SoNode *node)
@@ -306,9 +302,7 @@ SoFCEnableSelectionAction::SoFCEnableSelectionAction (const SbBool& sel)
 }
 
 
-SoFCEnableSelectionAction::~SoFCEnableSelectionAction()
-{
-}
+SoFCEnableSelectionAction::~SoFCEnableSelectionAction() = default;
 
 
 void SoFCEnableSelectionAction::beginTraversal(SoNode *node)
@@ -388,9 +382,7 @@ SoFCEnableHighlightAction::SoFCEnableHighlightAction (const SbBool& sel)
 }
 
 
-SoFCEnableHighlightAction::~SoFCEnableHighlightAction()
-{
-}
+SoFCEnableHighlightAction::~SoFCEnableHighlightAction() = default;
 
 
 void SoFCEnableHighlightAction::beginTraversal(SoNode *node)
@@ -470,9 +462,7 @@ SoFCSelectionColorAction::SoFCSelectionColorAction (const SoSFColor& col)
 }
 
 
-SoFCSelectionColorAction::~SoFCSelectionColorAction()
-{
-}
+SoFCSelectionColorAction::~SoFCSelectionColorAction() = default;
 
 
 void SoFCSelectionColorAction::beginTraversal(SoNode *node)
@@ -552,9 +542,7 @@ SoFCHighlightColorAction::SoFCHighlightColorAction (const SoSFColor& col)
 }
 
 
-SoFCHighlightColorAction::~SoFCHighlightColorAction()
-{
-}
+SoFCHighlightColorAction::~SoFCHighlightColorAction() = default;
 
 
 void SoFCHighlightColorAction::beginTraversal(SoNode *node)
@@ -634,9 +622,7 @@ SoFCDocumentAction::SoFCDocumentAction (const SoSFString& docName)
 }
 
 
-SoFCDocumentAction::~SoFCDocumentAction()
-{
-}
+SoFCDocumentAction::~SoFCDocumentAction() = default;
 
 
 void SoFCDocumentAction::beginTraversal(SoNode *node)
@@ -706,14 +692,12 @@ void SoFCDocumentObjectAction::finish()
   atexit_cleanup();
 }
 
-SoFCDocumentObjectAction::SoFCDocumentObjectAction () : _handled(false)
+SoFCDocumentObjectAction::SoFCDocumentObjectAction()
 {
   SO_ACTION_CONSTRUCTOR(SoFCDocumentObjectAction);
 }
 
-SoFCDocumentObjectAction::~SoFCDocumentObjectAction()
-{
-}
+SoFCDocumentObjectAction::~SoFCDocumentObjectAction() = default;
 
 void SoFCDocumentObjectAction::beginTraversal(SoNode *node)
 {
@@ -776,14 +760,12 @@ void SoGLSelectAction::initClass()
 
 SoGLSelectAction::SoGLSelectAction (const SbViewportRegion& region,
                                     const SbViewportRegion& select)
-  : vpregion(region), vpselect(select), _handled(false)
+  : vpregion(region), vpselect(select)
 {
   SO_ACTION_CONSTRUCTOR(SoGLSelectAction);
 }
 
-SoGLSelectAction::~SoGLSelectAction()
-{
-}
+SoGLSelectAction::~SoGLSelectAction() = default;
 
 const SbViewportRegion& SoGLSelectAction::getViewportRegion () const
 {
@@ -851,14 +833,12 @@ void SoVisibleFaceAction::initClass()
   SO_ACTION_ADD_METHOD(SoFCSelection,callDoAction);
 }
 
-SoVisibleFaceAction::SoVisibleFaceAction () : _handled(false)
+SoVisibleFaceAction::SoVisibleFaceAction ()
 {
   SO_ACTION_CONSTRUCTOR(SoVisibleFaceAction);
 }
 
-SoVisibleFaceAction::~SoVisibleFaceAction()
-{
-}
+SoVisibleFaceAction::~SoVisibleFaceAction() = default;
 
 void SoVisibleFaceAction::beginTraversal(SoNode *node)
 {
@@ -926,9 +906,7 @@ SoUpdateVBOAction::SoUpdateVBOAction ()
   SO_ACTION_CONSTRUCTOR(SoUpdateVBOAction);
 }
 
-SoUpdateVBOAction::~SoUpdateVBOAction()
-{
-}
+SoUpdateVBOAction::~SoUpdateVBOAction() = default;
 
 void SoUpdateVBOAction::finish()
 {
@@ -952,33 +930,21 @@ class SoBoxSelectionRenderActionP {
 public:
     SoBoxSelectionRenderActionP(SoBoxSelectionRenderAction * master)
       : master(master)
-      , searchaction(nullptr)
-      , selectsearch(nullptr)
-      , camerasearch(nullptr)
-      , bboxaction(nullptr)
-      , basecolor(nullptr)
-      , postprocpath(nullptr)
-      , highlightPath(nullptr)
-      , localRoot(nullptr)
-      , xform(nullptr)
-      , cube(nullptr)
-      , drawstyle(nullptr)
     {
-
     }
 
     SoBoxSelectionRenderAction * master;
-    SoSearchAction * searchaction;
-    SoSearchAction * selectsearch;
-    SoSearchAction * camerasearch;
-    SoGetBoundingBoxAction * bboxaction;
-    SoBaseColor * basecolor;
-    SoTempPath * postprocpath;
-    SoPath * highlightPath;
-    SoSeparator * localRoot;
-    SoMatrixTransform * xform;
-    SoCube * cube;
-    SoDrawStyle * drawstyle;
+    SoSearchAction * searchaction{nullptr};
+    SoSearchAction * selectsearch{nullptr};
+    SoSearchAction * camerasearch{nullptr};
+    SoGetBoundingBoxAction * bboxaction{nullptr};
+    SoBaseColor * basecolor{nullptr};
+    SoTempPath * postprocpath{nullptr};
+    SoPath * highlightPath{nullptr};
+    SoSeparator * localRoot{nullptr};
+    SoMatrixTransform * xform{nullptr};
+    SoCube * cube{nullptr};
+    SoDrawStyle * drawstyle{nullptr};
     SoColorPacker colorpacker;
 
     void initBoxGraph();
@@ -1008,10 +974,10 @@ SoBoxSelectionRenderActionP::initBoxGraph()
     this->drawstyle->style = SoDrawStyleElement::LINES;
     this->basecolor = new SoBaseColor;
 
-    SoLightModel * lightmodel = new SoLightModel;
+    auto lightmodel = new SoLightModel;
     lightmodel->model = SoLightModel::BASE_COLOR;
 
-    SoComplexity * complexity = new SoComplexity;
+    auto complexity = new SoComplexity;
     complexity->textureQuality = 0.0f;
     complexity->type = SoComplexityTypeElement::BOUNDING_BOX;
 
@@ -1038,7 +1004,7 @@ SoBoxSelectionRenderActionP::updateBbox(const SoPath * path)
     this->camerasearch->setFind(SoSearchAction::TYPE);
     this->camerasearch->setInterest(SoSearchAction::LAST);
     this->camerasearch->setType(SoCamera::getClassTypeId());
-    this->camerasearch->apply((SoPath*) path);
+    this->camerasearch->apply(const_cast<SoPath*>(path));
 
     if (!this->camerasearch->getPath()) {
         // if there is no camera there is no point rendering the bbox
@@ -1051,7 +1017,7 @@ SoBoxSelectionRenderActionP::updateBbox(const SoPath * path)
         this->bboxaction = new SoGetBoundingBoxAction(SbViewportRegion(100, 100));
     }
     this->bboxaction->setViewportRegion(PUBLIC(this)->getViewportRegion());
-    this->bboxaction->apply((SoPath*) path);
+    this->bboxaction->apply(const_cast<SoPath*>(path));
 
     SbXfBox3f & box = this->bboxaction->getXfBoundingBox();
 
@@ -1086,12 +1052,12 @@ SO_ACTION_SOURCE(SoBoxSelectionRenderAction)
 
 // Overridden from parent class.
 void
-SoBoxSelectionRenderAction::initClass(void)
+SoBoxSelectionRenderAction::initClass()
 {
     SO_ACTION_INIT_CLASS(SoBoxSelectionRenderAction, SoGLRenderAction);
 }
 
-SoBoxSelectionRenderAction::SoBoxSelectionRenderAction(void)
+SoBoxSelectionRenderAction::SoBoxSelectionRenderAction()
   : inherited(SbViewportRegion())
 {
     this->constructorCommon();
@@ -1107,7 +1073,7 @@ SoBoxSelectionRenderAction::SoBoxSelectionRenderAction(const SbViewportRegion & 
 // private. called by both constructors
 //
 void
-SoBoxSelectionRenderAction::constructorCommon(void)
+SoBoxSelectionRenderAction::constructorCommon()
 {
     SO_ACTION_CONSTRUCTOR(SoBoxSelectionRenderAction);
 
@@ -1116,7 +1082,6 @@ SoBoxSelectionRenderAction::constructorCommon(void)
     // Initialize local variables
     PRIVATE(this)->initBoxGraph();
 
-    // this->hlVisible = true;
     this->hlVisible = false;
 
     PRIVATE(this)->basecolor->rgb.setValue(1.0f, 0.0f, 0.0f);
@@ -1133,7 +1098,7 @@ SoBoxSelectionRenderAction::constructorCommon(void)
     PRIVATE(this)->highlightPath = nullptr;
 }
 
-SoBoxSelectionRenderAction::~SoBoxSelectionRenderAction(void)
+SoBoxSelectionRenderAction::~SoBoxSelectionRenderAction()
 {
     // clear highlighting node
     if (PRIVATE(this)->highlightPath) {
@@ -1154,7 +1119,7 @@ SoBoxSelectionRenderAction::apply(SoNode * node)
 {
     SoGLRenderAction::apply(node);
     if (this->hlVisible) {
-        if (PRIVATE(this)->searchaction == nullptr) {
+        if (!PRIVATE(this)->searchaction) {
             PRIVATE(this)->searchaction = new SoSearchAction;
         }
         PRIVATE(this)->searchaction->setType(SoFCSelection::getClassTypeId());
@@ -1165,11 +1130,11 @@ SoBoxSelectionRenderAction::apply(SoNode * node)
             for (int i = 0; i < pathlist.getLength(); i++ ) {
                 SoPath * path = pathlist[i];
                 assert(path);
-                SoFCSelection * selection = (SoFCSelection *) path->getTail();
+                auto selection = static_cast<SoFCSelection *>(path->getTail());
                 assert(selection->getTypeId().isDerivedFrom(SoFCSelection::getClassTypeId()));
                 if (selection->selected.getValue() && selection->style.getValue() == SoFCSelection::BOX) {
                     PRIVATE(this)->basecolor->rgb.setValue(selection->colorSelection.getValue());
-                    if (PRIVATE(this)->selectsearch == nullptr) {
+                    if (!PRIVATE(this)->selectsearch) {
                         PRIVATE(this)->selectsearch = new SoSearchAction;
                     }
                     PRIVATE(this)->selectsearch->setType(SoShape::getClassTypeId());
@@ -1188,8 +1153,8 @@ SoBoxSelectionRenderAction::apply(SoNode * node)
                          selection->style.getValue() == SoFCSelection::BOX) {
                     PRIVATE(this)->basecolor->rgb.setValue(selection->colorHighlight.getValue());
 
-                    if (PRIVATE(this)->selectsearch == nullptr) {
-                      PRIVATE(this)->selectsearch = new SoSearchAction;
+                    if (!PRIVATE(this)->selectsearch) {
+                        PRIVATE(this)->selectsearch = new SoSearchAction;
                     }
                     PRIVATE(this)->selectsearch->setType(SoShape::getClassTypeId());
                     PRIVATE(this)->selectsearch->setInterest(SoSearchAction::FIRST);
@@ -1220,7 +1185,7 @@ SoBoxSelectionRenderAction::apply(SoPath * path)
     SoGLRenderAction::apply(path);
     SoNode* node = path->getTail();
     if (node && node->getTypeId() == SoFCSelection::getClassTypeId()) {
-        SoFCSelection * selection = (SoFCSelection *) node;
+        auto selection = static_cast<SoFCSelection *>(node);
 
         // This happens when dehighlighting the current shape
         if (PRIVATE(this)->highlightPath == path) {
@@ -1236,8 +1201,8 @@ SoBoxSelectionRenderAction::apply(SoPath * path)
                  selection->style.getValue() == SoFCSelection::BOX) {
             PRIVATE(this)->basecolor->rgb.setValue(selection->colorHighlight.getValue());
 
-            if (PRIVATE(this)->selectsearch == nullptr) {
-              PRIVATE(this)->selectsearch = new SoSearchAction;
+            if (!PRIVATE(this)->selectsearch) {
+                PRIVATE(this)->selectsearch = new SoSearchAction;
             }
             PRIVATE(this)->selectsearch->setType(SoShape::getClassTypeId());
             PRIVATE(this)->selectsearch->setInterest(SoSearchAction::FIRST);
@@ -1273,7 +1238,7 @@ SoBoxSelectionRenderAction::setColor(const SbColor & color)
 }
 
 const SbColor &
-SoBoxSelectionRenderAction::getColor(void)
+SoBoxSelectionRenderAction::getColor()
 {
     return PRIVATE(this)->basecolor->rgb[0];
 }
@@ -1285,7 +1250,7 @@ SoBoxSelectionRenderAction::setLinePattern(unsigned short pattern)
 }
 
 unsigned short
-SoBoxSelectionRenderAction::getLinePattern(void) const
+SoBoxSelectionRenderAction::getLinePattern() const
 {
     return PRIVATE(this)->drawstyle->linePattern.getValue();
 }
@@ -1297,7 +1262,7 @@ SoBoxSelectionRenderAction::setLineWidth(const float width)
 }
 
 float
-SoBoxSelectionRenderAction::getLineWidth(void) const
+SoBoxSelectionRenderAction::getLineWidth() const
 {
     return PRIVATE(this)->drawstyle->lineWidth.getValue();
 }
@@ -1306,7 +1271,7 @@ void
 SoBoxSelectionRenderAction::drawBoxes(SoPath * pathtothis, const SoPathList * pathlist)
 {
     int i;
-    int thispos = ((SoFullPath *)pathtothis)->getLength()-1;
+    int thispos = static_cast<SoFullPath *>(pathtothis)->getLength()-1;
     assert(thispos >= 0);
     PRIVATE(this)->postprocpath->truncate(0); // reset
 
@@ -1322,7 +1287,7 @@ SoBoxSelectionRenderAction::drawBoxes(SoPath * pathtothis, const SoPathList * pa
     thestate->push();
 
     for (i = 0; i < pathlist->getLength(); i++) {
-        SoFullPath * path = (SoFullPath *)(*pathlist)[i];
+        auto path = static_cast<SoFullPath *>((*pathlist)[i]);
 
         for (int j = 0; j < path->getLength(); j++) {
             PRIVATE(this)->postprocpath->append(path->getNode(j));

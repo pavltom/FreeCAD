@@ -59,8 +59,8 @@ public:
     static DownloadManager* getInstance();
 
 private:
-    DownloadManager(QWidget *parent = nullptr);
-    ~DownloadManager();
+    explicit DownloadManager(QWidget *parent = nullptr);
+    ~DownloadManager() override;
 
 public:
     int activeDownloads() const;
@@ -69,7 +69,7 @@ public:
 
     RemovePolicy removePolicy() const;
     void setRemovePolicy(RemovePolicy policy);
-    void closeEvent(QCloseEvent* e);
+    void closeEvent(QCloseEvent* e) override;
     QUrl redirectUrl(const QUrl&) const;
 
 public Q_SLOTS:
@@ -107,10 +107,10 @@ class DownloadModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    DownloadModel(DownloadManager *downloadManager, QObject *parent = nullptr);
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
+    explicit DownloadModel(DownloadManager *downloadManager, QObject *parent = nullptr);
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
 private:
     DownloadManager *m_downloadManager;

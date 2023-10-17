@@ -93,7 +93,15 @@ void DlgObjectSelection::init(const std::vector<App::DocumentObject*> &objs,
 
     hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/General");
     ui->checkBoxAutoDeps->setChecked(hGrp->GetBool("ObjectSelectionAutoDeps", true));
-    connect(ui->checkBoxAutoDeps, SIGNAL(toggled(bool)), this, SLOT(onAutoDeps(bool)));
+    connect(ui->checkBoxAutoDeps, &QCheckBox::toggled, this, &DlgObjectSelection::onAutoDeps);
+
+    ui->checkBoxShowDeps->setChecked(hGrp->GetBool("ObjectSelectionShowDeps", false));
+    QObject::connect(ui->checkBoxShowDeps, &QCheckBox::toggled,
+        [this](bool checked) {
+            hGrp->SetBool("ObjectSelectionShowDeps", checked);
+            onShowDeps();
+        });
+    QMetaObject::invokeMethod(this, "onShowDeps", Qt::QueuedConnection);
 
     // make sure to show a horizontal scrollbar if needed
     ui->depList->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
@@ -115,8 +123,8 @@ void DlgObjectSelection::init(const std::vector<App::DocumentObject*> &objs,
     ui->treeWidget->headerItem()->setText(0, tr("Selections"));
     ui->treeWidget->header()->setStretchLastSection(false);
 
-    connect(ui->treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
-            this, SLOT(onItemExpanded(QTreeWidgetItem*)));
+    connect(ui->treeWidget, &QTreeWidget::itemExpanded,
+            this, &DlgObjectSelection::onItemExpanded);
 
     allItem = new QTreeWidgetItem(ui->treeWidget);
     allItem->setText(0, QStringLiteral("<%1>").arg(tr("All")));
@@ -150,22 +158,19 @@ void DlgObjectSelection::init(const std::vector<App::DocumentObject*> &objs,
     useOriginalsBtn->setToolTip(tr("Ignore dependencies and proceed with objects\noriginally selected prior to opening this dialog"));
     ui->buttonBox->addButton(useOriginalsBtn, QDialogButtonBox::ResetRole);
 
-    connect(ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
-            this, SLOT(onObjItemChanged(QTreeWidgetItem*,int)));
-    connect(ui->depList, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
-            this, SLOT(onDepItemChanged(QTreeWidgetItem*,int)));
-    connect(ui->inList, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
-            this, SLOT(onDepItemChanged(QTreeWidgetItem*,int)));
-    connect(ui->treeWidget, SIGNAL(itemSelectionChanged()),
-            this, SLOT(onItemSelectionChanged()));
-    connect(useOriginalsBtn, SIGNAL(clicked()), 
-            this, SLOT(onUseOriginalsBtnClicked()));
+    connect(ui->treeWidget, &QTreeWidget::itemChanged, this, &DlgObjectSelection::onObjItemChanged);
+    connect(ui->depList, &QTreeWidget::itemChanged, this, &DlgObjectSelection::onDepItemChanged);
+    connect(ui->inList, &QTreeWidget::itemChanged, this, &DlgObjectSelection::onDepItemChanged);
+    connect(ui->treeWidget, &QTreeWidget::itemSelectionChanged,
+            this, &DlgObjectSelection::onItemSelectionChanged);
+    connect(useOriginalsBtn, &QPushButton::clicked,
+            this, &DlgObjectSelection::onUseOriginalsBtnClicked);
 
-    connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(ui->buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &DlgObjectSelection::accept);
+    connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &DlgObjectSelection::reject);
 
     timer.setSingleShot(true);
-    connect(&timer, SIGNAL(timeout()), this, SLOT(checkItemChanged()));
+    connect(&timer, &QTimer::timeout, this, &DlgObjectSelection::checkItemChanged);
 }
 
 /**
@@ -186,7 +191,7 @@ QTreeWidgetItem *DlgObjectSelection::getItem(App::DocumentObject *obj,
         *pitems = &items;
     QTreeWidgetItem *item;
     if (!parent) {
-        if (items.size())
+        if (!items.empty())
             return items[0];
         item = new QTreeWidgetItem(ui->treeWidget);
         auto vp = Base::freecad_dynamic_cast<ViewProviderDocumentObject>(
@@ -204,7 +209,7 @@ QTreeWidgetItem *DlgObjectSelection::getItem(App::DocumentObject *obj,
         item->setData(0, Qt::UserRole, QVariant::fromValue(objT));
         item->setChildIndicatorPolicy(obj->getOutList().empty() ?
                 QTreeWidgetItem::DontShowIndicator : QTreeWidgetItem::ShowIndicator);
-    } else if (items.size()) {
+    } else if (!items.empty()) {
         item = new QTreeWidgetItem(parent);
         item->setIcon(0, items[0]->icon(0));
         item->setText(0, items[0]->text(0));
@@ -486,7 +491,7 @@ void DlgObjectSelection::checkItemChanged() {
         }
     }
 
-    if (unchecked.size()) {
+    if (!unchecked.empty()) {
         // When some item is unchecked by the user, we need to re-check the
         // recursive outlist of the initially selected object, excluding all
         // currently unchecked object. And then uncheck any item that does not
@@ -566,7 +571,7 @@ void DlgObjectSelection::onItemSelectionChanged() {
     }
 
     std::vector<App::DocumentObject*> _deps;
-    if (sels.size()) {
+    if (!sels.empty()) {
         std::sort(sels.begin(), sels.end());
         for (auto dep : App::Document::getDependencyList(sels, App::Document::DepSort)) {
             if (!std::binary_search(sels.begin(), sels.end(), dep))
@@ -584,7 +589,7 @@ void DlgObjectSelection::onItemSelectionChanged() {
 
     {
         QSignalBlocker blocker(ui->depList);
-        auto &objs = sels.size() ? _deps : deps;
+        auto &objs = !sels.empty() ? _deps : deps;
         for (auto it = objs.rbegin(); it != objs.rend(); ++it)
             createDepItem(ui->depList, *it);
     }
@@ -603,7 +608,7 @@ void DlgObjectSelection::onItemSelectionChanged() {
         for (auto obj : inlist)
             createDepItem(ui->inList, obj);
     }
-        
+
     if (enabled)
         ui->depList->setSortingEnabled(true);
     if (enabled2)
@@ -659,6 +664,19 @@ void DlgObjectSelection::onAutoDeps(bool checked)
             setCheckState(i, state);
     }
     onItemSelectionChanged();
+}
+
+void DlgObjectSelection::onShowDeps()
+{
+    bool checked = ui->checkBoxShowDeps->isChecked();
+    auto sizes = ui->vsplitter->sizes();
+    if (!checked && sizes[1] > 0)
+        sizes[1] = 0;
+    else if (checked && (sizes[0] == 0 || sizes[1] == 0))
+        sizes[0] = sizes[1] = this->width()/2;
+    else
+        return;
+    ui->vsplitter->setSizes(sizes);
 }
 
 #include "moc_DlgObjectSelection.cpp"

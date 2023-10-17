@@ -28,6 +28,7 @@
 #include <boost_signals2.hpp>
 #include <memory>
 #include <set>
+#include <FCGlobal.h>
 
 
 namespace App
@@ -49,9 +50,9 @@ public:
     /*! Constructor */
     DocumentT();
     /*! Constructor */
-    DocumentT(Document*);
+    DocumentT(Document*); // explicit bombs
     /*! Constructor */
-    DocumentT(const std::string&);
+    explicit DocumentT(const std::string&);
     /*! Constructor */
     DocumentT(const DocumentT&);
     /*! Destructor */
@@ -99,13 +100,13 @@ public:
     /*! Constructor */
     DocumentObjectT(DocumentObjectT &&);
     /*! Constructor */
-    DocumentObjectT(const DocumentObject*);
+    explicit DocumentObjectT(const DocumentObject*);
     /*! Constructor */
     DocumentObjectT(const Document*, const std::string& objName);
     /*! Constructor */
     DocumentObjectT(const char *docName, const char *objName);
     /*! Constructor */
-    DocumentObjectT(const Property*);
+    explicit DocumentObjectT(const Property*);
     /*! Destructor */
     ~DocumentObjectT();
     /*! Assignment operator */
@@ -177,7 +178,7 @@ public:
     SubObjectT(const DocumentObject*, const char *subname);
 
     /*! Constructor */
-    SubObjectT(const DocumentObject*);
+    SubObjectT(const DocumentObject*);// explicit bombs
 
     /*! Constructor */
     SubObjectT(const char *docName, const char *objName, const char *subname);
@@ -257,13 +258,13 @@ public:
     PropertyLinkT();
 
     /*! Constructor */
-    PropertyLinkT(DocumentObject *obj);
+    explicit PropertyLinkT(DocumentObject *obj);
 
     /*! Constructor */
     PropertyLinkT(DocumentObject *obj, const std::vector<std::string>& subNames);
 
     /*! Constructor */
-    PropertyLinkT(const std::vector<DocumentObject*>& objs);
+    explicit PropertyLinkT(const std::vector<DocumentObject*>& objs);
 
     /*! Constructor */
     PropertyLinkT(const std::vector<DocumentObject*>& objs, const std::vector<std::string>& subNames);
@@ -281,7 +282,7 @@ private:
 class AppExport DocumentWeakPtrT
 {
 public:
-    DocumentWeakPtrT(App::Document*) noexcept;
+    explicit DocumentWeakPtrT(App::Document*) noexcept;
     ~DocumentWeakPtrT();
 
     /*!
@@ -305,11 +306,11 @@ public:
      */
     App::Document* operator->() const noexcept;
 
-private:
     // disable
-    DocumentWeakPtrT(const DocumentWeakPtrT&);
-    DocumentWeakPtrT& operator=(const DocumentWeakPtrT&);
+    DocumentWeakPtrT(const DocumentWeakPtrT&) = delete;
+    DocumentWeakPtrT& operator=(const DocumentWeakPtrT&) = delete;
 
+private:
     class Private;
     std::unique_ptr<Private> d;
 };
@@ -320,7 +321,7 @@ private:
 class AppExport DocumentObjectWeakPtrT
 {
 public:
-    DocumentObjectWeakPtrT(App::DocumentObject*);
+    explicit DocumentObjectWeakPtrT(App::DocumentObject*);
     ~DocumentObjectWeakPtrT();
 
     /*!
@@ -367,9 +368,11 @@ public:
 
 private:
     App::DocumentObject* _get() const noexcept;
+
+public:
     // disable
-    DocumentObjectWeakPtrT(const DocumentObjectWeakPtrT&);
-    DocumentObjectWeakPtrT& operator=(const DocumentObjectWeakPtrT&);
+    DocumentObjectWeakPtrT(const DocumentObjectWeakPtrT&) = delete;
+    DocumentObjectWeakPtrT& operator=(const DocumentObjectWeakPtrT&) = delete;
 
 private:
     class Private;
@@ -383,10 +386,9 @@ template <class T>
 class WeakPtrT
 {
 public:
-    WeakPtrT(T* t) : ptr(t) {
+    explicit WeakPtrT(T* t) : ptr(t) {
     }
-    ~WeakPtrT() {
-    }
+    ~WeakPtrT() = default;
 
     /*!
      * \brief reset
@@ -444,17 +446,16 @@ public:
         return ptr.get<T>();
     }
 
-private:
     // disable
-    WeakPtrT(const WeakPtrT&);
-    WeakPtrT& operator=(const WeakPtrT&);
+    WeakPtrT(const WeakPtrT&) = delete;
+    WeakPtrT& operator=(const WeakPtrT&) = delete;
 
 private:
     DocumentObjectWeakPtrT ptr;
 };
 
 /**
- * The DocumentObserver class simplfies the step to write classes that listen
+ * The DocumentObserver class simplifies the step to write classes that listen
  * to what happens inside a document.
  * This is very useful for classes that needs to be notified when an observed
  * object has changed.
@@ -467,7 +468,7 @@ class AppExport DocumentObserver
 public:
     /// Constructor
     DocumentObserver();
-    DocumentObserver(Document*);
+    explicit DocumentObserver(Document*);
     virtual ~DocumentObserver();
 
     /** Attaches to another document, the old document
@@ -502,7 +503,7 @@ protected:
 
 private:
     App::Document* _document;
-    typedef boost::signals2::connection Connection;
+    using Connection = boost::signals2::connection;
     Connection connectApplicationCreatedDocument;
     Connection connectApplicationDeletedDocument;
     Connection connectApplicationActivateDocument;
@@ -523,11 +524,11 @@ class AppExport DocumentObjectObserver : public DocumentObserver
 {
 
 public:
-    typedef std::set<App::DocumentObject*>::const_iterator const_iterator;
+    using const_iterator = std::set<App::DocumentObject*>::const_iterator;
 
     /// Constructor
     DocumentObjectObserver();
-    virtual ~DocumentObjectObserver();
+    ~DocumentObjectObserver() override;
 
     const_iterator begin() const;
     const_iterator end() const;
@@ -536,15 +537,15 @@ public:
 
 private:
     /** Checks if a new document was created */
-    virtual void slotCreatedDocument(const App::Document& Doc);
+    void slotCreatedDocument(const App::Document& Doc) override;
     /** Checks if the given document is about to be closed */
-    virtual void slotDeletedDocument(const App::Document& Doc);
+    void slotDeletedDocument(const App::Document& Doc) override;
     /** Checks if a new object was added. */
-    virtual void slotCreatedObject(const App::DocumentObject& Obj);
+    void slotCreatedObject(const App::DocumentObject& Obj) override;
     /** Checks if the given object is about to be removed. */
-    virtual void slotDeletedObject(const App::DocumentObject& Obj);
+    void slotDeletedObject(const App::DocumentObject& Obj) override;
     /** The property of an observed object has changed */
-    virtual void slotChangedObject(const App::DocumentObject& Obj, const App::Property& Prop);
+    void slotChangedObject(const App::DocumentObject& Obj, const App::Property& Prop) override;
     /** This method gets called when all observed objects are deleted or the whole document is deleted.
       * This method can be re-implemented to perform an extra step like closing a dialog that observes
       * a document.

@@ -34,7 +34,7 @@
 #include <Base/Writer.h>
 
 #include "Application.h"
-#include "ComplexGeoData.h"
+#include "ElementNamingUtils.h"
 #include "Document.h"
 #include "DocumentObject.h"
 #include "DocumentObjectExtension.h"
@@ -62,8 +62,8 @@ DocumentObjectExecReturn *DocumentObject::StdReturn = nullptr;
 // DocumentObject
 //===========================================================================
 
-DocumentObject::DocumentObject(void)
-    : ExpressionEngine(),_pDoc(nullptr),pcNameInDocument(nullptr),_Id(0)
+DocumentObject::DocumentObject()
+    : ExpressionEngine()
 {
     // define Label of type 'Output' to avoid being marked as touched after relabeling
     ADD_PROPERTY_TYPE(Label,("Unnamed"),"Base",Prop_Output,"User name of the object (UTF8)");
@@ -81,7 +81,7 @@ DocumentObject::DocumentObject(void)
     Visibility.setStatus(Property::NoModify,true);
 }
 
-DocumentObject::~DocumentObject(void)
+DocumentObject::~DocumentObject()
 {
     if (!PythonObject.is(Py::_None())){
         Base::PyGILStateLocker lock;
@@ -90,20 +90,19 @@ DocumentObject::~DocumentObject(void)
         // not to dec'ref the Python object any more.
         // But we must still invalidate the Python object because it need not to be
         // destructed right now because the interpreter can own several references to it.
-        Base::PyObjectBase* obj = (Base::PyObjectBase*)PythonObject.ptr();
+        Base::PyObjectBase* obj = static_cast<Base::PyObjectBase*>(PythonObject.ptr());
         // Call before decrementing the reference counter, otherwise a heap error can occur
         obj->setInvalid();
     }
 }
 
-App::DocumentObjectExecReturn *DocumentObject::recompute(void)
+void DocumentObject::printInvalidLinks() const
 {
-    //check if the links are valid before making the recompute
-    if(!GeoFeatureGroupExtension::areLinksValid(this)) {
+    try {
         // Get objects that have invalid link scope, and print their names.
         // Truncate the invalid object list name strings for readability, if they happen to be very long.
         std::vector<App::DocumentObject*> invalid_linkobjs;
-        std::string objnames = "", scopenames = "";
+        std::string objnames, scopenames;
         GeoFeatureGroupExtension::getInvalidLinkObjects(this, invalid_linkobjs);
         for (auto& obj : invalid_linkobjs) {
             objnames += obj->getNameInDocument();
@@ -113,25 +112,44 @@ App::DocumentObjectExecReturn *DocumentObject::recompute(void)
                     scopenames += "... ";
                     break;
                 }
+
                 scopenames += scope.first->getNameInDocument();
                 scopenames += " ";
             }
+
             if (objnames.length() > 80) {
                 objnames += "... ";
                 break;
             }
         }
+
         if (objnames.empty()) {
             objnames = "N/A";
-        } else {
+        }
+        else {
             objnames.pop_back();
         }
+
         if (scopenames.empty()) {
             scopenames = "N/A";
-        } else {
+        }
+        else {
             scopenames.pop_back();
         }
-        Base::Console().Warning("%s: Link(s) to object(s) '%s' go out of the allowed scope '%s'. Instead, the linked object(s) reside within '%s'.\n", getTypeId().getName(), objnames.c_str(), getNameInDocument(), scopenames.c_str());
+
+        Base::Console().Warning("%s: Link(s) to object(s) '%s' go out of the allowed scope '%s'. Instead, the linked object(s) reside within '%s'.\n",
+                                getTypeId().getName(), objnames.c_str(), getNameInDocument(), scopenames.c_str());
+    }
+    catch (const Base::Exception& e) {
+        e.ReportException();
+    }
+}
+
+App::DocumentObjectExecReturn *DocumentObject::recompute()
+{
+    //check if the links are valid before making the recompute
+    if (!GeoFeatureGroupExtension::areLinksValid(this)) {
+        printInvalidLinks();
     }
 
     // set/unset the execution bit
@@ -152,7 +170,7 @@ App::DocumentObjectExecReturn *DocumentObject::recompute(void)
     return ret;
 }
 
-DocumentObjectExecReturn *DocumentObject::execute(void)
+DocumentObjectExecReturn *DocumentObject::execute()
 {
     return executeExtensions();
 }
@@ -209,7 +227,7 @@ bool DocumentObject::isTouched() const
  * This can be useful to recompute the feature without
  * having to change one of its input properties.
  */
-void DocumentObject::enforceRecompute(void)
+void DocumentObject::enforceRecompute()
 {
     touch(false);
 }
@@ -220,7 +238,7 @@ void DocumentObject::enforceRecompute(void)
  * returns a value > 0.
  * @return true if document object must be recomputed, false if not.
  */
-bool DocumentObject::mustRecompute(void) const
+bool DocumentObject::mustRecompute() const
 {
     if (StatusBits.test(ObjectStatus::Enforce))
         return true;
@@ -228,7 +246,7 @@ bool DocumentObject::mustRecompute(void) const
     return mustExecute() > 0;
 }
 
-short DocumentObject::mustExecute(void) const
+short DocumentObject::mustExecute() const
 {
     if (ExpressionEngine.isTouched())
         return 1;
@@ -243,7 +261,7 @@ short DocumentObject::mustExecute(void) const
     return 0;
 }
 
-const char* DocumentObject::getStatusString(void) const
+const char* DocumentObject::getStatusString() const
 {
     if (isError()) {
         const char* text = getDocument()->getErrorDescription(this);
@@ -261,6 +279,16 @@ std::string DocumentObject::getFullName() const {
     std::string name(getDocument()->getName());
     name += '#';
     name += *pcNameInDocument;
+    return name;
+}
+
+std::string DocumentObject::getFullLabel() const {
+    if(!getDocument())
+        return "?";
+
+    auto name = getDocument()->Label.getStrValue();
+    name += "#";
+    name += Label.getStrValue();
     return name;
 }
 
@@ -284,7 +312,7 @@ int DocumentObject::isExporting() const {
 
 std::string DocumentObject::getExportName(bool forced) const {
     if(!pcNameInDocument)
-        return std::string();
+        return {};
 
     if(!forced && !isExporting())
         return *pcNameInDocument;
@@ -375,7 +403,7 @@ std::vector<App::DocumentObject*> DocumentObject::getInList(void) const
 
 #else // ifndef USE_OLD_DAG
 
-const std::vector<App::DocumentObject*> &DocumentObject::getInList(void) const
+const std::vector<App::DocumentObject*> &DocumentObject::getInList() const
 {
     return _inList;
 }
@@ -391,7 +419,7 @@ const std::vector<App::DocumentObject*> &DocumentObject::getInList(void) const
 // of objects. And this may not be the worst case. getInListEx() has no such
 // problem.
 
-std::vector<App::DocumentObject*> DocumentObject::getInListRecursive(void) const {
+std::vector<App::DocumentObject*> DocumentObject::getInListRecursive() const {
     std::set<App::DocumentObject*> inSet;
     std::vector<App::DocumentObject*> res;
     getInListEx(inSet,true,&res);
@@ -449,7 +477,7 @@ void DocumentObject::getInListEx(std::set<App::DocumentObject*> &inSet,
 
     std::stack<DocumentObject*> pendings;
     pendings.push(const_cast<DocumentObject*>(this));
-    while(pendings.size()) {
+    while(!pendings.empty()) {
         auto obj = pendings.top();
         pendings.pop();
         for(auto o : obj->getInList()) {
@@ -487,7 +515,7 @@ void _getOutListRecursive(std::set<DocumentObject*>& objSet,
     }
 }
 
-std::vector<App::DocumentObject*> DocumentObject::getOutListRecursive(void) const
+std::vector<App::DocumentObject*> DocumentObject::getOutListRecursive() const
 {
     // number of objects in document is a good estimate in result size
     int maxDepth = GetApplication().checkLinkDepth(0);
@@ -622,7 +650,7 @@ void DocumentObject::onLostLinkToObject(DocumentObject*)
 
 }
 
-App::Document *DocumentObject::getDocument(void) const
+App::Document *DocumentObject::getDocument() const
 {
     return _pDoc;
 }
@@ -743,7 +771,7 @@ void DocumentObject::clearOutListCache() const {
     _outListCached = false;
 }
 
-PyObject *DocumentObject::getPyObject(void)
+PyObject *DocumentObject::getPyObject()
 {
     if (PythonObject.is(Py::_None())) {
         // ref counter is set to 1
@@ -829,32 +857,55 @@ std::vector<std::string> DocumentObject::getSubObjects(int reason) const {
     return ret;
 }
 
-std::vector<std::pair<App::DocumentObject *,std::string> > DocumentObject::getParents(int depth) const {
-    std::vector<std::pair<App::DocumentObject *,std::string> > ret;
-    if(!getNameInDocument() || !GetApplication().checkLinkDepth(depth))
+std::vector<std::pair<App::DocumentObject *,std::string>> DocumentObject::getParents(int depth) const {
+    std::vector<std::pair<App::DocumentObject *, std::string>> ret;
+    if (!getNameInDocument() || !GetApplication().checkLinkDepth(depth, MessageOption::Throw)) {
         return ret;
+    }
+
     std::string name(getNameInDocument());
     name += ".";
-    for(auto parent : getInList()) {
-        if(!parent || !parent->getNameInDocument())
+    for (auto parent : getInList()) {
+        if (!parent || !parent->getNameInDocument()) {
             continue;
-        if(!parent->hasChildElement() && 
-           !parent->hasExtension(GeoFeatureGroupExtension::getExtensionClassTypeId()))
-            continue;
-        if(!parent->getSubObject(name.c_str()))
-            continue;
+        }
 
-        auto links = GetApplication().getLinksTo(parent,App::GetLinkRecursive);
+        if (!parent->hasChildElement() &&
+            !parent->hasExtension(GeoFeatureGroupExtension::getExtensionClassTypeId())) {
+            continue;
+        }
+
+        if (!parent->getSubObject(name.c_str())) {
+            continue;
+        }
+
+        auto links = GetApplication().getLinksTo(parent, App::GetLinkRecursive);
         links.insert(parent);
-        for(auto parent : links) {
-            auto parents = parent->getParents(depth+1);
-            if(parents.empty()) 
-                parents.emplace_back(parent,std::string());
-            for(auto &v : parents) 
-                ret.emplace_back(v.first,v.second+name);
+
+        for (auto parent : links) {
+            auto parents = parent->getParents(depth + 1);
+            if (parents.empty()) {
+                parents.emplace_back(parent, std::string());
+            }
+
+            for (auto &v : parents) {
+                ret.emplace_back(v.first, v.second + name);
+            }
         }
     }
+
     return ret;
+}
+
+App::DocumentObject* DocumentObject::getFirstParent() const
+{
+    for (auto obj : getInList()) {
+        if (obj->hasExtension(App::GroupExtension::getExtensionClassTypeId(), true)) {
+            return obj;
+        }
+    }
+
+    return nullptr;
 }
 
 DocumentObject *DocumentObject::getLinkedObject(
@@ -1043,7 +1094,7 @@ DocumentObject *DocumentObject::resolve(const char *subname,
     // following it. So finding the last dot will give us the end of the last
     // object name.
     const char *dot=nullptr;
-    if(Data::ComplexGeoData::isMappedElement(subname) ||
+    if(Data::isMappedElement(subname) ||
        !(dot=strrchr(subname,'.')) ||
        dot == subname) 
     {
@@ -1066,7 +1117,7 @@ DocumentObject *DocumentObject::resolve(const char *subname,
             if(!elementMapChecked) {
                 elementMapChecked = true;
                 const char *sub = dot==subname?dot:dot+1;
-                if(Data::ComplexGeoData::isMappedElement(sub)) {
+                if(Data::isMappedElement(sub)) {
                     lastDot = dot;
                     if(dot==subname) 
                         break;
@@ -1079,7 +1130,7 @@ DocumentObject *DocumentObject::resolve(const char *subname,
             auto sobj = getSubObject(std::string(subname,dot-subname+1).c_str());
             if(sobj!=obj) {
                 if(parent) {
-                    // Link/LinkGroup has special visiblility handling of plain
+                    // Link/LinkGroup has special visibility handling of plain
                     // group, so keep ascending
                     if(!sobj->hasExtension(GroupExtension::getExtensionClassTypeId(),false)) {
                         *parent = sobj;

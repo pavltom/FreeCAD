@@ -189,41 +189,45 @@ void CmdPartDesignBody::activated(int iMsg)
     openCommand(QT_TRANSLATE_NOOP("Command", "Add a Body"));
 
     std::string bodyName = getUniqueObjectName("Body");
+    const char* bodyString = bodyName.c_str();
 
     // add the Body feature itself, and make it active
-    doCommand(Doc,"App.activeDocument().addObject('PartDesign::Body','%s')", bodyName.c_str());
+    doCommand(Doc,"App.activeDocument().addObject('PartDesign::Body','%s')", bodyString);
+    // set Label for i18n/L10N
+    QByteArray labelByteArray = QObject::tr("Body").toUtf8();
+    doCommand(Doc,"App.ActiveDocument.getObject('%s').Label = '%s'", bodyString, labelByteArray.constData());
     if (baseFeature) {
         if (partOfBaseFeature){
-            //withdraw base feature from Part, otherwise visibility mandess results
+            //withdraw base feature from Part, otherwise visibility madness results
             doCommand(Doc,"App.activeDocument().%s.removeObject(App.activeDocument().%s)",
                     partOfBaseFeature->getNameInDocument(), baseFeature->getNameInDocument());
         }
         if (addtogroup) {
             doCommand(Doc,"App.activeDocument().%s.Group = [App.activeDocument().%s]",
-                    bodyName.c_str(), baseFeature->getNameInDocument());
+                    bodyString, baseFeature->getNameInDocument());
         }
         else {
             doCommand(Doc,"App.activeDocument().%s.BaseFeature = App.activeDocument().%s",
-                    bodyName.c_str(), baseFeature->getNameInDocument());
+                    bodyString, baseFeature->getNameInDocument());
         }
     }
     addModule(Gui,"PartDesignGui"); // import the Gui module only once a session
     doCommand(Gui::Command::Gui, "Gui.activateView('Gui::View3DInventor', True)\n"
                                  "Gui.activeView().setActiveObject('%s', App.activeDocument().%s)",
-            PDBODYKEY, bodyName.c_str());
+            PDBODYKEY, bodyString);
 
     // Make the "Create sketch" prompt appear in the task panel
     doCommand(Gui,"Gui.Selection.clearSelection()");
-    doCommand(Gui,"Gui.Selection.addSelection(App.ActiveDocument.%s)", bodyName.c_str());
+    doCommand(Gui,"Gui.Selection.addSelection(App.ActiveDocument.%s)", bodyString);
     if (actPart) {
         doCommand(Doc,"App.activeDocument().%s.addObject(App.ActiveDocument.%s)",
-                 actPart->getNameInDocument(), bodyName.c_str());
+                 actPart->getNameInDocument(), bodyString);
     }
 
     // check if a proxy object has been created for the base feature inside the body
     if (baseFeature) {
         PartDesign::Body* body = dynamic_cast<PartDesign::Body*>
-                (baseFeature->getDocument()->getObject(bodyName.c_str()));
+                (baseFeature->getDocument()->getObject(bodyString));
         if (body) {
             std::vector<App::DocumentObject*> links = body->Group.getValues();
             for (auto it : links) {
@@ -290,7 +294,7 @@ void CmdPartDesignBody::activated(int iMsg)
     updateActive();
 }
 
-bool CmdPartDesignBody::isActive(void)
+bool CmdPartDesignBody::isActive()
 {
     return hasActiveDocument() && !PartDesignGui::isLegacyWorkflow ( getDocument () );
 }
@@ -506,7 +510,7 @@ void CmdPartDesignMigrate::activated(int iMsg)
     updateActive();
 }
 
-bool CmdPartDesignMigrate::isActive(void)
+bool CmdPartDesignMigrate::isActive()
 {
     return hasActiveDocument();
 }
@@ -584,7 +588,7 @@ void CmdPartDesignMoveTip::activated(int iMsg)
     updateActive();
 }
 
-bool CmdPartDesignMoveTip::isActive(void)
+bool CmdPartDesignMoveTip::isActive()
 {
     return hasActiveDocument();
 }
@@ -640,7 +644,7 @@ void CmdPartDesignDuplicateSelection::activated(int iMsg)
     updateActive();
 }
 
-bool CmdPartDesignDuplicateSelection::isActive(void)
+bool CmdPartDesignDuplicateSelection::isActive()
 {
     return hasActiveDocument();
 }
@@ -811,7 +815,7 @@ void CmdPartDesignMoveFeature::activated(int iMsg)
     updateActive();
 }
 
-bool CmdPartDesignMoveFeature::isActive(void)
+bool CmdPartDesignMoveFeature::isActive()
 {
     return hasActiveDocument () && !PartDesignGui::isLegacyWorkflow ( getDocument () );
 }
@@ -924,8 +928,8 @@ void CmdPartDesignMoveFeatureInTree::activated(int iMsg)
             for(auto dep : App::Document::getDependencyList({obj})) {
                 auto it = orders.find(dep);
                 if(it != orders.end() && it->second > i) {
-                    ss << feat->Label.getValue() << ", " << 
-                        obj->Label.getValue() << " -> " << 
+                    ss << feat->Label.getValue() << ", " <<
+                        obj->Label.getValue() << " -> " <<
                         it->first->Label.getValue();
                     if(!failed)
                         failed = true;
@@ -937,7 +941,7 @@ void CmdPartDesignMoveFeatureInTree::activated(int iMsg)
     }
     if(failed) {
         QMessageBox::critical (nullptr, QObject::tr( "Dependency violation" ),
-                QObject::tr( "Early feature must not depend on later feature.\n\n") 
+                QObject::tr( "Early feature must not depend on later feature.\n\n")
                     + QString::fromUtf8(ss.str().c_str()));
         abortCommand();
         return;
@@ -963,7 +967,7 @@ void CmdPartDesignMoveFeatureInTree::activated(int iMsg)
     updateActive();
 }
 
-bool CmdPartDesignMoveFeatureInTree::isActive(void)
+bool CmdPartDesignMoveFeatureInTree::isActive()
 {
     return hasActiveDocument () && !PartDesignGui::isLegacyWorkflow ( getDocument () );
 }
@@ -973,7 +977,7 @@ bool CmdPartDesignMoveFeatureInTree::isActive(void)
 // Initialization
 //===========================================================================
 
-void CreatePartDesignBodyCommands(void)
+void CreatePartDesignBodyCommands()
 {
     Gui::CommandManager &rcCmdMgr = Gui::Application::Instance->commandManager();
 

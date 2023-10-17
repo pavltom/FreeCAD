@@ -122,7 +122,7 @@ class FreeCADGuiHandler(xml.sax.ContentHandler):
     # plus a GuiCameraSettings key that contains an iv repr of a coin camera
 
     def __init__(self):
-        
+
         super().__init__()
         self.guidata = {}
         self.current = None
@@ -188,7 +188,7 @@ class FreeCADGuiHandler(xml.sax.ContentHandler):
                 self.current = None
                 self.properties = {}
         elif tag == "Property":
-            if self.currentprop and (self.currentval != None):
+            if self.currentprop and (self.currentval is not None):
                 self.properties[self.currentprop] = {"type":self.currenttype,"value":self.currentval}
                 self.currentprop = None
                 self.currentval = None
@@ -216,7 +216,7 @@ def getGuiData(filename):
             for key,properties in guidata.items():
                 # open each diffusecolor files and retrieve values
                 # first 4 bytes are the array length, then each group of 4 bytes is abgr
-                # https://forum.freecadweb.org/viewtopic.php?t=29382
+                # https://forum.freecad.org/viewtopic.php?t=29382
                 if isinstance(properties,dict):
                     for propname in properties.keys():
                         if properties[propname]["type"] == "App::PropertyColorList":
@@ -225,10 +225,7 @@ def getGuiData(filename):
                             df.close()
                             cols = []
                             for i in range(1,int(len(buf)/4)):
-                                if sys.version_info.major < 3:
-                                    cols.append(ord(buf[i*4+3])/255.0,ord(buf[i*4+2])/255.0,ord(buf[i*4+1])/255.0,ord(buf[i*4])/255.0)
-                                else:
-                                    cols.append((buf[i*4+3]/255.0,buf[i*4+2]/255.0,buf[i*4+1]/255.0,buf[i*4]/255.0))
+                                cols.append((buf[i*4+3]/255.0,buf[i*4+2]/255.0,buf[i*4+1]/255.0,buf[i*4]/255.0))
                             guidata[key][propname]["value"] = cols
         zdoc.close()
         #print ("guidata:",guidata)
@@ -243,11 +240,7 @@ def saveDiffuseColor(colorlist):
     property. Returns the path to the created temp file"""
 
     def tochr(i):
-        #print("tochr:",i)
-        if sys.version_info.major < 3:
-            return chr(i)
-        else:
-            return bytes((i,))
+        return bytes((i,))
     # if too many colors, bail out and use only the first one for now...
     if len(colorlist) > 254:
         colorlist = colorlist[:1]
@@ -292,7 +285,7 @@ def getColors(filename,nodiffuse=False):
         if ("DiffuseColor" in v) and (not nodiffuse):
             if len(v["DiffuseColor"]["value"]) == 1:
                 # only one color in DiffuseColor: used for the whole object
-                 colors[k] = v["DiffuseColor"]["value"][0]
+                colors[k] = v["DiffuseColor"]["value"][0]
             else:
                 colors[k] = v["DiffuseColor"]["value"]
         elif "ShapeColor" in v:
@@ -463,7 +456,7 @@ def getCoinCamera(camerastring):
         for child in node.getChildren():
             if ("SoOrthographicCamera" in str(child)) or ("SoPerspectiveCamera" in str(child)):
                 return child
-    print("unnable to build a camera node from string:",camerastring)
+    print("unable to build a camera node from string:",camerastring)
     return None
 
 
@@ -478,11 +471,15 @@ def viewer(scene=None,background=(1.0,1.0,1.0),lightdir=None):
 
     # Initialize Coin. This returns a main window to use
     from pivy import coin
-    from pivy import sogui
+    from pivy import quarter
+    from PySide2 import QtWidgets
 
-    win = sogui.SoGui.init()
+    app = QtWidgets.QApplication([])
+    # Create a Qt widget, which will be our window.
+    win = quarter.QuarterWidget()
+
     if win is None:
-        print("Unable to create a SoGui window")
+        print("Unable to create a Quarter window")
         return
 
     win.setBackgroundColor(coin.SbColor(background[0],background[1],background[2]))
@@ -502,17 +499,14 @@ def viewer(scene=None,background=(1.0,1.0,1.0),lightdir=None):
     # ref the scene so it doesn't get garbage-collected
     scene.ref()
 
-    # Create a viewer in which to see our scene graph
-    viewer = sogui.SoGuiExaminerViewer(win)
-
     # Put our scene into viewer, change the title
-    viewer.setSceneGraph(scene)
-    viewer.setTitle("Coin viewer")
-    viewer.show()
+    win.setSceneGraph(scene)
+    win.setWindowTitle("Coin viewer")
 
-    sogui.SoGui.show(win) # Display main window
-    sogui.SoGui.mainLoop()     # Main Coin event loop
-
+    # IMPORTANT!!!!! Windows are hidden by default.
+    win.show()
+    # Start the event loop.
+    app.exec_()
 
 
 def embedLight(scene,lightdir):
@@ -623,7 +617,7 @@ def getUnsigned(color):
     # ensure everything is int otherwise bit ops below don't work
     color = (int(color[0]),int(color[1]),int(color[2]))
 
-    # https://forum.freecadweb.org/viewtopic.php?t=19074
+    # https://forum.freecad.org/viewtopic.php?t=19074
     return str(color[0] << 24 | color[1] << 16 | color[2] << 8)
 
 
@@ -639,7 +633,7 @@ def buildGuiDocumentFromColors(document,colors,camera=None):
 
     guidoc =  "<?xml version='1.0' encoding='utf-8'?>\n"
     guidoc += "<!--\n"
-    guidoc += " FreeCAD Document, see http://www.freecadweb.org for more information...\n"
+    guidoc += " FreeCAD Document, see http://www.freecad.org for more information...\n"
     guidoc += "-->\n"
     guidoc += "<Document SchemaVersion=\"1\">\n"
 
@@ -718,7 +712,7 @@ def buildGuiDocumentFromGuiData(document,guidata):
 
     guidoc =  "<?xml version='1.0' encoding='utf-8'?>\n"
     guidoc += "<!--\n"
-    guidoc += " FreeCAD Document, see http://www.freecadweb.org for more information...\n"
+    guidoc += " FreeCAD Document, see http://www.freecad.org for more information...\n"
     guidoc += "-->\n"
     guidoc += "<Document SchemaVersion=\"1\">\n"
 

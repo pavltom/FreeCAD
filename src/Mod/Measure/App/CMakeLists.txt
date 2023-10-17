@@ -1,9 +1,3 @@
-if(MSVC)
-    add_definitions(-DFCAppMeasure -DHAVE_ACOSH -DHAVE_ASINH -DHAVE_ATANH)
-else(MSVC)
-    add_definitions(-DHAVE_LIMITS_H -DHAVE_CONFIG_H -DHAVE_ACOSH -DHAVE_ATANH -DHAVE_ASINH)
-endif(MSVC)
-
 include_directories(
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/src
@@ -39,7 +33,6 @@ SET(MeasureModule_SRCS
 )
 
 SOURCE_GROUP("Module" FILES ${MeasureModule_SRCS})
-
 
 SET(Measure_SRCS
     ${MeasureModule_SRCS}
@@ -82,6 +75,5 @@ fc_target_copy_resource_flat(Measure
 
 SET_BIN_DIR(Measure Measure /Mod/Measure)
 SET_PYTHON_PREFIX_SUFFIX(Measure)
-
 
 INSTALL(TARGETS Measure DESTINATION ${CMAKE_INSTALL_LIBDIR})

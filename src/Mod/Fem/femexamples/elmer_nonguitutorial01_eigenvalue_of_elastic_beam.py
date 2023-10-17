@@ -39,7 +39,7 @@ def get_information():
         "constraints": [],
         "solvers": ["calculix", "ccxtools", "elmer"],
         "material": "solid",
-        "equation": "elasticity"  # "frequency", but list not allowed here
+        "equations": ["elasticity"]  # "frequency", but list not allowed here
     }
 
 
@@ -52,7 +52,7 @@ setup()
 
 
 See forum topic post:
-https://forum.freecadweb.org/viewtopic.php?t=56590
+https://forum.freecad.org/viewtopic.php?t=56590
 
 """
 
@@ -89,14 +89,12 @@ def setup(doc=None, solvertype="elmer"):
     elif solvertype == "elmer":
         solver_obj = ObjectsFem.makeSolverElmer(doc, "SolverElmer")
         eq_obj = ObjectsFem.makeEquationElasticity(doc, solver_obj)
-        eq_obj.LinearSolverType = "Direct"
-        # direct solver was used in the tutorial, thus used here too
-        # the iterative is much faster and gives the same results
-        eq_obj.DoFrequencyAnalysis = True
+        eq_obj.EigenAnalysis = True
         eq_obj.CalculateStresses = True
+        eq_obj.DisplaceMesh = False
     else:
         FreeCAD.Console.PrintWarning(
-            "Not known or not supported solver type: {}. "
+            "Unknown or unsupported solver type: {}. "
             "No solver object was created.\n".format(solvertype)
         )
     if solvertype == "calculix" or solvertype == "ccxtools":

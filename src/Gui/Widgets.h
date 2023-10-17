@@ -64,10 +64,10 @@ class CommandIconView : public QListWidget
 
 public:
   CommandIconView (QWidget * parent = nullptr);
-  virtual ~CommandIconView ();
+  ~CommandIconView () override;
 
 protected:
-  void startDrag ( Qt::DropActions supportedActions );
+  void startDrag ( Qt::DropActions supportedActions ) override;
 
 protected Q_SLOTS:
   void onSelectionChanged( QListWidgetItem * item, QListWidgetItem * );
@@ -85,7 +85,7 @@ class GuiExport ActionSelector : public QWidget
 
 public:
     ActionSelector(QWidget* parent=nullptr);
-    ~ActionSelector();
+    ~ActionSelector() override;
 
     QTreeWidget* availableTreeWidget() const
     { return availableWidget; }
@@ -97,16 +97,16 @@ public:
     QString availableLabel() const;
 
 private:
-    void keyPressEvent(QKeyEvent *);
-    void changeEvent(QEvent*);
+    void keyPressEvent(QKeyEvent *) override;
+    void changeEvent(QEvent*) override;
     void retranslateUi();
     void setButtonsEnabled();
 
 private Q_SLOTS:
-    void on_addButton_clicked();
-    void on_removeButton_clicked();
-    void on_upButton_clicked();
-    void on_downButton_clicked();
+    void onAddButtonClicked();
+    void onRemoveButtonClicked();
+    void onUpButtonClicked();
+    void onDownButtonClicked();
     void onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*);
     void onItemDoubleClicked(QTreeWidgetItem * item, int column);
 
@@ -141,7 +141,7 @@ public:
     bool isNone() const;
 
 protected:
-    void keyPressEvent(QKeyEvent * e);
+    void keyPressEvent(QKeyEvent * e) override;
 
 private:
     int keyPressedCount;
@@ -160,7 +160,7 @@ public:
     ModifierLineEdit(QWidget * parent=nullptr);
 
 protected:
-    void keyPressEvent(QKeyEvent * e);
+    void keyPressEvent(QKeyEvent * e) override;
 };
 
 // ------------------------------------------------------------------------------
@@ -177,7 +177,7 @@ public:
     ClearLineEdit (QWidget * parent=nullptr);
 
 protected:
-    void resizeEvent(QResizeEvent *);
+    void resizeEvent(QResizeEvent *) override;
 
 private Q_SLOTS:
     void updateClearButton(const QString &text);
@@ -188,7 +188,7 @@ private:
 
 // ------------------------------------------------------------------------------
 
-typedef QPair<QString, bool> CheckListItem;
+using CheckListItem = QPair<QString, bool>;
 class Ui_DlgTreeWidget;
 
 /**
@@ -203,13 +203,13 @@ class GuiExport CheckListDialog : public QDialog
 
 public:
   CheckListDialog( QWidget* parent = nullptr, Qt::WindowFlags fl = Qt::WindowFlags() );
-  ~CheckListDialog();
+  ~CheckListDialog() override;
 
   void setCheckableItems( const QStringList& items );
   void setCheckableItems( const QList<CheckListItem>& items );
   QStringList getCheckedItems() const;
 
-  void accept ();
+  void accept () override;
 
 private:
   QStringList checked;
@@ -233,10 +233,13 @@ class GuiExport ColorButton : public QPushButton
 
 public:
     ColorButton(QWidget* parent = nullptr);
-    ~ColorButton();
+    ~ColorButton() override;
 
     void setColor(const QColor&);
     QColor color() const;
+
+    void setPackedColor(uint32_t);
+    uint32_t packedColor() const;
 
     void setAllowChangeColor(bool);
     bool allowChangeColor() const;
@@ -265,7 +268,11 @@ Q_SIGNALS:
     void changed();
 
 protected:
-    void paintEvent (QPaintEvent*);
+    void paintEvent (QPaintEvent*) override;
+
+private:
+    void showModeless();
+    void showModal();
 
 private:
     struct ColorButtonP *d;
@@ -289,7 +296,7 @@ class GuiExport UrlLabel : public QLabel
 
 public:
   UrlLabel ( QWidget * parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags() );
-  virtual ~UrlLabel();
+  ~UrlLabel() override;
 
   QString url() const;
   bool launchExternal() const;
@@ -302,7 +309,7 @@ public Q_SLOTS:
   void setLaunchExternal(bool l);
 
 protected:
-  void mouseReleaseEvent ( QMouseEvent * );
+  void mouseReleaseEvent ( QMouseEvent * ) override;
 
 private:
   QString _url;
@@ -343,7 +350,7 @@ class GuiExport StatefulLabel : public QLabel, public Base::Observer<const char*
 
 public:
     StatefulLabel(QWidget* parent = nullptr);
-    virtual ~StatefulLabel();
+    ~StatefulLabel() override;
 
     /** If an unrecognized state is set, use this style */
     void setDefaultStyle(const QString &defaultStyle);
@@ -366,7 +373,7 @@ public:
         const std::string& preferenceName = std::string());
 
     /** Observes the parameter group and clears the cache if it changes */
-    void OnChange(Base::Subject<const char *>& rCaller, const char* rcReason);
+    void OnChange(Base::Subject<const char *>& rCaller, const char* rcReason) override;
 
 public Q_SLOTS:
     void setState(QString state);
@@ -402,7 +409,7 @@ class GuiExport LabelButton : public QWidget
 
 public:
     LabelButton (QWidget * parent = nullptr);
-    virtual ~LabelButton();
+    ~LabelButton() override;
 
     QVariant value() const;
 
@@ -414,7 +421,7 @@ public Q_SLOTS:
 
 protected:
     virtual void showValue(const QVariant& data);
-    void resizeEvent(QResizeEvent*);
+    void resizeEvent(QResizeEvent*) override;
 
 protected Q_SLOTS:
     virtual void browse();
@@ -442,15 +449,16 @@ class GuiExport ToolTip : public QObject
 {
 public:
     static void showText(const QPoint & pos, const QString & text, QWidget * w = nullptr);
+    static void hideText();
 
 protected:
     static ToolTip* instance();
 
     ToolTip();
-    virtual ~ToolTip();
+    ~ToolTip() override;
 
-    void timerEvent(QTimerEvent *e);
-    bool eventFilter(QObject* o, QEvent*e);
+    void timerEvent(QTimerEvent *e) override;
+    bool eventFilter(QObject* o, QEvent*e) override;
 
     void installEventFilter();
     void removeEventFilter();
@@ -473,14 +481,14 @@ class GuiExport StatusWidget : public QDialog
 
 public:
     StatusWidget(QWidget* parent);
-    ~StatusWidget();
+    ~StatusWidget() override;
     void setStatusText(const QString&);
-    QSize sizeHint () const;
+    QSize sizeHint () const override;
     void showText(int ms);
 
 protected:
-    void showEvent(QShowEvent*);
-    void hideEvent(QHideEvent*);
+    void showEvent(QShowEvent*) override;
+    void hideEvent(QHideEvent*) override;
 
 private:
     QLabel* label;
@@ -499,7 +507,7 @@ public:
     int lineNumberAreaWidth();
 
 protected:
-    void resizeEvent(QResizeEvent *event);
+    void resizeEvent(QResizeEvent *event) override;
 
 private Q_SLOTS:
     void updateLineNumberAreaWidth(int newBlockCount);
@@ -523,7 +531,7 @@ public:
     enum InputType {String, Float, Integer};
 
     LabelEditor (QWidget * parent = nullptr);
-    virtual ~LabelEditor();
+    ~LabelEditor() override;
 
     /**
     * Returns the text.
@@ -552,7 +560,7 @@ private Q_SLOTS:
     void changeText();
 
 protected:
-    void resizeEvent(QResizeEvent*);
+    void resizeEvent(QResizeEvent*) override;
 
 private:
     InputType type;
@@ -565,24 +573,24 @@ private:
  * The ExpLineEdit class provides a lineedit that support expressing binding.
  * \author realthunder
  */
-class GuiExport ExpLineEdit : public QLineEdit, public ExpressionBinding
+class GuiExport ExpLineEdit : public QLineEdit, public ExpressionWidget
 {
     Q_OBJECT
 
 public:
     ExpLineEdit ( QWidget * parent=nullptr, bool expressionOnly=false );
 
-    void setExpression(std::shared_ptr<App::Expression> expr);
-    void bind(const App::ObjectIdentifier &_path);
-    bool apply(const std::string &propName);
+    void setExpression(std::shared_ptr<App::Expression> expr) override;
+    void bind(const App::ObjectIdentifier &_path) override;
+    bool apply(const std::string &propName) override;
 
-    void keyPressEvent(QKeyEvent *event);
-    void resizeEvent(QResizeEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private Q_SLOTS:
     void finishFormulaDialog();
     void openFormulaDialog();
-    virtual void onChange();
+    void onChange() override;
 
 private:
     bool autoClose;

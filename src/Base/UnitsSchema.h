@@ -52,7 +52,7 @@ enum class UnitSystem {
 class UnitsSchema
 {
 public:
-    virtual ~UnitsSchema(){}
+    virtual ~UnitsSchema() = default;
     /** Gets called if this schema gets activated.
       * Here it's theoretically possible that you can change the static factors
       * for certain units (e.g. mi = 1,8km instead of mi=1.6km).
@@ -65,6 +65,15 @@ public:
     virtual QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString)=0;
 
     QString toLocale(const Base::Quantity& quant, double factor, const QString& unitString) const;
+
+    //return true if this schema uses multiple units for length (ex. Ft/In)
+    virtual bool isMultiUnitLength() const {return false;}
+
+    //return true if this schema uses multiple units for angles (ex. DMS)
+    virtual bool isMultiUnitAngle() const {return false;}
+
+    //return the basic length unit for this schema
+    virtual std::string getBasicLengthUnit() const { return {"mm"}; }
 };
 
 

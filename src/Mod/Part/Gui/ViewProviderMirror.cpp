@@ -20,43 +20,43 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
 # include <QAction>
 # include <QMenu>
 # include <QTimer>
+
 # include <Standard_math.hxx>
 # include <TopExp.hxx>
 # include <TopTools_IndexedMapOfShape.hxx>
-# include <TopTools_ListOfShape.hxx>
-# include <TopTools_ListIteratorOfListOfShape.hxx>
+
 # include <Inventor/actions/SoSearchAction.h>
 # include <Inventor/draggers/SoDragger.h>
+# include <Inventor/manips/SoCenterballManip.h>
 # include <Inventor/nodes/SoCoordinate3.h>
 # include <Inventor/nodes/SoFaceSet.h>
 # include <Inventor/nodes/SoMaterial.h>
 # include <Inventor/nodes/SoSeparator.h>
-# include <Inventor/manips/SoCenterballManip.h>
 #endif
 
-#include <Mod/Part/App/FeatureMirroring.h>
-#include <Mod/Part/App/FeatureFillet.h>
-#include <Mod/Part/App/FeatureChamfer.h>
-#include <Mod/Part/App/FeatureRevolution.h>
-#include <Mod/Part/App/FeatureOffset.h>
-#include <Mod/Part/App/PartFeatures.h>
 #include <Gui/Application.h>
 #include <Gui/Control.h>
 #include <Gui/Document.h>
+#include <Mod/Part/App/FeatureChamfer.h>
+#include <Mod/Part/App/FeatureFillet.h>
+#include <Mod/Part/App/FeatureMirroring.h>
+#include <Mod/Part/App/FeatureOffset.h>
+#include <Mod/Part/App/FeatureRevolution.h>
+#include <Mod/Part/App/PartFeatures.h>
+
 #include "ViewProviderMirror.h"
 #include "DlgFilletEdges.h"
 #include "TaskOffset.h"
 #include "TaskThickness.h"
 
-using namespace PartGui;
 
+using namespace PartGui;
 
 PROPERTY_SOURCE(PartGui::ViewProviderMirror, PartGui::ViewProviderPart)
 
@@ -184,7 +184,7 @@ std::vector<App::DocumentObject*> ViewProviderMirror::claimChildren() const
 bool ViewProviderMirror::onDelete(const std::vector<std::string> &)
 {
     // get the input shape
-    Part::Mirroring* pMirroring = static_cast<Part::Mirroring*>(getObject()); 
+    Part::Mirroring* pMirroring = static_cast<Part::Mirroring*>(getObject());
     App::DocumentObject *pSource = pMirroring->Source.getValue();
     if (pSource)
         Gui::Application::Instance->showViewProvider(pSource);
@@ -226,9 +226,7 @@ ViewProviderFillet::ViewProviderFillet()
     sPixmap = "Part_Fillet";
 }
 
-ViewProviderFillet::~ViewProviderFillet()
-{
-}
+ViewProviderFillet::~ViewProviderFillet() = default;
 
 void ViewProviderFillet::updateData(const App::Property* prop)
 {
@@ -264,6 +262,12 @@ void ViewProviderFillet::updateData(const App::Property* prop)
                 else if (!colBase.empty() && colBase[0] != this->ShapeColor.getValue()) {
                     colBase.resize(baseMap.Extent(), colBase[0]);
                     applyColor(hist[0], colBase, colFill);
+                }
+
+                // If the view provider has set a transparency then override the values
+                // of the input shapes
+                if (Transparency.getValue() > 0) {
+                    applyTransparency(Transparency.getValue(), colFill);
                 }
 
                 this->DiffuseColor.setValues(colFill);
@@ -315,7 +319,7 @@ std::vector<App::DocumentObject*> ViewProviderFillet::claimChildren() const
 bool ViewProviderFillet::onDelete(const std::vector<std::string> &)
 {
     // get the input shape
-    Part::Fillet* pFillet = static_cast<Part::Fillet*>(getObject()); 
+    Part::Fillet* pFillet = static_cast<Part::Fillet*>(getObject());
     App::DocumentObject *pBase = pFillet->Base.getValue();
     if (pBase)
         Gui::Application::Instance->showViewProvider(pBase);
@@ -332,9 +336,7 @@ ViewProviderChamfer::ViewProviderChamfer()
     sPixmap = "Part_Chamfer";
 }
 
-ViewProviderChamfer::~ViewProviderChamfer()
-{
-}
+ViewProviderChamfer::~ViewProviderChamfer() = default;
 
 void ViewProviderChamfer::updateData(const App::Property* prop)
 {
@@ -357,21 +359,29 @@ void ViewProviderChamfer::updateData(const App::Property* prop)
             TopExp::MapShapes(baseShape, TopAbs_FACE, baseMap);
             TopExp::MapShapes(chamShape, TopAbs_FACE, chamMap);
 
-            Gui::ViewProvider* vpBase = Gui::Application::Instance->getViewProvider(objBase);
-            std::vector<App::Color> colBase = static_cast<PartGui::ViewProviderPart*>(vpBase)->DiffuseColor.getValues();
-            std::vector<App::Color> colCham;
-            colCham.resize(chamMap.Extent(), static_cast<PartGui::ViewProviderPart*>(vpBase)->ShapeColor.getValue());
-            applyTransparency(static_cast<PartGui::ViewProviderPart*>(vpBase)->Transparency.getValue(),colBase);
+            auto vpBase = dynamic_cast<PartGui::ViewProviderPart*>(Gui::Application::Instance->getViewProvider(objBase));
+            if (vpBase) {
+                std::vector<App::Color> colBase = static_cast<PartGui::ViewProviderPart*>(vpBase)->DiffuseColor.getValues();
+                std::vector<App::Color> colCham;
+                colCham.resize(chamMap.Extent(), static_cast<PartGui::ViewProviderPart*>(vpBase)->ShapeColor.getValue());
+                applyTransparency(static_cast<PartGui::ViewProviderPart*>(vpBase)->Transparency.getValue(),colBase);
 
-            if (static_cast<int>(colBase.size()) == baseMap.Extent()) {
-                applyColor(hist[0], colBase, colCham);
-            }
-            else if (!colBase.empty() && colBase[0] != this->ShapeColor.getValue()) {
-                colBase.resize(baseMap.Extent(), colBase[0]);
-                applyColor(hist[0], colBase, colCham);
-            }
+                if (static_cast<int>(colBase.size()) == baseMap.Extent()) {
+                    applyColor(hist[0], colBase, colCham);
+                }
+                else if (!colBase.empty() && colBase[0] != this->ShapeColor.getValue()) {
+                    colBase.resize(baseMap.Extent(), colBase[0]);
+                    applyColor(hist[0], colBase, colCham);
+                }
 
-            this->DiffuseColor.setValues(colCham);
+                // If the view provider has set a transparency then override the values
+                // of the input shapes
+                if (Transparency.getValue() > 0) {
+                    applyTransparency(Transparency.getValue(), colCham);
+                }
+
+                this->DiffuseColor.setValues(colCham);
+            }
         }
     }
 }
@@ -419,7 +429,7 @@ std::vector<App::DocumentObject*> ViewProviderChamfer::claimChildren() const
 bool ViewProviderChamfer::onDelete(const std::vector<std::string> &)
 {
     // get the input shape
-    Part::Chamfer* pChamfer = static_cast<Part::Chamfer*>(getObject()); 
+    Part::Chamfer* pChamfer = static_cast<Part::Chamfer*>(getObject());
     App::DocumentObject *pBase = pChamfer->Base.getValue();
     if (pBase)
         Gui::Application::Instance->showViewProvider(pBase);
@@ -436,9 +446,7 @@ ViewProviderRevolution::ViewProviderRevolution()
     sPixmap = "Part_Revolve";
 }
 
-ViewProviderRevolution::~ViewProviderRevolution()
-{
-}
+ViewProviderRevolution::~ViewProviderRevolution() = default;
 
 std::vector<App::DocumentObject*> ViewProviderRevolution::claimChildren() const
 {
@@ -450,7 +458,7 @@ std::vector<App::DocumentObject*> ViewProviderRevolution::claimChildren() const
 bool ViewProviderRevolution::onDelete(const std::vector<std::string> &)
 {
     // get the input shape
-    Part::Revolution* pRevolve = static_cast<Part::Revolution*>(getObject()); 
+    Part::Revolution* pRevolve = static_cast<Part::Revolution*>(getObject());
     App::DocumentObject *pBase = pRevolve->Source.getValue();
     if (pBase)
         Gui::Application::Instance->showViewProvider(pBase);
@@ -467,9 +475,7 @@ ViewProviderLoft::ViewProviderLoft()
     sPixmap = "Part_Loft";
 }
 
-ViewProviderLoft::~ViewProviderLoft()
-{
-}
+ViewProviderLoft::~ViewProviderLoft() = default;
 
 std::vector<App::DocumentObject*> ViewProviderLoft::claimChildren() const
 {
@@ -490,9 +496,7 @@ ViewProviderSweep::ViewProviderSweep()
     sPixmap = "Part_Sweep";
 }
 
-ViewProviderSweep::~ViewProviderSweep()
-{
-}
+ViewProviderSweep::~ViewProviderSweep() = default;
 
 std::vector<App::DocumentObject*> ViewProviderSweep::claimChildren() const
 {
@@ -517,9 +521,7 @@ ViewProviderOffset::ViewProviderOffset()
     sPixmap = "Part_Offset";
 }
 
-ViewProviderOffset::~ViewProviderOffset()
-{
-}
+ViewProviderOffset::~ViewProviderOffset() = default;
 
 void ViewProviderOffset::setupContextMenu(QMenu* menu, QObject* receiver, const char* member)
 {
@@ -578,7 +580,7 @@ std::vector<App::DocumentObject*> ViewProviderOffset::claimChildren() const
 bool ViewProviderOffset::onDelete(const std::vector<std::string> &)
 {
     // get the support and Sketch
-    Part::Offset* offset = static_cast<Part::Offset*>(getObject()); 
+    Part::Offset* offset = static_cast<Part::Offset*>(getObject());
     App::DocumentObject* source = offset->Source.getValue();
     if (source){
         Gui::Application::Instance->getViewProvider(source)->show();
@@ -601,9 +603,7 @@ ViewProviderThickness::ViewProviderThickness()
     sPixmap = "Part_Thickness";
 }
 
-ViewProviderThickness::~ViewProviderThickness()
-{
-}
+ViewProviderThickness::~ViewProviderThickness() = default;
 
 void ViewProviderThickness::setupContextMenu(QMenu* menu, QObject* receiver, const char* member)
 {
@@ -645,7 +645,7 @@ void ViewProviderThickness::unsetEdit(int ModNum)
 {
     if (ModNum == ViewProvider::Default) {
         // when pressing ESC make sure to close the dialog
-        QTimer::singleShot(0, &Gui::Control(), SLOT(closeDialog()));
+        QTimer::singleShot(0, &Gui::Control(), &Gui::ControlSingleton::closeDialog);
     }
     else {
         PartGui::ViewProviderPart::unsetEdit(ModNum);
@@ -662,7 +662,7 @@ std::vector<App::DocumentObject*> ViewProviderThickness::claimChildren() const
 bool ViewProviderThickness::onDelete(const std::vector<std::string> &)
 {
     // get the support and Sketch
-    Part::Thickness* thickness = static_cast<Part::Thickness*>(getObject()); 
+    Part::Thickness* thickness = static_cast<Part::Thickness*>(getObject());
     App::DocumentObject* source = thickness->Faces.getValue();
     if (source){
         Gui::Application::Instance->getViewProvider(source)->show();
@@ -680,9 +680,7 @@ ViewProviderRefine::ViewProviderRefine()
     sPixmap = "Part_Refine_Shape";
 }
 
-ViewProviderRefine::~ViewProviderRefine()
-{
-}
+ViewProviderRefine::~ViewProviderRefine() = default;
 
 // ---------------------------------------
 
@@ -694,6 +692,4 @@ ViewProviderReverse::ViewProviderReverse()
     //sPixmap = "Part_Reverse_Shape";
 }
 
-ViewProviderReverse::~ViewProviderReverse()
-{
-}
+ViewProviderReverse::~ViewProviderReverse() = default;

@@ -22,19 +22,14 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
-#include <App/Application.h>
-
-#include <Base/Parameter.h>
-#include <Base/Console.h>
 #include <Base/Tools.h>
 
-#include "DrawGuiUtil.h"
-#include "PreferencesGui.h"
 #include "DlgPrefsTechDrawDimensionsImp.h"
 #include "ui_DlgPrefsTechDrawDimensions.h"
+#include "DrawGuiUtil.h"
+#include "PreferencesGui.h"
 
 
 using namespace TechDrawGui;
@@ -59,7 +54,7 @@ DlgPrefsTechDrawDimensionsImp::~DlgPrefsTechDrawDimensionsImp()
 
 void DlgPrefsTechDrawDimensionsImp::saveSettings()
 {
-    ui->pcbStandardAndStyle->onSave(); 
+    ui->pcbStandardAndStyle->onSave();
     ui->cbGlobalDecimals->onSave();
     ui->cbShowUnits->onSave();
     ui->sbAltDecimals->onSave();
@@ -79,10 +74,11 @@ void DlgPrefsTechDrawDimensionsImp::loadSettings()
     //Quantity widgets do not use preset value since they are based on
     //QAbstractSpinBox
     double fontDefault = Preferences::dimFontSizeMM();
+    double arrowDefault = Preferences::dimArrowSize();
     ui->plsb_FontSize->setValue(fontDefault);
 //    double arrowDefault = 5.0;
 //    plsb_ArrowSize->setValue(arrowDefault);
-    ui->plsb_ArrowSize->setValue(fontDefault);
+    ui->plsb_ArrowSize->setValue(arrowDefault);
 
     ui->pcbStandardAndStyle->onRestore();
     ui->cbGlobalDecimals->onRestore();
@@ -119,7 +115,7 @@ void DlgPrefsTechDrawDimensionsImp::changeEvent(QEvent *e)
     }
 }
 
-int DlgPrefsTechDrawDimensionsImp::prefArrowStyle(void) const
+int DlgPrefsTechDrawDimensionsImp::prefArrowStyle() const
 {
     return PreferencesGui::dimArrowStyle();
 }

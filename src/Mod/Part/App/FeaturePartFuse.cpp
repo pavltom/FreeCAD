@@ -42,9 +42,7 @@ using namespace Part;
 PROPERTY_SOURCE(Part::Fuse, Part::Boolean)
 
 
-Fuse::Fuse(void)
-{
-}
+Fuse::Fuse() = default;
 
 BRepAlgoAPI_BooleanOperation* Fuse::makeOperation(const TopoDS_Shape& base, const TopoDS_Shape& tool) const
 {
@@ -57,7 +55,7 @@ BRepAlgoAPI_BooleanOperation* Fuse::makeOperation(const TopoDS_Shape& base, cons
 PROPERTY_SOURCE(Part::MultiFuse, Part::Feature)
 
 
-MultiFuse::MultiFuse(void)
+MultiFuse::MultiFuse()
 {
     ADD_PROPERTY(Shapes,(nullptr));
     Shapes.setSize(0);
@@ -81,7 +79,7 @@ short MultiFuse::mustExecute() const
     return 0;
 }
 
-App::DocumentObjectExecReturn *MultiFuse::execute(void)
+App::DocumentObjectExecReturn *MultiFuse::execute()
 {
     std::vector<TopoDS_Shape> s;
     std::vector<App::DocumentObject*> obj = Shapes.getValues();
@@ -131,8 +129,8 @@ App::DocumentObjectExecReturn *MultiFuse::execute(void)
                 throw Base::RuntimeError("MultiFusion failed");
 
             TopoDS_Shape resShape = mkFuse.Shape();
-            for (std::vector<TopoDS_Shape>::iterator it = s.begin(); it != s.end(); ++it) {
-                history.push_back(buildHistory(mkFuse, TopAbs_FACE, resShape, *it));
+            for (const auto & it : s) {
+                history.push_back(buildHistory(mkFuse, TopAbs_FACE, resShape, it));
             }
             if (resShape.IsNull())
                 throw Base::RuntimeError("Resulting shape is null");
@@ -151,8 +149,8 @@ App::DocumentObjectExecReturn *MultiFuse::execute(void)
                     BRepBuilderAPI_RefineModel mkRefine(oldShape);
                     resShape = mkRefine.Shape();
                     ShapeHistory hist = buildHistory(mkRefine, TopAbs_FACE, resShape, oldShape);
-                    for (std::vector<ShapeHistory>::iterator jt = history.begin(); jt != history.end(); ++jt)
-                        *jt = joinHistory(*jt, hist);
+                    for (auto & jt : history)
+                        jt = joinHistory(jt, hist);
                 }
                 catch (Standard_Failure&) {
                     // do nothing

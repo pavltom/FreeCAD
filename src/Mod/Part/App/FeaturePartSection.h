@@ -33,19 +33,19 @@ namespace Part
 
 class Section : public Boolean
 {
-    PROPERTY_HEADER(Part::Section);
+    PROPERTY_HEADER_WITH_OVERRIDE(Part::Section);
 
 public:
     Section();
 
     App::PropertyBool Approximation;
-    
+
     /** @name methods override Feature */
     //@{
     /// recalculate the Feature
-    short mustExecute() const;
+    short mustExecute() const override;
 protected:
-    BRepAlgoAPI_BooleanOperation* makeOperation(const TopoDS_Shape&, const TopoDS_Shape&) const;
+    BRepAlgoAPI_BooleanOperation* makeOperation(const TopoDS_Shape&, const TopoDS_Shape&) const override;
     //@}
 };
 

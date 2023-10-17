@@ -42,7 +42,7 @@ namespace Gui {
  * @author Werner Mayer
  */
 class GuiExport SoTextLabel : public SoText2 {
-    typedef SoText2 inherited;
+    using inherited = SoText2;
 
     SO_NODE_HEADER(SoTextLabel);
 
@@ -55,8 +55,8 @@ public:
     SoSFFloat frameSize;
 
 protected:
-    virtual ~SoTextLabel() {}
-    virtual void GLRender(SoGLRenderAction *action);
+    ~SoTextLabel() override = default;
+    void GLRender(SoGLRenderAction *action) override;
 };
 
 /**
@@ -64,7 +64,7 @@ protected:
  * @author Werner Mayer
  */
 class GuiExport SoColorBarLabel : public SoText2 {
-    typedef SoText2 inherited;
+    using inherited = SoText2;
 
     SO_NODE_HEADER(SoColorBarLabel);
 
@@ -77,7 +77,7 @@ protected:
 };
 
 class GuiExport SoStringLabel : public SoNode {
-    typedef SoNode inherited;
+    using inherited = SoNode;
 
     SO_NODE_HEADER(SoStringLabel);
 
@@ -91,12 +91,12 @@ public:
     SoSFInt32  size;
 
 protected:
-    virtual ~SoStringLabel() {};
-    virtual void GLRender(SoGLRenderAction *action);
+    ~SoStringLabel() override = default;
+    void GLRender(SoGLRenderAction *action) override;
 };
 
 class GuiExport SoFrameLabel : public SoImage {
-    typedef SoImage inherited;
+    using inherited = SoImage;
 
     SO_NODE_HEADER(SoFrameLabel);
 
@@ -118,9 +118,9 @@ public:
   //SoSFImage  image;
 
 protected:
-    virtual ~SoFrameLabel() {};
-    virtual void notify(SoNotList * list);
-    virtual void GLRender(SoGLRenderAction *action);
+    ~SoFrameLabel() override = default;
+    void notify(SoNotList * list) override;
+    void GLRender(SoGLRenderAction *action) override;
 
 private:
     void drawImage();
@@ -137,7 +137,7 @@ public:
 
 private:
     // Destructor
-    ~TranslateManip();
+    ~TranslateManip() override;
 };
 
 } // namespace Gui

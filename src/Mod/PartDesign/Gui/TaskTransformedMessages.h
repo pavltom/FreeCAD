@@ -27,13 +27,13 @@
 #include <Gui/TaskView/TaskView.h>
 
 class Ui_TaskTransformedMessages;
-typedef boost::signals2::connection Connection;
+using Connection = boost::signals2::connection;
 
 namespace App {
 class Property;
 }
 
-namespace PartDesignGui { 
+namespace PartDesignGui {
 
 class ViewProviderTransformed;
 
@@ -42,13 +42,13 @@ class TaskTransformedMessages : public Gui::TaskView::TaskBox
     Q_OBJECT
 
 public:
-    TaskTransformedMessages(ViewProviderTransformed *transformedView);
-    ~TaskTransformedMessages();
+    explicit TaskTransformedMessages(ViewProviderTransformed *transformedView);
+    ~TaskTransformedMessages() override;
 
     void slotDiagnosis(QString msg);
 
 private Q_SLOTS:
-    
+
 protected:
     ViewProviderTransformed *transformedView;
     Connection connectionDiagnosis;

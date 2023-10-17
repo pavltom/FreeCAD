@@ -46,7 +46,7 @@ class SoFCColorGradient;
  * @author Werner Mayer
  */
 class GuiExport SoFCColorBarBase : public SoSeparator, public App::ValueFloatToRGB {
-  typedef SoSeparator inherited;
+  using inherited = SoSeparator;
 
   SO_NODE_ABSTRACT_HEADER(Gui::SoFCColorBarBase);
 
@@ -54,7 +54,7 @@ public:
   static void initClass();
   static void finish();
 
-  virtual void GLRenderBelowPath ( SoGLRenderAction *action );
+  void GLRenderBelowPath ( SoGLRenderAction *action ) override;
 
   /**
    * Sets the range of the colorbar from the maximum \a fMax to the minimum \a fMin.
@@ -68,7 +68,7 @@ public:
    *
    * This method must be implemented in subclasses.
    */
-  virtual App::Color getColor(float fVal) const = 0;
+  App::Color getColor(float fVal) const override = 0;
   /**
    * Returns always true if the color bar is in mode to show colors to arbitrary values of \a fVal,
    * otherwise true is returned if \a fVal is within the specified parameter range, if not false is
@@ -135,10 +135,10 @@ protected:
   void setModified();
 
   SoFCColorBarBase ();
-  virtual ~SoFCColorBarBase ();
+  ~SoFCColorBarBase () override;
 
 private:
-  float _boxWidth;
+  float _boxWidth{-1.0F};
   SbVec2s _windowSize;
 };
 
@@ -149,7 +149,7 @@ private:
  * @author Werner Mayer
  */
 class GuiExport SoFCColorBar : public SoFCColorBarBase, public Base::Subject<int> {
-  typedef SoFCColorBarBase inherited;
+  using inherited = SoFCColorBarBase;
 
   SO_NODE_HEADER(Gui::SoFCColorBar);
 
@@ -165,51 +165,51 @@ public:
   /**
    * Handles the mouse button events and checks if the user has clicked on the area of the currently active color bar.
    */
-  void handleEvent (SoHandleEventAction *action);
+  void handleEvent (SoHandleEventAction *action) override;
   /**
    * Sets the range of all color bars from the maximum \a fMax to the minimum \a fMin.
    * \a prec indicates the post decimal positions, \a prec should be in between 0 and 6.
    */
-  void setRange( float fMin, float fMax, int prec=3 );
+  void setRange( float fMin, float fMax, int prec=3 ) override;
   /**
    * Returns the associated color to the value \a fVal of the currently active color bar.
    */
-  App::Color getColor(float fVal) const;
+  App::Color getColor(float fVal) const override;
   /**
    * Sets whether values outside the range should be in gray,
    */
-  void setOutsideGrayed (bool bVal);
+  void setOutsideGrayed (bool bVal) override;
   /**
    * Returns the return value of the currently active color bar.
    */
-  bool isVisible (float fVal) const;
+  bool isVisible (float fVal) const override;
   /**
    * Returns the current minimum of the parameter range of the currently active color bar.
    */
-  float getMinValue () const;
+  float getMinValue () const override;
   /**
    * Returns the current maximum of the parameter range of the currently active color bar.
    */
-  float getMaxValue () const;
+  float getMaxValue () const override;
   /**
    * Customizes the currently active color bar.
    */
-  void customize(SoFCColorBarBase*);
+  void customize(SoFCColorBarBase*) override;
   /**
    * Notify observers
    */
-  void triggerChange(SoFCColorBarBase*);
+  void triggerChange(SoFCColorBarBase*) override;
   /** Returns the name of the color bar.
    */
-  const char* getColorBarName() const { return "Color Bar"; }
+  const char* getColorBarName() const override { return "Color Bar"; }
 
 protected:
   /**
    * Sets the current viewer size to all color bars to recalculate their new position.
    */
-  void setViewportSize( const SbVec2s& size );
+  void setViewportSize( const SbVec2s& size ) override;
 
-  virtual ~SoFCColorBar();
+  ~SoFCColorBar() override;
 
 private:
   static void eventCallback(void * userdata, SoEventCallback * node);

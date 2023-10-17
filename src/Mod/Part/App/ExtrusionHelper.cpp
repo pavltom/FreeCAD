@@ -48,9 +48,7 @@
 
 using namespace Part;
 
-ExtrusionHelper::ExtrusionHelper()
-{
-}
+ExtrusionHelper::ExtrusionHelper() = default;
 
 void ExtrusionHelper::makeDraft(const TopoDS_Shape& shape,
                                 const gp_Dir& direction,
@@ -69,7 +67,7 @@ void ExtrusionHelper::makeDraft(const TopoDS_Shape& shape,
         TopExp_Explorer ex;
         size_t i = 0;
         for (ex.Init(shape, TopAbs_WIRE); ex.More(); ex.Next(), ++i) {
-            wiresections.push_back(std::vector<TopoDS_Shape>());
+            wiresections.emplace_back();
             wiresections[i].push_back(TopoDS::Wire(ex.Current()));
         }
         return i;
@@ -108,7 +106,7 @@ void ExtrusionHelper::makeDraft(const TopoDS_Shape& shape,
     // methods like checking the center of mass etc. don't help us here.
     // As solution we build a prism with every wire, then subtract every prism from each other.
     // If the moment of inertia changes by a subtraction, we have an inner wire prism.
-    // 
+    //
     // first build the prisms
     std::vector<TopoDS_Shape> resultPrisms;
     TopoDS_Shape singlePrism;
@@ -284,8 +282,8 @@ void ExtrusionHelper::makeDraft(const TopoDS_Shape& shape,
             }
             else
                 // we already have the results
-                for (auto it = shells.begin(); it != shells.end(); ++it)
-                    drafts.push_back(*it);
+                for (const auto & shell : shells)
+                    drafts.push_back(shell);
         }
         else { // no solid
             BRepBuilderAPI_Sewing sewer;
@@ -362,7 +360,7 @@ void ExtrusionHelper::checkInnerWires(std::vector<bool>& isInnerWire, const gp_D
         }
         if (saveIsInnerWireIterator == *isInnerWireIterator)
             // nothing was changed and we can remove it from the list to be checked
-            // but we cannot do this before the foor loop was fully run
+            // but we cannot do this before the for loop was fully run
             toDisable[outer] = true;
         ++isInnerWireIterator;
         ++toCheckIterator;

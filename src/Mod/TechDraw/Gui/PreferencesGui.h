@@ -20,17 +20,17 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _PreferencesGui_h_
-#define _PreferencesGui_h_
+#ifndef PreferencesGui_h_
+#define PreferencesGui_h_
 
 #include <Mod/TechDraw/TechDrawGlobal.h>
 
+#include <QColor>
+
 class QFont;
 class QString;
-class QColor;
 
 #include <Mod/TechDraw/App/Preferences.h>
-#include <QColor>
 
 namespace TechDrawGui
 {
@@ -55,6 +55,8 @@ static App::Color  leaderColor();
 static QColor      leaderQColor();
 static App::Color  dimColor();
 static QColor      dimQColor();
+static App::Color  pageColor();
+static QColor      pageQColor();
 
 static int         dimArrowStyle();
 static double      dimArrowSize();
@@ -62,6 +64,7 @@ static double      dimArrowSize();
 static double      edgeFuzz();
 
 static Qt::PenStyle  sectionLineStyle();
+static bool          sectionLineMarks();
 
 static QString     weldingDirectory();
 
@@ -70,6 +73,10 @@ static App::Color gridColor();
 static QColor gridQColor();
 static double gridSpacing();
 
+static QColor       getAccessibleQColor(QColor orig);
+static QColor       lightTextQColor();
+static QColor       reverseColor(QColor orig);
+static QColor       lightenColor(QColor orig);
 };
 
 } //end namespace TechDrawGui

@@ -32,6 +32,7 @@
 #include <FCGlobal.h>
 
 class QButtonGroup;
+class QDialogButtonBox;
 class QGridLayout;
 class QGroupBox;
 class QHBoxLayout;
@@ -76,16 +77,17 @@ public:
     static QString restoreLocation();
     static void saveLocation(const QString&);
 
-    FileDialog(QWidget * parent = nullptr);
-    ~FileDialog();
+    explicit FileDialog(QWidget * parent = nullptr);
+    ~FileDialog() override;
 
-    void accept();
+    void accept() override;
 
 private Q_SLOTS:
     void onSelectedFilter(const QString&);
 
 private:
     bool hasSuffix(const QString&) const;
+    static QList<QUrl> fetchSidebarUrls();
     static QString workingDirectory;
 };
 
@@ -107,9 +109,9 @@ public:
     };
 
     FileOptionsDialog ( QWidget* parent, Qt::WindowFlags );
-    virtual ~FileOptionsDialog();
+    ~FileOptionsDialog() override;
 
-    void accept();
+    void accept() override;
 
     void setOptionsWidget( ExtensionPosition pos , QWidget*, bool show = false );
     QWidget* getOptionsWidget() const;
@@ -134,11 +136,11 @@ class FileIconProvider : public QFileIconProvider
 {
 public:
     FileIconProvider();
-    ~FileIconProvider();
+    ~FileIconProvider() override;
 
-    QIcon icon(IconType type) const;
-    QIcon icon(const QFileInfo & info) const;
-    QString type(const QFileInfo & info) const;
+    QIcon icon(IconType type) const override;
+    QIcon icon(const QFileInfo & info) const override;
+    QString type(const QFileInfo & info) const override;
 };
 
 // ----------------------------------------------------------------------
@@ -165,8 +167,8 @@ public:
     Q_PROPERTY(QString buttonText READ buttonText WRITE setButtonText NOTIFY buttonTextChanged)
 
 public:
-    FileChooser ( QWidget * parent = nullptr );
-    virtual ~FileChooser();
+    explicit FileChooser ( QWidget * parent = nullptr );
+    ~FileChooser() override;
 
     /**
     * Returns the set filter.
@@ -219,7 +221,7 @@ private Q_SLOTS:
     void editingFinished();
 
 protected:
-    void resizeEvent(QResizeEvent*);
+    void resizeEvent(QResizeEvent*) override;
 
 private:
     QLineEdit *lineEdit;
@@ -243,10 +245,10 @@ class GuiExport SelectModule : public QDialog
     Q_OBJECT
 
 public:
-    typedef QMap<QString, QString> Dict;
+    using Dict = QMap<QString, QString>;
 
     SelectModule (const QString& type, const Dict&, QWidget* parent);
-    virtual ~SelectModule();
+    ~SelectModule() override;
     QString getModule() const;
 
     /** @name Import/Export handler
@@ -255,20 +257,20 @@ public:
      * the file.
      */
     //@{
-    static Dict exportHandler(const QString& fn, const QString& filter=QString());
-    static Dict exportHandler(const QStringList& fn, const QString& filter=QString());
-    static Dict importHandler(const QString& fn, const QString& filter=QString());
-    static Dict importHandler(const QStringList& fn, const QString& filter=QString());
+    static Dict exportHandler(const QString& fileName, const QString& filter=QString());
+    static Dict exportHandler(const QStringList& fileNames, const QString& filter=QString());
+    static Dict importHandler(const QString& fileName, const QString& filter=QString());
+    static Dict importHandler(const QStringList& fileNames, const QString& filter=QString());
     //@}
 
-    void accept();
-    void reject();
+    void accept() override;
+    void reject() override;
 
 private Q_SLOTS:
     void onButtonClicked();
 
 private:
-    QPushButton *okButton;
+    QDialogButtonBox *buttonBox;
     QButtonGroup* group;
     QGridLayout *gridLayout;
     QHBoxLayout *hboxLayout;

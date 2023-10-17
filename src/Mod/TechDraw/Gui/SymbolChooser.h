@@ -22,6 +22,8 @@
 #ifndef TECHDRAWGUI_SYMBOLCHOOSER_H
 #define TECHDRAWGUI_SYMBOLCHOOSER_H
 
+#include <Mod/TechDraw/TechDrawGlobal.h>
+
 #include <QDialog>
 
 class QListWidgetItem;
@@ -37,7 +39,7 @@ public:
     SymbolChooser(QWidget *parent = nullptr,
                   QString startDir = QString(),
                   QString source = QString());
-    ~SymbolChooser();
+    ~SymbolChooser() override;
 
 public Q_SLOTS:
     void onOKClicked();

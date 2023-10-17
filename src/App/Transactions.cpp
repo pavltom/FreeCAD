@@ -62,8 +62,8 @@ Transaction::Transaction(int id)
 Transaction::~Transaction()
 {
     auto &index = _Objects.get<0>();
-    for (auto It= index.begin();It!=index.end();++It) {
-        if (It->second->status == TransactionObject::New) {
+    for (const auto & It : index) {
+        if (It.second->status == TransactionObject::New) {
             // If an object has been removed from the document the transaction
             // status is 'New'. The 'pcNameInDocument' member serves as criterion
             // to check whether the object is part of the document or not.
@@ -75,8 +75,8 @@ Transaction::~Transaction()
             // to cause a memory leak. This usually is the case when the removal
             // of an object is not undone or when an addition is undone.
 
-            if (!It->first->isAttachedToDocument()) {
-                if (It->first->getTypeId().isDerivedFrom(DocumentObject::getClassTypeId())) {
+            if (!It.first->isAttachedToDocument()) {
+                if (It.first->getTypeId().isDerivedFrom(DocumentObject::getClassTypeId())) {
                     // #0003323: Crash when clearing transaction list
                     // It can happen that when clearing the transaction list several objects
                     // are destroyed with dependencies which can lead to dangling pointers.
@@ -85,13 +85,13 @@ Transaction::~Transaction()
                     // possible dangling pointers.
                     // An alternative solution is to call breakDependency inside
                     // Document::_removeObject. Make this change in v0.18.
-                    const DocumentObject* obj = static_cast<const DocumentObject*>(It->first);
+                    const DocumentObject* obj = static_cast<const DocumentObject*>(It.first);
                     const_cast<DocumentObject*>(obj)->setStatus(ObjectStatus::Destroy, true);
                 }
-                delete It->first;
+                delete It.first;
             }
         }
-        delete It->second;
+        delete It.second;
     }
 }
 
@@ -109,7 +109,7 @@ int Transaction::getLastID() {
     return _TransactionID;
 }
 
-unsigned int Transaction::getMemSize (void) const
+unsigned int Transaction::getMemSize () const
 {
     return 0;
 }
@@ -124,7 +124,7 @@ void Transaction::Restore(Base::XMLReader &/*reader*/)
     assert(0);
 }
 
-int Transaction::getID(void) const
+int Transaction::getID() const
 {
     return transID;
 }
@@ -182,7 +182,7 @@ void Transaction::apply(Document &Doc, bool forward)
     }catch(...) {
         errMsg = "Unknown exception";
     }
-    if(errMsg.size()) {
+    if(!errMsg.empty()) {
         FC_ERR("Exception on " << (forward?"redo":"undo") << " '" 
                 << Name << "':" << errMsg);
     }
@@ -194,9 +194,12 @@ void Transaction::addObjectNew(TransactionalObject *Obj)
     auto pos = index.find(Obj);
     if (pos != index.end()) {
         if (pos->second->status == TransactionObject::Del) {
-            delete pos->second;
-            delete pos->first;
+            // first remove the item from the container before deleting it
+            auto second = pos->second;
+            auto first = pos->first;
             index.erase(pos);
+            delete second;
+            delete first;
         }
         else {
             pos->second->status = TransactionObject::New;
@@ -269,10 +272,7 @@ TYPESYSTEM_SOURCE_ABSTRACT(App::TransactionObject, Base::Persistence)
  * A constructor.
  * A more elaborate description of the constructor.
  */
-TransactionObject::TransactionObject()
-  : status(New)
-{
-}
+TransactionObject::TransactionObject() = default;
 
 /**
  * A destructor.
@@ -310,7 +310,7 @@ void TransactionObject::applyChn(Document & /*Doc*/, TransactionalObject *pcObj,
             // been destroies. We must prepare for the case where user removed
             // a dynamic property but does not recordered as transaction.
             auto name = pcObj->getPropertyName(prop);
-            if(!name || (data.name.size() && data.name != name) || data.propertyType != prop->getTypeId()) {
+            if(!name || (!data.name.empty() && data.name != name) || data.propertyType != prop->getTypeId()) {
                 // Here means the original property is not found, probably removed
                 if(data.name.empty()) {
                     // not a dynamic property, nothing to do
@@ -380,7 +380,7 @@ void TransactionObject::addOrRemoveProperty(const Property* pcProp, bool add)
         return;
 
     auto &data = _PropChangeMap[pcProp->getID()];
-    if(data.name.size()) {
+    if(!data.name.empty()) {
         if(!add && !data.property) {
             // this means add and remove the same property inside a single
             // transaction, so they cancel each other out.
@@ -404,7 +404,7 @@ void TransactionObject::addOrRemoveProperty(const Property* pcProp, bool add)
     }
 }
 
-unsigned int TransactionObject::getMemSize (void) const
+unsigned int TransactionObject::getMemSize () const
 {
     return 0;
 }
@@ -433,17 +433,13 @@ TYPESYSTEM_SOURCE_ABSTRACT(App::TransactionDocumentObject, App::TransactionObjec
  * A constructor.
  * A more elaborate description of the constructor.
  */
-TransactionDocumentObject::TransactionDocumentObject()
-{
-}
+TransactionDocumentObject::TransactionDocumentObject() = default;
 
 /**
  * A destructor.
  * A more elaborate description of the destructor.
  */
-TransactionDocumentObject::~TransactionDocumentObject()
-{
-}
+TransactionDocumentObject::~TransactionDocumentObject() = default;
 
 void TransactionDocumentObject::applyDel(Document &Doc, TransactionalObject *pcObj)
 {

@@ -36,14 +36,14 @@
 using namespace Part;
 
 // returns a string which represents the object e.g. when printed in python
-std::string SurfaceOfRevolutionPy::representation(void) const
+std::string SurfaceOfRevolutionPy::representation() const
 {
-    return std::string("<SurfaceOfRevolution object>");
+    return {"<SurfaceOfRevolution object>"};
 }
 
 PyObject *SurfaceOfRevolutionPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // Python wrapper
 {
-    // create a new instance of SurfaceOfRevolutionPy and the Twin object 
+    // create a new instance of SurfaceOfRevolutionPy and the Twin object
     return new SurfaceOfRevolutionPy(new GeomSurfaceOfRevolution);
 }
 
@@ -53,8 +53,8 @@ int SurfaceOfRevolutionPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     PyObject* pGeom;
     PyObject* pPnt;
     PyObject* pDir;
-    if (!PyArg_ParseTuple(args, "O!O!O!", 
-                            &(GeometryPy::Type), &pGeom, 
+    if (!PyArg_ParseTuple(args, "O!O!O!",
+                            &(GeometryPy::Type), &pGeom,
                             &(Base::VectorPy::Type),&pPnt,
                             &(Base::VectorPy::Type),&pDir))
         return -1;
@@ -83,7 +83,7 @@ int SurfaceOfRevolutionPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     }
 }
 
-Py::Object SurfaceOfRevolutionPy::getLocation(void) const
+Py::Object SurfaceOfRevolutionPy::getLocation() const
 {
     Handle(Geom_SurfaceOfRevolution) curve = Handle(Geom_SurfaceOfRevolution)::DownCast
         (getGeometryPtr()->handle());
@@ -113,7 +113,7 @@ void  SurfaceOfRevolutionPy::setLocation(Py::Object arg)
     }
 }
 
-Py::Object SurfaceOfRevolutionPy::getDirection(void) const
+Py::Object SurfaceOfRevolutionPy::getDirection() const
 {
     Handle(Geom_SurfaceOfRevolution) curve = Handle(Geom_SurfaceOfRevolution)::DownCast
         (getGeometryPtr()->handle());
@@ -147,7 +147,7 @@ namespace Part {
     extern const Py::Object makeGeometryCurvePy(const Handle(Geom_Curve)& c);
 }
 
-Py::Object SurfaceOfRevolutionPy::getBasisCurve(void) const
+Py::Object SurfaceOfRevolutionPy::getBasisCurve() const
 {
     Handle(Geom_SurfaceOfRevolution) surf = Handle(Geom_SurfaceOfRevolution)::DownCast
         (getGeometryPtr()->handle());
@@ -184,7 +184,7 @@ PyObject *SurfaceOfRevolutionPy::getCustomAttributes(const char* /*attr*/) const
 
 int SurfaceOfRevolutionPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)
 {
-    return 0; 
+    return 0;
 }
 
 

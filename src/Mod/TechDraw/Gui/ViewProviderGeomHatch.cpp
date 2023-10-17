@@ -58,9 +58,9 @@ ViewProviderGeomHatch::ViewProviderGeomHatch()
 
     static const char *vgroup = "GeomHatch";
 
-    ADD_PROPERTY_TYPE(ColorPattern,(TechDraw::DrawGeomHatch::prefGeomHatchColor()),
-                        vgroup,App::Prop_None,"Color of the pattern");
-    ADD_PROPERTY_TYPE(WeightPattern,(0),vgroup,App::Prop_None,"GeometricHatch pattern line thickness");
+    ADD_PROPERTY_TYPE(ColorPattern, (TechDraw::DrawGeomHatch::prefGeomHatchColor()),
+                        vgroup, App::Prop_None, "Color of the pattern");
+    ADD_PROPERTY_TYPE(WeightPattern, (0), vgroup, App::Prop_None, "GeometricHatch pattern line thickness");
 
     getParameters();
 
@@ -68,25 +68,6 @@ ViewProviderGeomHatch::ViewProviderGeomHatch()
 
 ViewProviderGeomHatch::~ViewProviderGeomHatch()
 {
-}
-
-void ViewProviderGeomHatch::attach(App::DocumentObject *pcFeat)
-{
-    // call parent attach method
-    ViewProviderDocumentObject::attach(pcFeat);
-}
-
-void ViewProviderGeomHatch::setDisplayMode(const char* ModeName)
-{
-    ViewProviderDocumentObject::setDisplayMode(ModeName);
-}
-
-std::vector<std::string> ViewProviderGeomHatch::getDisplayModes(void) const
-{
-    // get the modes of the father
-    std::vector<std::string> StrList = ViewProviderDocumentObject::getDisplayModes();
-
-    return StrList;
 }
 
 bool ViewProviderGeomHatch::setEdit(int ModNum)
@@ -105,23 +86,13 @@ bool ViewProviderGeomHatch::setEdit(int ModNum)
         projDlg->setCreateMode(false);
         Gui::Control().showDialog(projDlg);
     } else {
-        Gui::Control().showDialog(new TaskDlgGeomHatch(getViewObject(),this,false));
+        Gui::Control().showDialog(new TaskDlgGeomHatch(getViewObject(), this, false));
     }
 
     return true;
 }
 
-void ViewProviderGeomHatch::unsetEdit(int ModNum)
-{
-    if (ModNum == ViewProvider::Default) {
-        Gui::Control().closeDialog();
-    }
-    else {
-        ViewProviderDocumentObject::unsetEdit(ModNum);
-    }
-}
-
-bool ViewProviderGeomHatch::doubleClicked(void)
+bool ViewProviderGeomHatch::doubleClicked()
 {
     setEdit(0);
     return true;
@@ -144,13 +115,21 @@ void ViewProviderGeomHatch::onChanged(const App::Property* p)
     Gui::ViewProviderDocumentObject::onChanged(p);
 }
 
-//for feature properties - but each letter/digit in property editor triggers this!
+//for feature properties
 void ViewProviderGeomHatch::updateData(const App::Property* prop)
 {
+    if ( prop == &(getViewObject()->FilePattern) ||
+            prop == &(getViewObject()->NamePattern) ) {
+        TechDraw::DrawViewPart* parent = getViewObject()->getSourceView();
+        if (parent) {
+            parent->requestPaint();
+        }
+    }
+
     Gui::ViewProviderDocumentObject::updateData(prop);
 }
 
-void ViewProviderGeomHatch::updateGraphic(void)
+void ViewProviderGeomHatch::updateGraphic()
 {
     TechDraw::DrawGeomHatch* dc = getViewObject();
     if (!dc) {
@@ -176,12 +155,9 @@ void ViewProviderGeomHatch::updateGraphic(void)
     qgiv->updateView(true);
 }
 
-void ViewProviderGeomHatch::getParameters(void)
+void ViewProviderGeomHatch::getParameters()
 {
-    int lgNumber = Preferences::lineGroup();
-    auto lg = TechDraw::LineGroup::lineGroupFactory(lgNumber);
-    double weight = lg->getWeight("Graphic");
-    delete lg;                                                    //Coverity CID 174667
+    double weight = TechDraw::LineGroup::getDefaultWidth("Graphic");
     WeightPattern.setValue(weight);
 }
 

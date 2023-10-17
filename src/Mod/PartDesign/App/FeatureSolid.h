@@ -37,13 +37,13 @@ namespace PartDesign
  */
 class PartDesignExport Solid : public Feature
 {
-    PROPERTY_HEADER(PartDesign::FeatureSolid);
+    PROPERTY_HEADER_WITH_OVERRIDE(PartDesign::FeatureSolid);
 
 public:
     Solid();
 
 protected:
- 
+
 };
 
 } //namespace PartDesign

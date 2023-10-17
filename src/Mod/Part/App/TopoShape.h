@@ -54,10 +54,10 @@ class PartExport NullShapeException : public Base::ValueError
 public:
    /// Construction
    NullShapeException();
-   NullShapeException(const char * sMessage);
-   NullShapeException(const std::string& sMessage);
+   explicit NullShapeException(const char * sMessage);
+   explicit NullShapeException(const std::string& sMessage);
    /// Destruction
-   virtual ~NullShapeException() throw() {}
+   ~NullShapeException() noexcept override = default;
 };
 
 /* A special sub-class to indicate boolean failures
@@ -67,20 +67,20 @@ class PartExport BooleanException : public Base::CADKernelError
 public:
    /// Construction
    BooleanException();
-   BooleanException(const char * sMessage);
-   BooleanException(const std::string& sMessage);
+   explicit BooleanException(const char * sMessage);
+   explicit BooleanException(const std::string& sMessage);
    /// Destruction
-   virtual ~BooleanException() throw() {}
+   ~BooleanException() noexcept override = default;
 };
 
 class PartExport ShapeSegment : public Data::Segment
 {
-    TYPESYSTEM_HEADER();
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
     ShapeSegment(const TopoDS_Shape &ShapeIn):Shape(ShapeIn){}
-    ShapeSegment(){}
-    virtual std::string getName() const;
+    ShapeSegment() = default;
+    std::string getName() const override;
 
     TopoDS_Shape Shape;
 };
@@ -91,13 +91,13 @@ public:
  */
 class PartExport TopoShape : public Data::ComplexGeoData
 {
-    TYPESYSTEM_HEADER();
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
     TopoShape();
-    TopoShape(const TopoDS_Shape&);
+    TopoShape(const TopoDS_Shape&);//explicit bombs
     TopoShape(const TopoShape&);
-    ~TopoShape();
+    ~TopoShape() override;
 
     inline void setShape(const TopoDS_Shape& shape) {
         this->_Shape = shape;
@@ -112,43 +112,70 @@ public:
     /** @name Placement control */
     //@{
     /// set the transformation of the CasCade Shape
-    void setTransform(const Base::Matrix4D& rclTrf);
+    void setTransform(const Base::Matrix4D& rclTrf) override;
     /// set the transformation of the CasCade Shape
     void setShapePlacement(const Base::Placement& rclTrf);
     /// get the transformation of the CasCade Shape
-    Base::Placement getShapePlacement(void) const;
+    Base::Placement getShapePlacement() const;
     /// get the transformation of the CasCade Shape
-    Base::Matrix4D getTransform(void) const;
+    Base::Matrix4D getTransform() const override;
     /// Bound box from the CasCade shape
-    Base::BoundBox3d getBoundBox(void)const;
-    virtual bool getCenterOfGravity(Base::Vector3d& center) const;
+    Base::BoundBox3d getBoundBox()const override;
+    bool getCenterOfGravity(Base::Vector3d& center) const override;
     static void convertTogpTrsf(const Base::Matrix4D& mtrx, gp_Trsf& trsf);
     static void convertToMatrix(const gp_Trsf& trsf, Base::Matrix4D& mtrx);
     static Base::Matrix4D convert(const gp_Trsf& trsf);
     static gp_Trsf convert(const Base::Matrix4D& mtrx);
     //@}
 
+    /** @name Getting basic geometric entities */
+    //@{
+private:
+    /** Get lines from sub-shape */
+    void getLinesFromSubShape(const TopoDS_Shape& shape, std::vector<Base::Vector3d>& vertices, std::vector<Line>& lines) const;
+    void getFacesFromDomains(const std::vector<Domain>& domains, std::vector<Base::Vector3d>& vertices, std::vector<Facet>& faces) const;
+
+public:
+    /// Get the standard accuracy to be used with getPoints, getLines or getFaces
+    double getAccuracy() const override;
+    /** Get points from object with given accuracy */
+    void getPoints(std::vector<Base::Vector3d> &Points,
+        std::vector<Base::Vector3d> &Normals,
+        double Accuracy, uint16_t flags=0) const override;
+    /** Get lines from object with given accuracy */
+    void getLines(std::vector<Base::Vector3d> &Points,std::vector<Line> &lines,
+        double Accuracy, uint16_t flags=0) const override;
+    void getFaces(std::vector<Base::Vector3d> &Points,std::vector<Facet> &faces,
+        double Accuracy, uint16_t flags=0) const override;
+    void setFaces(const std::vector<Base::Vector3d> &Points,
+                  const std::vector<Facet> &faces, double tolerance=1.0e-06);
+    void getDomains(std::vector<Domain>&) const;
+    //@}
+
     /** @name Subelement management */
     //@{
+    /// Unlike \ref getTypeAndIndex() this function only handles the supported
+    /// element types.
+    static std::pair<std::string, unsigned long> getElementTypeAndIndex(const char* Name);
     /** Sub type list
      *  List of different subelement types
      *  it is NOT a list of the subelements itself
      */
-    virtual std::vector<const char*> getElementTypes(void) const;
-    virtual unsigned long countSubElements(const char* Type) const;
+    std::vector<const char*> getElementTypes() const override;
+    unsigned long countSubElements(const char* Type) const override;
     /// get the subelement by type and number
-    virtual Data::Segment* getSubElement(const char* Type, unsigned long) const;
+    Data::Segment* getSubElement(const char* Type, unsigned long) const override;
     /** Get lines from segment */
-    virtual void getLinesFromSubElement(
+    void getLinesFromSubElement(
         const Data::Segment*,
         std::vector<Base::Vector3d> &Points,
-        std::vector<Line> &lines) const;
+        std::vector<Line> &lines) const override;
     /** Get faces from segment */
-    virtual void getFacesFromSubElement(
+    void getFacesFromSubElement(
         const Data::Segment*,
         std::vector<Base::Vector3d> &Points,
         std::vector<Base::Vector3d> &PointNormals,
-        std::vector<Facet> &faces) const;
+        std::vector<Facet> &faces) const override;
     //@}
     /// get the Topo"sub"Shape with the given name
     TopoDS_Shape getSubShape(const char* Type, bool silent=false) const;
@@ -161,17 +188,17 @@ public:
     bool hasSubShape(TopAbs_ShapeEnum type) const;
     /// get the Topo"sub"Shape with the given name
     PyObject * getPySubShape(const char* Type, bool silent=false) const;
-    PyObject * getPyObject();
-    void setPyObject(PyObject*);
+    PyObject * getPyObject() override;
+    void setPyObject(PyObject*) override;
 
     /** @name Save/restore */
     //@{
-    void Save (Base::Writer &writer) const;
-    void Restore(Base::XMLReader &reader);
+    void Save (Base::Writer &writer) const override;
+    void Restore(Base::XMLReader &reader) override;
 
-    void SaveDocFile (Base::Writer &writer) const;
-    void RestoreDocFile(Base::Reader &reader);
-    unsigned int getMemSize (void) const;
+    void SaveDocFile (Base::Writer &writer) const override;
+    void RestoreDocFile(Base::Reader &reader) override;
+    unsigned int getMemSize () const override;
     //@}
 
     /** @name Input/Output */
@@ -188,7 +215,7 @@ public:
     void exportStep(const char *FileName) const;
     void exportBrep(const char *FileName) const;
     void exportBrep(std::ostream&) const;
-    void exportBinary(std::ostream&);
+    void exportBinary(std::ostream&) const;
     void exportStl (const char *FileName, double deflection) const;
     void exportFaceSet(double, double, const std::vector<App::Color>&, std::ostream&) const;
     void exportLineSet(std::ostream&) const;
@@ -204,6 +231,8 @@ public:
     bool findPlane(gp_Pln &pln, double tol=-1) const;
     /// Returns true if the expansion of the shape is infinite, false otherwise
     bool isInfinite() const;
+    /// Checks whether the shape is a planar face
+    bool isPlanar(double tol = 1.0e-7) const;
     //@}
 
     /** @name Boolean operation*/
@@ -282,7 +311,7 @@ public:
 
     /** @name Manipulation*/
     //@{
-    void transformGeometry(const Base::Matrix4D &rclMat);
+    void transformGeometry(const Base::Matrix4D &rclMat) override;
     TopoDS_Shape transformGShape(const Base::Matrix4D&, bool copy = false) const;
     bool transformShape(const Base::Matrix4D&, bool copy, bool checkScale=false);
     TopoDS_Shape mirror(const gp_Ax2&) const;
@@ -297,20 +326,7 @@ public:
     TopoDS_Shape makeShell(const TopoDS_Shape&) const;
     //@}
 
-    /** @name Getting basic geometric entities */
-    //@{
-    /** Get points from object with given accuracy */
-    virtual void getPoints(std::vector<Base::Vector3d> &Points,
-        std::vector<Base::Vector3d> &Normals,
-        float Accuracy, uint16_t flags=0) const;
-    virtual void getFaces(std::vector<Base::Vector3d> &Points,std::vector<Facet> &faces,
-        float Accuracy, uint16_t flags=0) const;
-    void setFaces(const std::vector<Base::Vector3d> &Points,
-                  const std::vector<Facet> &faces, double tolerance=1.0e-06);
-    void getDomains(std::vector<Domain>&) const;
-    //@}
-
-    /** @name Element name mapping aware shape maker 
+    /** @name Element name mapping aware shape maker
      *
      * To be complete in next batch of patches
      */

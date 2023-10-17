@@ -36,6 +36,7 @@ QT_END_NAMESPACE
 namespace Gui
 {
 class Document;
+class MainWindow;
 class ViewProvider;
 class ViewProviderDocumentObject;
 
@@ -55,7 +56,7 @@ class GuiExport MDIView : public QMainWindow, public BaseView
 {
     Q_OBJECT
 
-    TYPESYSTEM_HEADER();
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
     /** View constructor
@@ -67,21 +68,21 @@ public:
     /** View destructor
      * Detach the view from the document, if attached.
      */
-    ~MDIView();
+    ~MDIView() override;
 
     /// get called when the document is updated
-    virtual void onRelabel(Gui::Document *pDoc);
+    void onRelabel(Gui::Document *pDoc) override;
     virtual void viewAll();
 
     /// Message handler
-    virtual bool onMsg(const char* pMsg,const char** ppReturn);
+    bool onMsg(const char* pMsg,const char** ppReturn) override;
     /// Message handler test
-    virtual bool onHasMsg(const char* pMsg) const;
+    bool onHasMsg(const char* pMsg) const override;
     /// overwrite when checking on close state
-    virtual bool canClose(void);
+    bool canClose() override;
     /// delete itself
-    virtual void deleteSelf();
-    virtual PyObject *getPyObject();
+    void deleteSelf() override;
+    PyObject *getPyObject() override;
     /** @name Printing */
     //@{
 public Q_SLOTS:
@@ -106,7 +107,7 @@ public:
     virtual QStringList redoActions() const;
     //@}
 
-    QSize minimumSizeHint () const;
+    QSize minimumSizeHint () const override;
 
     /// MDI view mode enum
     enum ViewMode {
@@ -168,9 +169,9 @@ protected Q_SLOTS:
     virtual void windowStateChanged(Gui::MDIView*);
 
 protected:
-    void closeEvent(QCloseEvent *e);
+    void closeEvent(QCloseEvent *e) override;
     /** \internal */
-    void changeEvent(QEvent *e);
+    void changeEvent(QEvent *e) override;
 
 protected:
     PyObject* pythonObject;
@@ -180,8 +181,10 @@ private:
     Qt::WindowStates wstate;
     // list of active objects of this view
     ActiveObjectList ActiveObjects;
-    typedef boost::signals2::connection Connection;
+    using Connection = boost::signals2::connection;
     Connection connectDelObject; //remove active object upon delete.
+
+    friend class MainWindow;
 };
 
 } // namespace Gui

@@ -55,8 +55,7 @@ ViewProviderPart::ViewProviderPart()
     aPixmap = "Geoassembly.svg";
 }
 
-ViewProviderPart::~ViewProviderPart()
-{ }
+ViewProviderPart::~ViewProviderPart() = default;
 
 /**
  * TODO
@@ -69,14 +68,16 @@ void ViewProviderPart::onChanged(const App::Property* prop) {
 
 void ViewProviderPart::setupContextMenu(QMenu* menu, QObject* receiver, const char* member)
 {
-    Gui::ActionFunction* func = new Gui::ActionFunction(menu);
+    auto func = new Gui::ActionFunction(menu);
     QAction* act = menu->addAction(QObject::tr("Toggle active part"));
-    func->trigger(act, std::bind(&ViewProviderPart::doubleClicked, this));
+    func->trigger(act, [this](){
+        this->doubleClicked();
+    });
 
     ViewProviderDragger::setupContextMenu(menu, receiver, member);
 }
 
-bool ViewProviderPart::doubleClicked(void)
+bool ViewProviderPart::doubleClicked()
 {
     //make the part the active one
 
@@ -108,15 +109,15 @@ bool ViewProviderPart::doubleClicked(void)
     return true;
 }
 
-QIcon ViewProviderPart::getIcon(void) const
+QIcon ViewProviderPart::getIcon() const
 {
     // the original Part object for this ViewProviderPart
-    App::Part* part = static_cast<App::Part*>(this->getObject());
+    auto part = static_cast<App::Part*>(this->getObject());
     // the normal case for Std_Part
     const char* pixmap = sPixmap;
     // if it's flagged as an Assembly in its Type, it gets another icon
     if (part->Type.getStrValue() == "Assembly") { pixmap = aPixmap; }
-    
+
     return mergeGreyableOverlayIcons (Gui::BitmapFactory().pixmap(pixmap));
 }
 

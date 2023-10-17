@@ -23,10 +23,10 @@
 #ifndef GUI_TRANSFORM_H
 #define GUI_TRANSFORM_H
 
+#include <QDialog>
 #include <set>
 #include <Base/Placement.h>
 
-#include "InputVector.h"
 #include "Selection.h"
 #include "TaskView/TaskDialog.h"
 #include "TaskView/TaskView.h"
@@ -56,11 +56,11 @@ class GuiExport DefaultTransformStrategy : public TransformStrategy,
 {
 public:
     DefaultTransformStrategy(QWidget* widget);
-    virtual ~DefaultTransformStrategy();
-    std::set<App::DocumentObject*> transformObjects() const;
+    ~DefaultTransformStrategy() override;
+    std::set<App::DocumentObject*> transformObjects() const override;
 
 private:
-    void onSelectionChanged(const Gui::SelectionChanges& msg);
+    void onSelectionChanged(const Gui::SelectionChanges& msg) override;
 
 private:
     std::set<App::DocumentObject*> selection;
@@ -68,38 +68,31 @@ private:
 };
 
 class Ui_Placement;
-class GuiExport Transform : public Gui::LocationDialog
+class GuiExport Transform : public QDialog
 {
     Q_OBJECT
 
 public:
     Transform(QWidget* parent = nullptr, Qt::WindowFlags fl = Qt::WindowFlags());
-    ~Transform();
-    void accept();
-    void reject();
+    ~Transform() override;
+    void accept() override;
+    void reject() override;
     void showStandardButtons(bool);
     void setTransformStrategy(TransformStrategy* ts);
 
 protected:
     Base::Vector3d getDirection() const;
-    void changeEvent(QEvent *e);
+    void changeEvent(QEvent *e) override;
 
-public Q_SLOTS:
-    void on_applyButton_clicked();
+public:
+    void onApplyButtonClicked();
 
-private Q_SLOTS:
+private:
     void onTransformChanged(int);
-
-private:
     Base::Placement getPlacementData() const;
-    void directionActivated(int);
-
-Q_SIGNALS:
-    void directionChanged();
 
 private:
-    typedef Gui::LocationUi<Ui_Placement> Ui_TransformComp;
-    Ui_TransformComp* ui;
+    Ui_Placement* ui;
     Base::Placement pm;
     std::set<App::DocumentObject*> selection;
     TransformStrategy* strategy;
@@ -111,15 +104,15 @@ class GuiExport TaskTransform : public Gui::TaskView::TaskDialog
 
 public:
     TaskTransform();
-    ~TaskTransform();
+    ~TaskTransform() override;
 
 public:
-    bool accept();
-    bool reject();
-    void clicked(int);
+    bool accept() override;
+    bool reject() override;
+    void clicked(int) override;
 
     void setTransformStrategy(TransformStrategy* ts);
-    virtual QDialogButtonBox::StandardButtons getStandardButtons() const
+    QDialogButtonBox::StandardButtons getStandardButtons() const override
     { return QDialogButtonBox::Ok |
              QDialogButtonBox::Apply |
              QDialogButtonBox::Cancel; }

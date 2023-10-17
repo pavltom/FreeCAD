@@ -42,7 +42,7 @@
 using namespace Part;
 
 // returns a string which represents the object e.g. when printed in python
-std::string BezierCurvePy::representation(void) const
+std::string BezierCurvePy::representation() const
 {
     return "<BezierCurve object>";
 }
@@ -345,28 +345,28 @@ PyObject* BezierCurvePy::getResolution(PyObject* args)
         return nullptr;
     }
 }
-Py::Long BezierCurvePy::getDegree(void) const
+Py::Long BezierCurvePy::getDegree() const
 {
     Handle(Geom_BezierCurve) curve = Handle(Geom_BezierCurve)::DownCast
         (getGeometryPtr()->handle());
     return Py::Long(curve->Degree());
 }
 
-Py::Long BezierCurvePy::getMaxDegree(void) const
+Py::Long BezierCurvePy::getMaxDegree() const
 {
     Handle(Geom_BezierCurve) curve = Handle(Geom_BezierCurve)::DownCast
         (getGeometryPtr()->handle());
     return Py::Long(curve->MaxDegree());
 }
 
-Py::Long BezierCurvePy::getNbPoles(void) const
+Py::Long BezierCurvePy::getNbPoles() const
 {
     Handle(Geom_BezierCurve) curve = Handle(Geom_BezierCurve)::DownCast
         (getGeometryPtr()->handle());
     return Py::Long(curve->NbPoles());
 }
 
-Py::Object BezierCurvePy::getStartPoint(void) const
+Py::Object BezierCurvePy::getStartPoint() const
 {
     Handle(Geom_BezierCurve) c = Handle(Geom_BezierCurve)::DownCast
         (getGeometryPtr()->handle());
@@ -374,7 +374,7 @@ Py::Object BezierCurvePy::getStartPoint(void) const
     return Py::Vector(Base::Vector3d(pnt.X(), pnt.Y(), pnt.Z()));
 }
 
-Py::Object BezierCurvePy::getEndPoint(void) const
+Py::Object BezierCurvePy::getEndPoint() const
 {
     Handle(Geom_BezierCurve) c = Handle(Geom_BezierCurve)::DownCast
         (getGeometryPtr()->handle());
@@ -395,7 +395,7 @@ PyObject* BezierCurvePy::interpolate(PyObject * args)
         int nb_pts = constraints.size();
         if (nb_pts < 2)
             Standard_Failure::Raise("not enough points given");
-        
+
         TColStd_Array1OfReal params(1, nb_pts);
         if (par) {
             Py::Sequence plist(par);
@@ -413,7 +413,7 @@ PyObject* BezierCurvePy::interpolate(PyObject * args)
                 params(idx+1) = (double)idx/((double)nb_pts-1);
             }
         }
-        
+
         int num_poles = 0;
         for (Py::Sequence::iterator it1 = constraints.begin(); it1 != constraints.end(); ++it1) {
             Py::Sequence row(*it1);

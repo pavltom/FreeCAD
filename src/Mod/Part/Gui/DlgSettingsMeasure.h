@@ -39,14 +39,14 @@ class DlgSettingsMeasure : public Gui::Dialog::PreferencePage
   Q_OBJECT
 
 public:
-  DlgSettingsMeasure(QWidget* parent = nullptr);
-  ~DlgSettingsMeasure();
+  explicit DlgSettingsMeasure(QWidget* parent = nullptr);
+  ~DlgSettingsMeasure() override;
 
-  void saveSettings();
-  void loadSettings();
+  void saveSettings() override;
+  void loadSettings() override;
 
 protected:
-  void changeEvent(QEvent *e);
+  void changeEvent(QEvent *e) override;
 
 private:
   std::unique_ptr<Ui_DlgSettingsMeasure> ui;

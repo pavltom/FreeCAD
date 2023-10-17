@@ -24,7 +24,7 @@
 
 __title__ = "FemToolsCcx"
 __author__ = "Przemo Firszt, Bernd Hahnebach"
-__url__ = "https://www.freecadweb.org"
+__url__ = "https://www.freecad.org"
 
 ## \addtogroup FEM
 #  @{
@@ -435,10 +435,7 @@ class FemToolsCcx(QtCore.QRunnable, QtCore.QObject):
             elif system() in ("Linux", "Darwin"):
                 p1 = subprocess.Popen(["which", "ccx"], stdout=subprocess.PIPE)
                 if p1.wait() == 0:
-                    if sys.version_info.major >= 3:
-                        ccx_path = p1.stdout.read().decode("utf8").split("\n")[0]
-                    else:
-                        ccx_path = p1.stdout.read().split("\n")[0]
+                    ccx_path = p1.stdout.read().decode("utf8").split("\n")[0]
                 elif p1.wait() == 1:
                     error_message = (
                         "FEM: CalculiX binary ccx not found in "
@@ -550,9 +547,8 @@ class FemToolsCcx(QtCore.QRunnable, QtCore.QObject):
             env=_env
         )
         self.ccx_stdout, self.ccx_stderr = p.communicate()
-        if sys.version_info.major >= 3:
-            self.ccx_stdout = self.ccx_stdout.decode()
-            self.ccx_stderr = self.ccx_stderr.decode()
+        self.ccx_stdout = self.ccx_stdout.decode()
+        self.ccx_stderr = self.ccx_stderr.decode()
         os.putenv("OMP_NUM_THREADS", ont_backup)
         QtCore.QDir.setCurrent(cwd)
         return p.returncode
@@ -577,9 +573,7 @@ class FemToolsCcx(QtCore.QRunnable, QtCore.QObject):
             startupinfo=startup_info
         )
         ccx_stdout, ccx_stderr = p.communicate()
-        if sys.version_info.major >= 3:
-            ccx_stdout = ccx_stdout.decode()
-            # ccx_stderr = ccx_stderr.decode()
+        ccx_stdout = ccx_stdout.decode()
         m = re.search(r"(\d+).(\d+)", ccx_stdout)
         return (int(m.group(1)), int(m.group(2)))
 
@@ -612,7 +606,7 @@ class FemToolsCcx(QtCore.QRunnable, QtCore.QObject):
                     "thus workaround for wrong exit code for *NOANALYSIS check "
                     "and set ret_code to 0.\n"
                 )
-                # https://forum.freecadweb.org/viewtopic.php?f=18&t=31303&start=10#p260743
+                # https://forum.freecad.org/viewtopic.php?f=18&t=31303&start=10#p260743
                 ret_code = 0
             else:
                 FreeCAD.Console.PrintError("CalculiX failed with exit code {}\n".format(ret_code))

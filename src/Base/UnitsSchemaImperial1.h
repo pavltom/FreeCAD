@@ -40,7 +40,8 @@ class UnitsSchemaImperial1: public UnitsSchema
 public:
     //virtual void setSchemaUnits(void);
     //virtual void resetSchemaUnits(void);
-    virtual QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString);
+    QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString) override;
+    std::string getBasicLengthUnit() const override { return {"in"}; }
 };
 
 /** The schema class for the imperial unit system
@@ -52,7 +53,8 @@ class UnitsSchemaImperialDecimal: public UnitsSchema
 public:
     //virtual void setSchemaUnits(void);
     //virtual void resetSchemaUnits(void);
-    virtual QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString);
+    QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString) override;
+    std::string getBasicLengthUnit() const override { return {"in"}; }
 };
 
 /** The schema class for the imperial unit system
@@ -64,7 +66,12 @@ class UnitsSchemaImperialBuilding: public UnitsSchema
 public:
     //virtual void setSchemaUnits(void);
     //virtual void resetSchemaUnits(void);
-    virtual QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString);
+    QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString) override;
+    std::string getBasicLengthUnit() const override { return {"ft"}; }
+
+    //return true if this schema uses multiple units for length (ex. Ft/In)
+    bool isMultiUnitLength() const override {return true;}
+
 };
 
 /** The schema class for Civil Engineering in the imperial unit system
@@ -76,7 +83,11 @@ class UnitsSchemaImperialCivil: public UnitsSchema
 public:
     //virtual void setSchemaUnits(void);
     //virtual void resetSchemaUnits(void);
-    virtual QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString);
+    QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString) override;
+    std::string getBasicLengthUnit() const override { return {"ft"}; }
+
+    //return true if this schema uses multiple units for angles (ex. DMS)
+    bool isMultiUnitAngle() const override {return true;}
 };
 
 

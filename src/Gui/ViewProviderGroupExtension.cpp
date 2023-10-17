@@ -43,14 +43,12 @@ using namespace Gui;
 
 EXTENSION_PROPERTY_SOURCE(Gui::ViewProviderGroupExtension, Gui::ViewProviderExtension)
 
-ViewProviderGroupExtension::ViewProviderGroupExtension()  : guard(false)
+ViewProviderGroupExtension::ViewProviderGroupExtension()
 {
     initExtensionType(ViewProviderGroupExtension::getExtensionClassTypeId());
 }
 
-ViewProviderGroupExtension::~ViewProviderGroupExtension()
-{
-}
+ViewProviderGroupExtension::~ViewProviderGroupExtension() = default;
 
 bool ViewProviderGroupExtension::extensionCanDragObjects() const {
     return true;
@@ -94,7 +92,7 @@ bool ViewProviderGroupExtension::extensionCanDropObject(App::DocumentObject* obj
 
 void ViewProviderGroupExtension::extensionDropObject(App::DocumentObject* obj) {
 
-    App::DocumentObject* grp = static_cast<App::DocumentObject*>(getExtendedViewProvider()->getObject());
+    auto grp = static_cast<App::DocumentObject*>(getExtendedViewProvider()->getObject());
     App::Document* doc = grp->getDocument();
 
     // build Python command for execution
@@ -108,13 +106,13 @@ void ViewProviderGroupExtension::extensionDropObject(App::DocumentObject* obj) {
     Gui::Command::doCommand(Gui::Command::App, cmd.toUtf8());
 }
 
-std::vector< App::DocumentObject* > ViewProviderGroupExtension::extensionClaimChildren(void) const {
+std::vector< App::DocumentObject* > ViewProviderGroupExtension::extensionClaimChildren() const {
 
     auto* group = getExtendedViewProvider()->getObject()->getExtensionByType<App::GroupExtension>();
-    return std::vector<App::DocumentObject*>(group->Group.getValues());
+    return group->Group.getValues();
 }
 
-void ViewProviderGroupExtension::extensionShow(void) {
+void ViewProviderGroupExtension::extensionShow() {
 
     // avoid possible infinite recursion
     if (guard)
@@ -134,7 +132,7 @@ void ViewProviderGroupExtension::extensionShow(void) {
     ViewProviderExtension::extensionShow();
 }
 
-void ViewProviderGroupExtension::extensionHide(void) {
+void ViewProviderGroupExtension::extensionHide() {
 
     // avoid possible infinite recursion
     if (guard)

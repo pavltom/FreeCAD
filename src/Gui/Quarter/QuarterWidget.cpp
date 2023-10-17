@@ -54,6 +54,13 @@
 
 #include <cassert>
 
+#if HAVE_CONFIG_H
+# include <config.h>
+# ifdef  HAVE_GL_GL_H
+#  include <GL/gl.h>
+# endif
+#endif
+
 #include <QAction>
 #include <QApplication>
 #include <QDebug>
@@ -157,10 +164,10 @@ public:
 #endif
         setFormat(surfaceFormat);
     }
-    ~CustomGLWidget()
+    ~CustomGLWidget() override
     {
     }
-    void initializeGL()
+    void initializeGL() override
     {
         QOpenGLContext *context = QOpenGLContext::currentContext();
 #if defined (_DEBUG) && 0
@@ -180,13 +187,13 @@ public:
     }
     // paintGL() is invoked when e.g. using the method grabFramebuffer of this class
     // \code
-    // from PySide2 import QtWidgets
+    // from PySide import QtWidgets
     // mw = Gui.getMainWindow()
     // mdi = mw.findChild(QtWidgets.QMdiArea)
     // gl = mdi.findChild(QtWidgets.QOpenGLWidget)
     // img = gl.grabFramebuffer()
     // \endcode
-    void paintGL()
+    void paintGL() override
     {
         QuarterWidget* qw = qobject_cast<QuarterWidget*>(parentWidget());
         if (qw) {
@@ -204,7 +211,7 @@ public:
             Qt::DirectConnection,
             QGenericReturnArgument());
     }
-    bool event(QEvent *e)
+    bool event(QEvent *e) override
     {
         // If a debug logger is activated then Qt's default implementation
         // first releases the context before stopping the logger. However,
@@ -226,7 +233,7 @@ public:
     {
         qDebug() << message;
     }
-    void showEvent(QShowEvent*)
+    void showEvent(QShowEvent*) override
     {
         update(); // force update when changing window mode
     }
@@ -821,7 +828,7 @@ QuarterWidget::updateDevicePixelRatio() {
     }
     if(PRIVATE(this)->device_pixel_ratio != dev_pix_ratio) {
         PRIVATE(this)->device_pixel_ratio = dev_pix_ratio;
-        emit devicePixelRatioChanged(dev_pix_ratio);
+        Q_EMIT devicePixelRatioChanged(dev_pix_ratio);
         return true;
     }
     return false;
@@ -929,8 +936,7 @@ bool QuarterWidget::viewportEvent(QEvent* event)
     // additionally handle it by this viewer. This is e.g. needed when
     // resizing a widget item because the cursor may already be outside
     // this widget.
-    if (event->type() == QEvent::Wheel ||
-        event->type() == QEvent::MouseButtonDblClick ||
+    if (event->type() == QEvent::MouseButtonDblClick ||
         event->type() == QEvent::MouseButtonPress) {
         QMouseEvent* mouse = static_cast<QMouseEvent*>(event);
         QGraphicsItem *item = itemAt(mouse->pos());
@@ -943,6 +949,19 @@ bool QuarterWidget::viewportEvent(QEvent* event)
              event->type() == QEvent::MouseButtonRelease) {
         QGraphicsScene* glScene = this->scene();
         if (!(glScene && glScene->mouseGrabberItem())) {
+            QGraphicsView::viewportEvent(event);
+            return false;
+        }
+    }
+    else if (event->type() == QEvent::Wheel) {
+        auto wheel = static_cast<QWheelEvent*>(event);
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+        QPoint pos = wheel->pos();
+#else
+        QPoint pos = wheel->position().toPoint();
+#endif
+        QGraphicsItem* item = itemAt(pos);
+        if (!item) {
             QGraphicsView::viewportEvent(event);
             return false;
         }
@@ -1043,10 +1062,10 @@ QuarterWidget::backgroundColor() const
 {
   SbColor4f bg = PRIVATE(this)->sorendermanager->getBackgroundColor();
 
-  return QColor(SbClamp(int(bg[0] * 255.0), 0, 255),
+  return {SbClamp(int(bg[0] * 255.0), 0, 255),
                 SbClamp(int(bg[1] * 255.0), 0, 255),
                 SbClamp(int(bg[2] * 255.0), 0, 255),
-                SbClamp(int(bg[3] * 255.0), 0, 255));
+                SbClamp(int(bg[3] * 255.0), 0, 255)};
 }
 
 /*!
@@ -1123,7 +1142,7 @@ QuarterWidget::removeStateMachine(SoScXMLStateMachine * statemachine)
 QSize
 QuarterWidget::minimumSizeHint() const
 {
-  return QSize(50, 50);
+  return {50, 50};
 }
 
 /*!  Returns a list of grouped actions that corresponds to the

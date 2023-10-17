@@ -50,7 +50,7 @@ class GuiExport QuantitySpinBox : public QAbstractSpinBox, public ExpressionSpin
 
 public:
     explicit QuantitySpinBox(QWidget *parent = nullptr);
-    virtual ~QuantitySpinBox();
+    ~QuantitySpinBox() override;
 
     /// Get the current quantity
     Base::Quantity value() const;
@@ -72,7 +72,7 @@ public:
     /// Set the unit property
     void setUnitText(const QString&);
     /// Get the unit property
-    QString unitText(void);
+    QString unitText();
 
     /// Get the value of the singleStep property
     double singleStep() const;
@@ -108,28 +108,31 @@ public:
 
     /// Gets the expression as a string
     QString expressionText() const;
+    void evaluateExpression();
 
     /// Set the number portion selected
     void selectNumber();
 
     void setRange(double min, double max);
+    void checkRangeInExpression(bool);
+    bool isCheckedRangeInExpresion() const;
 
     Base::Quantity valueFromText(const QString &text) const;
     QString textFromValue(const Base::Quantity& val) const;
-    virtual void stepBy(int steps);
-    virtual void clear();
-    virtual QValidator::State validate(QString &input, int &pos) const;
-    virtual void fixup(QString &str) const;
+    void stepBy(int steps) override;
+    void clear() override;
+    QValidator::State validate(QString &input, int &pos) const override;
+    void fixup(QString &str) const override;
 
     /// This is a helper function to determine the size this widget requires to fully display the text
     QSize sizeForText(const QString&) const;
-    QSize sizeHint() const;
-    QSize minimumSizeHint() const;
-    bool event(QEvent *event);
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+    bool event(QEvent *event) override;
 
-    void setNumberExpression(App::NumberExpression*);
-    void bind(const App::ObjectIdentifier &_path);
-    bool apply(const std::string &propName);
+    void setNumberExpression(App::NumberExpression*) override;
+    void bind(const App::ObjectIdentifier &_path) override;
+    bool apply(const std::string &propName) override;
     using ExpressionSpinBox::apply;
 
 public Q_SLOTS:
@@ -143,21 +146,23 @@ protected Q_SLOTS:
     void handlePendingEmit(bool updateUnit = true);
 
 protected:
-    virtual void setExpression(std::shared_ptr<App::Expression> expr);
-    virtual void openFormulaDialog();
-    virtual StepEnabled stepEnabled() const;
-    virtual void showEvent(QShowEvent * event);
-    virtual void hideEvent(QHideEvent * event);
-    virtual void closeEvent(QCloseEvent * event);
-    virtual void focusInEvent(QFocusEvent * event);
-    virtual void focusOutEvent(QFocusEvent * event);
-    virtual void keyPressEvent(QKeyEvent *event);
-    virtual void resizeEvent(QResizeEvent *event);
-    virtual void paintEvent(QPaintEvent *event);
+    void setExpression(std::shared_ptr<App::Expression> expr) override;
+    void openFormulaDialog() override;
+    void showIcon() override;
+    StepEnabled stepEnabled() const override;
+    void showEvent(QShowEvent * event) override;
+    void hideEvent(QHideEvent * event) override;
+    void closeEvent(QCloseEvent * event) override;
+    void focusInEvent(QFocusEvent * event) override;
+    void focusOutEvent(QFocusEvent * event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 private:
-    void validateInput();
+    void validateInput() override;
     void updateText(const Base::Quantity&);
+    void updateEdit(const QString& text);
     void updateFromCache(bool notify, bool updateUnit = true);
     QString getUserString(const Base::Quantity& val, double& factor, QString& unitString) const;
     QString getUserString(const Base::Quantity& val) const;

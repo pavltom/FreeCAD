@@ -50,7 +50,7 @@
 using namespace Gui;
 
 // returns a string which represent the object e.g. when printed in python
-std::string DocumentPy::representation(void) const
+std::string DocumentPy::representation() const
 {
     std::stringstream str;
     str << "<GUI Document object at " << getDocumentPtr() << ">";
@@ -179,7 +179,7 @@ PyObject* DocumentPy::addAnnotation(PyObject *args)
         return nullptr;
 
     PY_TRY {
-        ViewProviderExtern *pcExt = new ViewProviderExtern();
+        auto pcExt = new ViewProviderExtern();
 
         pcExt->setModeByFile(psModName ? psModName : "Main", psFileName);
         pcExt->adjustDocumentName(getDocumentPtr()->getDocument()->getName());
@@ -269,9 +269,33 @@ PyObject* DocumentPy::mdiViewsOfType(PyObject *args)
     PY_TRY {
         std::list<Gui::MDIView*> views = getDocumentPtr()->getMDIViewsOfType(type);
         Py::List list;
-        for (std::list<Gui::MDIView*>::iterator it = views.begin(); it != views.end(); ++it)
-            list.append(Py::asObject((*it)->getPyObject()));
+        for (auto it : views)
+            list.append(Py::asObject(it->getPyObject()));
         return Py::new_reference_to(list);
+    }
+    PY_CATCH;
+}
+
+PyObject* DocumentPy::save(PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ""))
+        return nullptr;
+
+    PY_TRY {
+        bool ok = getDocumentPtr()->save();
+        return Py::new_reference_to(Py::Boolean(ok));
+    }
+    PY_CATCH;
+}
+
+PyObject* DocumentPy::saveAs(PyObject *args)
+{
+    if (!PyArg_ParseTuple(args, ""))
+        return nullptr;
+
+    PY_TRY {
+        bool ok = getDocumentPtr()->saveAs();
+        return Py::new_reference_to(Py::Boolean(ok));
     }
     PY_CATCH;
 }
@@ -331,7 +355,7 @@ PyObject* DocumentPy::toggleTreeItem(PyObject *args)
     // get the gui document of the Assembly Item
     //ActiveAppDoc = Item->getDocument();
     //ActiveGuiDoc = Gui::Application::Instance->getDocument(getDocumentPtr());
-    Gui::ViewProviderDocumentObject* ActiveVp = dynamic_cast<Gui::ViewProviderDocumentObject*>(getDocumentPtr()->getViewProvider(Object));
+    auto ActiveVp = dynamic_cast<Gui::ViewProviderDocumentObject*>(getDocumentPtr()->getViewProvider(Object));
     switch (mod) {
         case 0:
             getDocumentPtr()->signalExpandObject(*ActiveVp, TreeItemMode::ToggleItem, parent, subname);
@@ -377,7 +401,7 @@ PyObject* DocumentPy::toggleInSceneGraph(PyObject *args) {
     Py_Return;
 }
 
-Py::Object DocumentPy::getActiveObject(void) const
+Py::Object DocumentPy::getActiveObject() const
 {
     App::DocumentObject *object = getDocumentPtr()->getDocument()->getActiveObject();
     if (object) {
@@ -394,7 +418,7 @@ void DocumentPy::setActiveObject(Py::Object /*arg*/)
     throw Py::AttributeError("'Document' object attribute 'ActiveObject' is read-only");
 }
 
-Py::Object DocumentPy::getActiveView(void) const
+Py::Object DocumentPy::getActiveView() const
 {
     Gui::MDIView *view = getDocumentPtr()->getActiveView();
     if (view) {
@@ -411,7 +435,7 @@ void DocumentPy::setActiveView(Py::Object /*arg*/)
     throw Py::AttributeError("'Document' object attribute 'ActiveView' is read-only");
 }
 
-Py::Object DocumentPy::getDocument(void) const
+Py::Object DocumentPy::getDocument() const
 {
     App::Document *doc = getDocumentPtr()->getDocument();
     if (doc) {
@@ -423,7 +447,7 @@ Py::Object DocumentPy::getDocument(void) const
     }
 }
 
-Py::Object DocumentPy::getEditingTransform(void) const
+Py::Object DocumentPy::getEditingTransform() const
 {
     return Py::asObject(new Base::MatrixPy(new Base::Matrix4D(
                     getDocumentPtr()->getEditingTransform())));
@@ -438,7 +462,7 @@ void DocumentPy::setEditingTransform(Py::Object arg)
             *static_cast<Base::MatrixPy*>(arg.ptr())->getMatrixPtr());
 }
 
-Py::Object DocumentPy::getInEditInfo(void) const {
+Py::Object DocumentPy::getInEditInfo() const {
     ViewProviderDocumentObject *vp = nullptr;
     std::string subname,subelement;
     int mode = 0;
@@ -462,7 +486,7 @@ void DocumentPy::setInEditInfo(Py::Object arg)
                 pyobj)->getViewProviderDocumentObjectPtr(),subname);
 }
 
-Py::Int DocumentPy::getEditMode(void) const
+Py::Int DocumentPy::getEditMode() const
 {
     int mode = -1;
     getDocumentPtr()->getInEdit(nullptr,nullptr,&mode);
@@ -472,12 +496,12 @@ Py::Int DocumentPy::getEditMode(void) const
 
 Py::Boolean DocumentPy::getTransacting() const
 {
-    return Py::Boolean(getDocumentPtr()->isPerformingTransaction());
+    return {getDocumentPtr()->isPerformingTransaction()};
 }
 
-Py::Boolean DocumentPy::getModified(void) const
+Py::Boolean DocumentPy::getModified() const
 {
-    return Py::Boolean(getDocumentPtr()->isModified());
+    return {getDocumentPtr()->isModified()};
 }
 
 PyObject *DocumentPy::getCustomAttributes(const char* attr) const

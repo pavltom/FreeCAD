@@ -33,15 +33,15 @@
 using namespace App;
 
 // returns a string which represent the object e.g. when printed in python
-std::string LinkBaseExtensionPy::representation(void) const
+std::string LinkBaseExtensionPy::representation() const
 {
     std::ostringstream str;
     str << "<" << getLinkBaseExtensionPtr()->getExtensionClassTypeId().getName() << ">";
     return str.str();
 }
 
-typedef std::map<std::string, std::pair<int,Property*> > PropTmpMap;
-typedef std::map<std::string, Property*> PropMap;
+using PropTmpMap = std::map<std::string, std::pair<int,Property*> >;
+using PropMap = std::map<std::string, Property*>;
 
 static bool getProperty(PropTmpMap &props, const LinkBaseExtension::PropInfoMap &infoMap,
         const PropMap &propMap, PyObject *key, PyObject *value)
@@ -185,10 +185,10 @@ PyObject* LinkBaseExtensionPy::getLinkPropertyInfo(PyObject *args)
 
     char *name;
     if(PyArg_ParseTuple(args,"s",&name)) {
-        for(int i=0;i<(int)infos.size();++i) {
-            if(strcmp(infos[i].name,name)==0) {
-                Py::TupleN ret(Py::String(infos[i].type.getName()),
-                            Py::String(infos[i].doc));
+        for(const auto & info : infos) {
+            if(strcmp(info.name,name)==0) {
+                Py::TupleN ret(Py::String(info.type.getName()),
+                               Py::String(info.doc));
                 return Py::new_reference_to(ret);
             }
         }

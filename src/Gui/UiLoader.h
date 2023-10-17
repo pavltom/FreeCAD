@@ -34,6 +34,7 @@
 #endif
 
 #include <CXX/Extensions.hxx>
+#include <memory>
 
 
 QT_BEGIN_NAMESPACE
@@ -90,7 +91,7 @@ class PySideUicModule : public Py::ExtensionModule<PySideUicModule>
 
 public:
     PySideUicModule();
-    virtual ~PySideUicModule() {}
+    ~PySideUicModule() override = default;
 
 private:
     Py::Object loadUiType(const Py::Tuple& args);
@@ -106,16 +107,37 @@ private:
  */
 class UiLoader : public QUiLoader
 {
+protected:
+    /**
+     * A protected construct for UiLoader.
+     * To create an instance of UiLoader @see UiLoader::newInstance()
+     */
+    explicit UiLoader(QObject* parent=nullptr);
+
 public:
-    UiLoader(QObject* parent=nullptr);
-    virtual ~UiLoader();
+    /**
+     * Creates a new instance of a UiLoader.
+     *
+     * Due to its flaw the QUiLoader upon creation loads every available Qt
+     * designer plugin it can find in QApplication::libraryPaths(). Some of
+     * those plugins may perform some unexpected actions upon load which may
+     * interfere with FreeCAD's functionality. Only way to avoid such behaviour
+     * is to reset QApplication::libraryPaths, create a QUiLoader and then
+     * restore the libs paths. Hence need for this function to wrap
+     * construction.
+     *
+     * @see https://github.com/FreeCAD/FreeCAD/issues/8708
+     */
+    static std::unique_ptr<UiLoader> newInstance(QObject *parent=nullptr);
+
+    ~UiLoader() override;
 
     /**
      * Creates a widget of the type \a className with the parent \a parent.
      * For more details see the documentation to QWidgetFactory.
      */
     QWidget* createWidget(const QString & className, QWidget * parent=nullptr,
-                          const QString& name = QString());
+                          const QString& name = QString()) override;
 
 private:
     QStringList cw;
@@ -129,17 +151,27 @@ public:
     static void init_type();    // announce properties and methods
 
     UiLoaderPy();
-    ~UiLoaderPy();
+    ~UiLoaderPy() override;
 
-    Py::Object repr();
+    Py::Object repr() override;
     Py::Object createWidget(const Py::Tuple&);
     Py::Object load(const Py::Tuple&);
+
+    Py::Object addPluginPath(const Py::Tuple&);
+    Py::Object clearPluginPaths(const Py::Tuple&);
+    Py::Object pluginPaths(const Py::Tuple&);
+    Py::Object availableWidgets(const Py::Tuple&);
+    Py::Object errorString(const Py::Tuple&);
+    Py::Object isLanguageChangeEnabled(const Py::Tuple&);
+    Py::Object setLanguageChangeEnabled(const Py::Tuple&);
+    Py::Object setWorkingDirectory(const Py::Tuple&);
+    Py::Object workingDirectory(const Py::Tuple&);
 
 private:
     static PyObject *PyMake(struct _typeobject *, PyObject *, PyObject *);
 
 private:
-    UiLoader loader;
+    std::unique_ptr<UiLoader> loader;
 };
 
 } // namespace Gui

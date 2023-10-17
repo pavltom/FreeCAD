@@ -20,10 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
-#include "Voronoi.h"
 #include "VoronoiEdge.h"
 
 
@@ -55,7 +53,7 @@ VoronoiEdge::VoronoiEdge(Voronoi::diagram_type *d, const Voronoi::diagram_type::
 VoronoiEdge::~VoronoiEdge() {
 }
 
-bool VoronoiEdge::isBound(void) const {
+bool VoronoiEdge::isBound() const {
   if (ptr && dia.isValid() && index != Voronoi::InvalidIndex) {
     if (&(dia->edges()[index]) == ptr) {
       return true;

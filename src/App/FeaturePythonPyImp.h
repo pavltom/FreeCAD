@@ -88,15 +88,15 @@ public:
     static PyTypeObject   Type;
 
 public:
-    FeaturePythonPyT(Base::BaseClass *pcObject, PyTypeObject *T = &Type);
-    virtual ~FeaturePythonPyT();
+    explicit FeaturePythonPyT(Base::BaseClass *pcObject, PyTypeObject *T = &Type);
+    ~FeaturePythonPyT() override;
 
     /** @name callbacks and implementers for the python object methods */
     //@{
     static  int __setattro(PyObject *PyObj, PyObject *attro, PyObject *value);
     //@}
-    PyObject *_getattr(const char *attr);              // __getattr__ function
-    int _setattr(const char *attr, PyObject *value);        // __setattr__ function
+    PyObject *_getattr(const char *attr) override;
+    int _setattr(const char *attr, PyObject *value) override;
 
 protected:
     PyObject * dict_methods;

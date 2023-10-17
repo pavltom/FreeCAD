@@ -4,6 +4,7 @@ include_directories(
     ${Boost_INCLUDE_DIRS}
     ${COIN3D_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
+    ${XercesC_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIR}
 )
 
@@ -18,13 +19,7 @@ set(Dialogs_UIC_SRCS
     VisualInspection.ui
 )
 
-if(BUILD_QT5)
-    qt5_add_resources(Inspection_QRC_SRCS Resources/Inspection.qrc)
-    qt5_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
-else()
-    qt4_add_resources(Inspection_QRC_SRCS Resources/Inspection.qrc)
-    qt4_wrap_ui(Dialogs_UIC_HDRS ${Dialogs_UIC_SRCS})
-endif()
+qt_add_resources(Inspection_QRC_SRCS Resources/Inspection.qrc)
 
 SET(Dialogs_SRCS
     ${Dialogs_UIC_HDRS}
@@ -49,6 +44,12 @@ SET(InspectionGui_SRCS
 set(InspectionGui_Scripts
     ../InitGui.py
 )
+
+if(FREECAD_USE_PCH)
+    add_definitions(-D_PreComp_)
+    GET_MSVC_PRECOMPILED_SOURCE("PreCompiled.cpp" PCH_SRCS ${InspectionGui_SRCS})
+    ADD_MSVC_PRECOMPILED_HEADER(InspectionGui PreCompiled.h PreCompiled.cpp PCH_SRCS)
+endif(FREECAD_USE_PCH)
 
 SET(InspectionGuiIcon_SVG
     Resources/icons/InspectionWorkbench.svg

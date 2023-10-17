@@ -28,7 +28,6 @@
 #ifndef PARTATTACHER_H
 #define PARTATTACHER_H
 
-#include <gp_Vec.hxx>
 #include <GProp_GProps.hxx>
 
 #include <App/GeoFeature.h>
@@ -145,8 +144,8 @@ enum eRefType {
 };
 
 
-typedef std::vector<eRefType> refTypeString; //a sequence of ref types, according to Support contents for example
-typedef std::vector<refTypeString> refTypeStringList; //a set of type strings, defines which selection sets are supported by a certain mode
+using refTypeString = std::vector<eRefType>; //a sequence of ref types, according to Support contents for example
+using refTypeStringList = std::vector<refTypeString>; //a set of type strings, defines which selection sets are supported by a certain mode
 
 
 /**
@@ -212,7 +211,7 @@ struct SuggestResult{
  */
 class PartExport AttachEngine : public Base::BaseClass
 {
-    TYPESYSTEM_HEADER();
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 public: //methods
     AttachEngine();
     virtual void setUp(const App::PropertyLinkSubList &references,
@@ -284,9 +283,9 @@ public: //methods
     /**
      * @brief EnableAllModes enables all modes that have shape type lists filled. The function acts on modeEnabled array.
      */
-    void EnableAllSupportedModes(void);
+    void EnableAllSupportedModes();
 
-    virtual ~AttachEngine(){};
+    ~AttachEngine() override = default;
 
 public://helper functions that may be useful outside of the class
     /**
@@ -364,10 +363,10 @@ public: //enums
 public: //members
     App::PropertyLinkSubList references;
 
-    eMapMode mapMode;
-    bool mapReverse;
-    double attachParameter;
-    double surfU, surfV;
+    eMapMode mapMode = mmDeactivated;
+    bool mapReverse = false;
+    double attachParameter = 0.0;
+    double surfU = 0.0, surfV = 0.0;
     Base::Placement attachmentOffset;
 
     /**
@@ -417,11 +416,11 @@ protected:
 
 class PartExport AttachEngine3D : public AttachEngine
 {
-    TYPESYSTEM_HEADER();
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 public:
     AttachEngine3D();
-    virtual AttachEngine3D* copy() const;
-    virtual Base::Placement calculateAttachedPlacement(const Base::Placement& origPlacement) const;
+    AttachEngine3D* copy() const override;
+    Base::Placement calculateAttachedPlacement(const Base::Placement& origPlacement) const override;
 private:
     double calculateFoldAngle(gp_Vec axA, gp_Vec axB, gp_Vec edA, gp_Vec edB) const;
 };
@@ -429,31 +428,31 @@ private:
 //attacher specialized for datum planes
 class PartExport AttachEnginePlane : public AttachEngine
 {
-    TYPESYSTEM_HEADER();
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 public:
     AttachEnginePlane();
-    virtual AttachEnginePlane* copy() const;
-    virtual Base::Placement calculateAttachedPlacement(const Base::Placement& origPlacement) const;
+    AttachEnginePlane* copy() const override;
+    Base::Placement calculateAttachedPlacement(const Base::Placement& origPlacement) const override;
 };
 
 //attacher specialized for datum lines
 class PartExport AttachEngineLine : public AttachEngine
 {
-    TYPESYSTEM_HEADER();
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 public:
     AttachEngineLine();
-    virtual AttachEngineLine* copy() const;
-    virtual Base::Placement calculateAttachedPlacement(const Base::Placement& origPlacement) const;
+    AttachEngineLine* copy() const override;
+    Base::Placement calculateAttachedPlacement(const Base::Placement& origPlacement) const override;
 };
 
 //attacher specialized for datum points
 class PartExport AttachEnginePoint : public AttachEngine
 {
-    TYPESYSTEM_HEADER();
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 public:
     AttachEnginePoint();
-    virtual AttachEnginePoint* copy() const;
-    virtual Base::Placement calculateAttachedPlacement(const Base::Placement& origPlacement) const;
+    AttachEnginePoint* copy() const override;
+    Base::Placement calculateAttachedPlacement(const Base::Placement& origPlacement) const override;
 
 private:
     gp_Pnt getProximityPoint(eMapMode mode, const TopoDS_Shape& s1, const TopoDS_Shape& s2) const;
@@ -464,9 +463,9 @@ private:
 class ExceptionCancel : public Base::Exception
 {
 public:
-    ExceptionCancel(){}
-    ExceptionCancel(char* msg){this->setMessage(msg);}
-    virtual ~ExceptionCancel() throw() {}
+    ExceptionCancel() = default;
+    explicit ExceptionCancel(char* msg){this->setMessage(msg);}
+    ~ExceptionCancel() noexcept override = default;
 };
 
 } // namespace Attacher

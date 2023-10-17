@@ -51,11 +51,11 @@ namespace App
 class AppExport LinkBaseExtension : public App::DocumentObjectExtension
 {
     EXTENSION_PROPERTY_HEADER_WITH_OVERRIDE(App::LinkExtension);
-    typedef App::DocumentObjectExtension inherited;
+    using inherited = App::DocumentObjectExtension;
 
 public:
     LinkBaseExtension();
-    virtual ~LinkBaseExtension();
+    ~LinkBaseExtension() override = default;
 
     PropertyBool _LinkTouched;
     PropertyInteger _LinkOwner;
@@ -217,7 +217,7 @@ public:
 
     virtual const std::vector<PropInfo> &getPropertyInfo() const;
 
-    typedef std::map<std::string, PropInfo> PropInfoMap;
+    using PropInfoMap = std::map<std::string, PropInfo>;
     virtual const PropInfoMap &getPropertyInfoMap() const;
 
     enum LinkCopyOnChangeType {
@@ -270,7 +270,7 @@ public:
 
     const char *getSubName() const {
         parseSubName();
-        return mySubName.size()?mySubName.c_str():nullptr;
+        return !mySubName.empty()?mySubName.c_str():nullptr;
     }
 
     const std::vector<std::string> &getSubElements() const {
@@ -286,19 +286,19 @@ public:
     bool extensionGetLinkedObject(DocumentObject *&ret,
             bool recurse, Base::Matrix4D *mat, bool transform, int depth) const override;
 
-    virtual App::DocumentObjectExecReturn *extensionExecute(void) override;
-    virtual short extensionMustExecute(void) override;
-    virtual void extensionOnChanged(const Property* p) override;
-    virtual void onExtendedUnsetupObject () override;
-    virtual void onExtendedDocumentRestored() override;
+    App::DocumentObjectExecReturn *extensionExecute() override;
+    short extensionMustExecute() override;
+    void extensionOnChanged(const Property* p) override;
+    void onExtendedUnsetupObject () override;
+    void onExtendedDocumentRestored() override;
 
-    virtual int extensionSetElementVisible(const char *, bool) override;
-    virtual int extensionIsElementVisible(const char *) override;
-    virtual bool extensionHasChildElement() const override;
+    int extensionSetElementVisible(const char *, bool) override;
+    int extensionIsElementVisible(const char *) override;
+    bool extensionHasChildElement() const override;
 
-    virtual PyObject* getExtensionPyObject(void) override;
+    PyObject* getExtensionPyObject() override;
 
-    virtual Property *extensionGetPropertyByName(const char* name) const override;
+    Property *extensionGetPropertyByName(const char* name) const override;
 
     static int getArrayIndex(const char *subname, const char **psubname=nullptr);
     int getElementIndex(const char *subname, const char **psubname=nullptr) const;
@@ -313,7 +313,7 @@ public:
     DocumentObject *getTrueLinkedObject(bool recurse,
             Base::Matrix4D *mat=nullptr,int depth=0, bool noElement=false) const;
 
-    typedef std::map<const Property*,std::pair<LinkBaseExtension*,int> > LinkPropMap;
+    using LinkPropMap = std::map<const Property*,std::pair<LinkBaseExtension*,int> >;
 
     bool hasPlacement() const {
         return getLinkPlacementProperty() || getPlacementProperty();
@@ -332,6 +332,8 @@ public:
      * Multiple options can be combined by bitwise or operator
      */
     enum class OnChangeCopyOptions {
+        /// No options set
+        None = 0,
         /// If set, then exclude the input from object list to copy on change, or else, include the input object.
         Exclude = 1,
         /// If set , then apply the setting to all links to the input object, or else, apply only to this link.
@@ -383,12 +385,12 @@ protected:
     long prevLinkedObjectID = 0;
 
     mutable std::unordered_map<std::string,int> myLabelCache; // for label based subname lookup
-    mutable bool enableLabelCache;
-    bool hasOldSubElement;
+    mutable bool enableLabelCache{false};
+    bool hasOldSubElement{false};
 
     std::vector<boost::signals2::scoped_connection> copyOnChangeConns;
     std::vector<boost::signals2::scoped_connection> copyOnChangeSrcConns;
-    bool hasCopyOnChange;
+    bool hasCopyOnChange{true};
 
     mutable bool checkingProperty = false;
     bool pauseCopyOnChange = false;
@@ -398,18 +400,18 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////
 
-typedef ExtensionPythonT<LinkBaseExtension> LinkBaseExtensionPython;
+using LinkBaseExtensionPython = ExtensionPythonT<LinkBaseExtension>;
 
 ///////////////////////////////////////////////////////////////////////////
 
 class AppExport LinkExtension : public LinkBaseExtension
 {
     EXTENSION_PROPERTY_HEADER_WITH_OVERRIDE(App::LinkExtension);
-    typedef LinkBaseExtension inherited;
+    using inherited = LinkBaseExtension;
 
 public:
     LinkExtension();
-    virtual ~LinkExtension();
+    ~LinkExtension() override = default;
 
     /** \name Helpers for defining extended parameter
      *
@@ -509,14 +511,14 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////
 
-typedef ExtensionPythonT<LinkExtension> LinkExtensionPython;
+using LinkExtensionPython = ExtensionPythonT<LinkExtension>;
 
 ///////////////////////////////////////////////////////////////////////////
 
 class AppExport Link : public App::DocumentObject, public App::LinkExtension
 {
     PROPERTY_HEADER_WITH_EXTENSIONS(App::Link);
-    typedef App::DocumentObject inherited;
+    using inherited = App::DocumentObject;
 public:
 
 #define LINK_PARAMS_LINK \
@@ -536,9 +538,9 @@ public:
 
     LINK_PROPS_DEFINE(LINK_PARAMS_LINK)
 
-    Link(void);
+    Link();
 
-    const char* getViewProviderName(void) const override{
+    const char* getViewProviderName() const override{
         return "Gui::ViewProviderLink";
     }
 
@@ -556,13 +558,13 @@ public:
     bool canLinkProperties() const override;
 };
 
-typedef App::FeaturePythonT<Link> LinkPython;
+using LinkPython = App::FeaturePythonT<Link>;
 
 ///////////////////////////////////////////////////////////////////////////
 
 class AppExport LinkElement : public App::DocumentObject, public App::LinkBaseExtension {
     PROPERTY_HEADER_WITH_EXTENSIONS(App::LinkElement);
-    typedef App::DocumentObject inherited;
+    using inherited = App::DocumentObject;
 public:
 
 #define LINK_PARAMS_ELEMENT \
@@ -581,7 +583,7 @@ public:
     LINK_PROPS_DEFINE(LINK_PARAMS_ELEMENT)
 
     LinkElement();
-    const char* getViewProviderName(void) const override{
+    const char* getViewProviderName() const override{
         return "Gui::ViewProviderLink";
     }
 
@@ -599,13 +601,13 @@ public:
     }
 };
 
-typedef App::FeaturePythonT<LinkElement> LinkElementPython;
+using LinkElementPython = App::FeaturePythonT<LinkElement>;
 
 ///////////////////////////////////////////////////////////////////////////
 
 class AppExport LinkGroup : public App::DocumentObject, public App::LinkBaseExtension {
     PROPERTY_HEADER_WITH_EXTENSIONS(App::LinkGroup);
-    typedef App::DocumentObject inherited;
+    using inherited = App::DocumentObject;
 public:
 
 #define LINK_PARAMS_GROUP \
@@ -620,7 +622,7 @@ public:
 
     LinkGroup();
 
-    const char* getViewProviderName(void) const override{
+    const char* getViewProviderName() const override{
         return "Gui::ViewProviderLink";
     }
 
@@ -630,7 +632,7 @@ public:
     }
 };
 
-typedef App::FeaturePythonT<LinkGroup> LinkGroupPython;
+using LinkGroupPython = App::FeaturePythonT<LinkGroup>;
 
 } //namespace App
 

@@ -32,21 +32,24 @@
 
 #include <App/Material.h>
 
+class SoState;
 
 namespace Gui {
 
 class SoFCSelectionRoot;
 struct SoFCSelectionContextBase;
-typedef std::shared_ptr<SoFCSelectionContextBase> SoFCSelectionContextBasePtr;
+using SoFCSelectionContextBasePtr = std::shared_ptr<SoFCSelectionContextBase>;
 
 struct GuiExport SoFCSelectionContextBase {
-    virtual ~SoFCSelectionContextBase() {}
-    typedef int MergeFunc(int status, SoFCSelectionContextBasePtr &output,
-            SoFCSelectionContextBasePtr input, SoFCSelectionRoot *node);
+    virtual ~SoFCSelectionContextBase() = default;
+    using MergeFunc = int (int status,
+                           SoFCSelectionContextBasePtr &output,
+                           SoFCSelectionContextBasePtr input,
+                           SoNode *node);
 };
 
 struct SoFCSelectionContext;
-typedef std::shared_ptr<SoFCSelectionContext> SoFCSelectionContextPtr;
+using SoFCSelectionContextPtr = std::shared_ptr<SoFCSelectionContext>;
 
 struct GuiExport SoFCSelectionContext : SoFCSelectionContextBase
 {
@@ -56,7 +59,7 @@ struct GuiExport SoFCSelectionContext : SoFCSelectionContextBase
     SbColor highlightColor;
     std::shared_ptr<int> counter;
 
-    virtual ~SoFCSelectionContext();
+    ~SoFCSelectionContext() override;
 
     bool isSelected() const {
         return !selectionIndex.empty();
@@ -68,7 +71,7 @@ struct GuiExport SoFCSelectionContext : SoFCSelectionContextBase
     }
 
     bool isSelectAll() const{
-        return selectionIndex.size() && *selectionIndex.begin()<0;
+        return !selectionIndex.empty() && *selectionIndex.begin()<0;
     }
 
     bool isHighlighted() const {
@@ -98,7 +101,7 @@ struct GuiExport SoFCSelectionContext : SoFCSelectionContextBase
 };
 
 struct SoFCSelectionContextEx;
-typedef std::shared_ptr<SoFCSelectionContextEx> SoFCSelectionContextExPtr;
+using SoFCSelectionContextExPtr = std::shared_ptr<SoFCSelectionContextEx>;
 
 struct GuiExport SoFCSelectionContextEx : SoFCSelectionContext
 {
@@ -110,7 +113,7 @@ struct GuiExport SoFCSelectionContextEx : SoFCSelectionContext
     bool applyColor(int idx, std::vector<uint32_t> &packedColors, bool &hasTransparency);
     bool isSingleColor(uint32_t &color, bool &hasTransparency);
 
-    virtual SoFCSelectionContextBasePtr copy() {
+    SoFCSelectionContextBasePtr copy() override {
         return std::make_shared<SoFCSelectionContextEx>(*this);
     }
 
@@ -129,8 +132,8 @@ public:
     void checkAction(SoSelectionElementAction *selaction, SoFCSelectionContextPtr ctx);
 protected:
     std::shared_ptr<int> counter;
-    bool hasSelection;
-    bool hasPreselection;
+    bool hasSelection{false};
+    bool hasPreselection{false};
     static int cachingMode;
 };
 

@@ -26,20 +26,22 @@
 
 #include <memory>
 #include <QString>
+#include <QCoreApplication>
 #include "UnitsSchema.h"
 #include "Quantity.h"
 
-typedef struct _object PyObject;
-typedef struct PyMethodDef PyMethodDef;
+using PyObject = struct _object;
+using PyMethodDef = struct PyMethodDef;
 
 namespace Base {
-typedef std::unique_ptr<UnitsSchema> UnitsSchemaPtr;
+using UnitsSchemaPtr = std::unique_ptr<UnitsSchema>;
 
 /**
  * The UnitsApi
  */
 class BaseExport UnitsApi
 {
+    Q_DECLARE_TR_FUNCTIONS(UnitsApi)
 
 public:
     /** set Schema
@@ -54,11 +56,11 @@ public:
         return currentSystem;
     }
     /// Returns a brief description of a schema
-    static const char* getDescription(UnitSystem);
+    static QString getDescription(UnitSystem);
 
     static QString schemaTranslate(const Base::Quantity& quant, double &factor, QString &unitString);
     static QString schemaTranslate(const Base::Quantity& quant) { // to satisfy GCC
-        double  dummy1;
+        double  dummy1{};
         QString dummy2;
         return UnitsApi::schemaTranslate(quant, dummy1, dummy2);
     }
@@ -92,6 +94,15 @@ public:
 
     //double Result;
 
+    //return true if the current user schema uses multiple units for length (ex. Ft/In)
+    static bool isMultiUnitLength();
+
+    //return true if the current user schema uses multiple units for angles (ex. DMS)
+    static bool isMultiUnitAngle();
+
+    //return the basic unit of measure for length in the current user schema.
+    static std::string getBasicLengthUnit();
+
     // Python interface
     static PyMethodDef    Methods[];
 
@@ -99,7 +110,6 @@ public:
     static UnitsSchemaPtr createSchema(UnitSystem s);
 
 protected:
-    // not used at the moment
     static UnitsSchemaPtr UserPrefSystem;
     static UnitSystem currentSystem;
     /// number of decimals for floats

@@ -40,8 +40,8 @@ namespace Base
 class BaseExport AbstractProducer
 {
 public:
-    AbstractProducer() {}
-    virtual ~AbstractProducer() {}
+    AbstractProducer() = default;
+    virtual ~AbstractProducer() = default;
     /// overwritten by a concrete producer to produce the needed object
     virtual void* Produce () const = 0;
 };
@@ -49,8 +49,8 @@ public:
 
 
 /** Base class of all factories
-  * This class has the purpose to produce at runtime instances
-  * of classes not known at compile time. It holds a map of so called
+  * This class has the purpose to produce instances of classes at runtime
+  * that are unknown at compile time. It holds a map of so called
   * producers which are able to produce an instance of a special class.
   * Producer can be registered at runtime through e.g. application modules
   */
@@ -69,7 +69,7 @@ protected:
     void* Produce (const char* sClassName) const;
     std::map<const std::string, AbstractProducer*> _mpcProducers;
     /// construction
-    Factory (){}
+    Factory () = default;
     /// destruction
     virtual ~Factory ();
 };
@@ -89,8 +89,8 @@ public:
 private:
     static ScriptFactorySingleton* _pcSingleton;
 
-    ScriptFactorySingleton(){}
-    ~ScriptFactorySingleton(){}
+    ScriptFactorySingleton() = default;
+    ~ScriptFactorySingleton() override = default;
 };
 
 inline ScriptFactorySingleton& ScriptFactory()
@@ -113,10 +113,10 @@ public:
         ScriptFactorySingleton::Instance().AddProducer(name, this);
     }
 
-    virtual ~ScriptProducer (){}
+    ~ScriptProducer () override = default;
 
     /// Produce an instance
-    virtual void* Produce () const
+    void* Produce () const override
     {
         return const_cast<char*>(mScript);
     }

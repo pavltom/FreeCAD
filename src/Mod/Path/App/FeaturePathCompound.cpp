@@ -20,17 +20,12 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
-
-#ifndef _PreComp_
-#endif
 
 #include "FeaturePathCompound.h"
 #include "Command.h"
-#include "Path.h"
 #include "FeaturePathCompoundPy.h"
-#include <App/FeaturePythonPyImp.h>
+
 
 using namespace Path;
 using namespace App;
@@ -48,7 +43,7 @@ FeatureCompound::~FeatureCompound()
 {
 }
 
-App::DocumentObjectExecReturn *FeatureCompound::execute(void)
+App::DocumentObjectExecReturn *FeatureCompound::execute()
 {
     const std::vector<DocumentObject*> &Paths = Group.getValues();
     Path::Toolpath result;
@@ -71,7 +66,7 @@ App::DocumentObjectExecReturn *FeatureCompound::execute(void)
 
     result.setCenter(Path.getValue().getCenter());
     Path.setValue(result);
-    
+
     return App::DocumentObject::StdReturn;
 }
 
@@ -121,7 +116,7 @@ PyObject *FeatureCompound::getPyObject()
 namespace App {
 /// @cond DOXERR
 PROPERTY_SOURCE_TEMPLATE(Path::FeatureCompoundPython, Path::FeatureCompound)
-template<> const char* Path::FeatureCompoundPython::getViewProviderName(void) const {
+template<> const char* Path::FeatureCompoundPython::getViewProviderName() const {
     return "PathGui::ViewProviderPathCompoundPython";
 }
 /// @endcond

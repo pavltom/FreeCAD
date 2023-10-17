@@ -23,7 +23,7 @@
 
 __title__ = "FreeCAD FEM solver Z88 writer"
 __author__ = "Bernd Hahnebach"
-__url__ = "https://www.freecadweb.org"
+__url__ = "https://www.freecad.org"
 
 ## \addtogroup FEM
 #  @{
@@ -157,6 +157,7 @@ class FemInputWriterZ88(writerbase.FemInputWriter):
             direction_vec = femobj["Object"].DirectionVector
             for ref_shape in femobj["NodeLoadTable"]:
                 for n in sorted(ref_shape[1]):
+                    # the loads in ref_shape[1][n] are without unit
                     node_load = ref_shape[1][n]
                     if (direction_vec.x != 0.0):
                         v1 = direction_vec.x * node_load
@@ -292,13 +293,13 @@ class FemInputWriterZ88(writerbase.FemInputWriter):
         MaxGS = prefs.GetInt("MaxGS", 100000000)
         MaxKOI = prefs.GetInt("MaxKOI", 2800000)
         global z88_dyn_template
-        templateArray = z88_dyn_template.splitlines()
+        template_array = z88_dyn_template.splitlines()
         output = ""
-        for line in templateArray:
+        for line in template_array:
             if line.find("MAXGS") > -1:
-                line = "    MAXGS  " + str(MaxGS)
+                line = "    MAXGS  {}".format(MaxGS)
             if line.find("MAXKOI") > -1:
-                line = "    MAXKOI   " + str(MaxKOI)
+                line = "    MAXKOI   {}".format(MaxKOI)
             output += line + "\n"
 
         solver_parameter_file_path = self.file_name + ".dyn"

@@ -35,19 +35,18 @@ namespace App {
  * class to behave as a Python extension -- simply by subclassing.
  */
 template <class ExtensionT>
-class ExtensionPythonT : public ExtensionT
+class ExtensionPythonT : public ExtensionT //NOLINT
 {
-    EXTENSION_PROPERTY_HEADER(App::ExtensionPythonT<ExtensionT>);
+    EXTENSION_PROPERTY_HEADER_WITH_OVERRIDE(App::ExtensionPythonT<ExtensionT>);
 
 public:
-    typedef ExtensionT Inherited;
+    using Inherited = ExtensionT;
 
     ExtensionPythonT() {
         ExtensionT::m_isPythonExtension = true;
         ExtensionT::initExtensionType(ExtensionPythonT::getExtensionClassTypeId());
     }
-    virtual ~ExtensionPythonT() {
-    }
+    ~ExtensionPythonT() override = default;
 
     ExtensionPythonT(const ExtensionPythonT&) = delete;
     ExtensionPythonT(ExtensionPythonT&&) = delete;
@@ -55,7 +54,7 @@ public:
     ExtensionPythonT& operator= (ExtensionPythonT&&) = delete;
 };
 
-typedef ExtensionPythonT<App::Extension> ExtensionPython;
+using ExtensionPython = ExtensionPythonT<App::Extension>;
 
 // Helper macros to define python extensions
 #define EXTENSION_PROXY_FIRST(function) \

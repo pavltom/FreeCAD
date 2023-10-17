@@ -1,9 +1,3 @@
-if(MSVC)
-    add_definitions(-DFCGuiPath -DHAVE_ACOSH -DHAVE_ASINH -DHAVE_ATANH)
-else(MSVC)
-    add_definitions(-DHAVE_LIMITS_H -DHAVE_CONFIG_H)
-endif(MSVC)
-
 include_directories(
     ${CMAKE_BINARY_DIR}
     ${CMAKE_SOURCE_DIR}/src
@@ -14,6 +8,7 @@ include_directories(
     ${OCC_INCLUDE_DIR}
     ${EIGEN3_INCLUDE_DIR}
     ${PYTHON_INCLUDE_DIRS}
+    ${XercesC_INCLUDE_DIRS}
 )
 
 link_directories(${OCC_LIBRARY_DIR})
@@ -24,11 +19,11 @@ set(PathGui_LIBS
     FreeCADGui
 )
 
-if(BUILD_QT5)
-    qt5_add_resources(PathResource_SRCS Resources/Path.qrc)
-else()
-    qt4_add_resources(PathResource_SRCS Resources/Path.qrc)
-endif()
+set (Path_TR_QRC ${CMAKE_CURRENT_BINARY_DIR}/Resources/Path_translation.qrc)
+qt_find_and_add_translation(QM_SRCS "Resources/translations/*_*.ts"
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/translations)
+qt_create_resource_file(${Path_TR_QRC} ${QM_SRCS})
+qt_add_resources(PathResource_SRCS Resources/Path.qrc ${Path_TR_QRC})
 
 SOURCE_GROUP("Resources" FILES ${PathResource_SRCS})
 
@@ -37,12 +32,6 @@ set(PathGui_UIC_SRCS
     TaskDlgPathCompound.ui
     DlgProcessorChooser.ui
 )
-
-if(BUILD_QT5)
-    qt5_wrap_ui(PathGui_UIC_HDRS ${PathGui_UIC_SRCS})
-else()
-    qt4_wrap_ui(PathGui_UIC_HDRS ${PathGui_UIC_SRCS})
-endif()
 
 SET(PathGui_SRCS_Module
     Command.cpp

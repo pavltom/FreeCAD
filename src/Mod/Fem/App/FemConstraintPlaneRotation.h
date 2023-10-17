@@ -30,13 +30,13 @@
 namespace Fem
 {
 
-class FemExport ConstraintPlaneRotation : public Fem::Constraint
+class FemExport ConstraintPlaneRotation: public Fem::Constraint
 {
-    PROPERTY_HEADER(Fem::ConstraintPlaneRotation);
+    PROPERTY_HEADER_WITH_OVERRIDE(Fem::ConstraintPlaneRotation);
 
 public:
     /// Constructor
-    ConstraintPlaneRotation(void);
+    ConstraintPlaneRotation();
 
     // Read-only (calculated values). These trigger changes in the ViewProvider
     App::PropertyVectorList Points;
@@ -44,17 +44,16 @@ public:
 
 
     /// recalculate the object
-    virtual App::DocumentObjectExecReturn *execute(void);
+    App::DocumentObjectExecReturn* execute() override;
 
     /// returns the type name of the ViewProvider
-    const char* getViewProviderName(void) const;
+    const char* getViewProviderName() const override;
 
 protected:
-    virtual void onChanged(const App::Property* prop);
-
+    void onChanged(const App::Property* prop) override;
 };
 
-} //namespace Fem
+}  // namespace Fem
 
 
-#endif // FEM_CONSTRAINTPLANEROTATION_H
+#endif  // FEM_CONSTRAINTPLANEROTATION_H

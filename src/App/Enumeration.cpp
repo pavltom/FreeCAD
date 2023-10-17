@@ -34,15 +34,15 @@ using namespace App;
 
 namespace {
 struct StringCopy : public Enumeration::Object {
-    StringCopy(const char* str) : d(str) {
+    explicit StringCopy(const char* str) : d(str) {
     }
-    const char* data() const {
+    const char* data() const override {
         return d.data();
     }
-    bool isEqual(const char* str) const {
+    bool isEqual(const char* str) const override {
         return d == str;
     }
-    bool isCustom() const {
+    bool isCustom() const override {
         return true;
     }
 
@@ -51,15 +51,15 @@ private:
 };
 
 struct StringView : public Enumeration::Object {
-    StringView(const char* str) : d(str) {
+    explicit StringView(const char* str) : d(str) {
     }
-    const char* data() const {
+    const char* data() const override {
         return d.data();
     }
-    bool isEqual(const char* str) const {
+    bool isEqual(const char* str) const override {
         return d == str;
     }
-    bool isCustom() const {
+    bool isCustom() const override {
         return false;
     }
 
@@ -141,8 +141,8 @@ void Enumeration::setEnums(const std::vector<std::string> &values)
     }
 
     enumArray.clear();
-    for (std::vector<std::string>::const_iterator it = values.begin(); it != values.end(); ++it) {
-        enumArray.push_back(std::make_shared<StringCopy>(it->c_str()));
+    for (const auto & it : values) {
+        enumArray.push_back(std::make_shared<StringCopy>(it.c_str()));
     }
 
     // set _index

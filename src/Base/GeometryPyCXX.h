@@ -42,9 +42,14 @@ template <typename T>
 inline Vector3<T> getVectorFromTuple(PyObject* o)
 {
     Py::Sequence tuple(o);
-    T x = static_cast<T>(Py::Float(tuple.getItem(0)));
-    T y = static_cast<T>(Py::Float(tuple.getItem(1)));
-    T z = static_cast<T>(Py::Float(tuple.getItem(2)));
+    if (tuple.size() != 3) {
+        throw Py::ValueError("Expected sequence of size 3");
+    }
+
+    T x = static_cast<T>(Py::Float(tuple[0]));
+    T y = static_cast<T>(Py::Float(tuple[1]));
+    T z = static_cast<T>(Py::Float(tuple[2]));
+
     return Vector3<T>(x,y,z);
 }
 
@@ -58,12 +63,12 @@ public:
     static Py::PythonClassObject<Vector2dPy> create(const Vector2d&);
     static Py::PythonClassObject<Vector2dPy> create(double x, double y);
     Vector2dPy(Py::PythonClassInstance *self, Py::Tuple &args, Py::Dict &kwds);
-    virtual ~Vector2dPy();
+    ~Vector2dPy() override;
 
     static void init_type();
-    Py::Object getattro(const Py::String &name_);
-    int setattro(const Py::String &name_, const Py::Object &value);
-    virtual Py::Object repr();
+    Py::Object getattro(const Py::String &name_) override;
+    int setattro(const Py::String &name_, const Py::Object &value) override;
+    Py::Object repr() override;
     inline const Vector2d& value() const {
         return v;
     }
@@ -77,24 +82,23 @@ public:
 
     /** @name methods for group handling */
     //@{
-    virtual Py::Object number_negative();
-    virtual Py::Object number_positive();
-    virtual Py::Object number_absolute();
-    virtual Py::Object number_invert();
-    virtual Py::Object number_int();
-    virtual Py::Object number_float();
-    virtual Py::Object number_long();
-    virtual Py::Object number_add( const Py::Object & );
-    virtual Py::Object number_subtract( const Py::Object & );
-    virtual Py::Object number_multiply( const Py::Object & );
-    virtual Py::Object number_remainder( const Py::Object & );
-    virtual Py::Object number_divmod( const Py::Object & );
-    virtual Py::Object number_lshift( const Py::Object & );
-    virtual Py::Object number_rshift( const Py::Object & );
-    virtual Py::Object number_and( const Py::Object & );
-    virtual Py::Object number_xor( const Py::Object & );
-    virtual Py::Object number_or( const Py::Object & );
-    virtual Py::Object number_power( const Py::Object &, const Py::Object & );
+    Py::Object number_negative() override;
+    Py::Object number_positive() override;
+    Py::Object number_absolute() override;
+    Py::Object number_invert() override;
+    Py::Object number_int() override;
+    Py::Object number_float() override;
+    Py::Object number_add( const Py::Object & ) override;
+    Py::Object number_subtract( const Py::Object & ) override;
+    Py::Object number_multiply( const Py::Object & ) override;
+    Py::Object number_remainder( const Py::Object & ) override;
+    Py::Object number_divmod( const Py::Object & ) override;
+    Py::Object number_lshift( const Py::Object & ) override;
+    Py::Object number_rshift( const Py::Object & ) override;
+    Py::Object number_and( const Py::Object & ) override;
+    Py::Object number_xor( const Py::Object & ) override;
+    Py::Object number_or( const Py::Object & ) override;
+    Py::Object number_power( const Py::Object &, const Py::Object & ) override;
     //@}
 
     Py::Object isNull(const Py::Tuple&);
@@ -118,7 +122,7 @@ private:
 
 namespace Py {
 
-typedef PythonClassObject<Base::Vector2dPy> Vector2d;
+using Vector2d = PythonClassObject<Base::Vector2dPy>;
 
 inline Base::Vector2d toVector2d(PyObject *py) {
     Base::Vector2dPy* py2d = Py::Vector2d(py).getCxxObject();
@@ -144,7 +148,7 @@ public:
 
     explicit Vector (const Base::Vector3d&);
     explicit Vector (const Base::Vector3f&);
-    virtual bool accepts (PyObject *pyob) const;
+    bool accepts (PyObject *pyob) const override;
 
     Vector(const Object& other): Object(other.ptr()) {
         validate();
@@ -161,6 +165,10 @@ public:
     Vector& operator= (PyObject* rhsp);
     Vector& operator= (const Base::Vector3d&);
     Vector& operator= (const Base::Vector3f&);
+    operator Base::Vector3d() const
+    {
+        return toVector();
+    }
 
     Base::Vector3d toVector() const;
 
@@ -203,7 +211,7 @@ public:
     GeometryT(const Object& other): Object(other.ptr()) {
         validate();
     }
-    virtual bool accepts (PyObject *pyob) const {
+    bool accepts (PyObject *pyob) const override {
         return pyob && Geometry_TypeCheck (pyob);
     }
     GeometryT& operator= (const Object& rhs)
@@ -247,14 +255,14 @@ private:
 };
 
 // PyCXX wrapper classes Py::Matrix, Py::Rotation, Py::Placement, ...
-typedef GeometryT<Base::BoundBox3d, Base::BoundBoxPy,
-                 &Base::BoundBoxPy::getBoundBoxPtr>     BoundingBox;
-typedef GeometryT<Base::Matrix4D, Base::MatrixPy,
-                 &Base::MatrixPy::getMatrixPtr>         Matrix;
-typedef GeometryT<Base::Rotation, Base::RotationPy,
-                 &Base::RotationPy::getRotationPtr>     Rotation;
-typedef GeometryT<Base::Placement, Base::PlacementPy,
-                 &Base::PlacementPy::getPlacementPtr>   Placement;
+using BoundingBox = GeometryT<Base::BoundBox3d, Base::BoundBoxPy,
+                             &Base::BoundBoxPy::getBoundBoxPtr>;
+using Matrix      = GeometryT<Base::Matrix4D, Base::MatrixPy,
+                             &Base::MatrixPy::getMatrixPtr>;
+using Rotation    = GeometryT<Base::Rotation, Base::RotationPy,
+                             &Base::RotationPy::getRotationPtr>;
+using Placement   = GeometryT<Base::Placement, Base::PlacementPy,
+                             &Base::PlacementPy::getPlacementPtr>;
 
 }
 

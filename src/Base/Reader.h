@@ -33,6 +33,8 @@
 #include <xercesc/sax2/Attributes.hpp>
 #include <xercesc/sax2/DefaultHandler.hpp>
 
+#include <boost/iostreams/concepts.hpp>
+
 #include "FileInfo.h"
 
 
@@ -125,7 +127,14 @@ public:
     };
     /// open the file and read the first element
     XMLReader(const char* FileName, std::istream&);
-    ~XMLReader();
+    ~XMLReader() override;
+
+    /** @name boost iostream device interface */
+    //@{
+    using category = boost::iostreams::source_tag;
+    using char_type = char;
+    std::streamsize read(char_type* s, std::streamsize n);
+    //@}
 
     bool isValid() const { return _valid; }
     bool isVerbose() const { return _verbose; }
@@ -137,8 +146,21 @@ public:
     const char* localName() const;
     /// get the current element level
     int level() const;
+
+    /// return true if the end of an element is reached, false otherwise
+    bool isEndOfElement() const;
+
+    /// return true if the on the start of the document, false otherwise
+    bool isStartOfDocument() const;
+
+    /// return true if the end of the document is reached, false otherwise
+    bool isEndOfDocument() const;
+
     /// read until a start element is found (\<name\>) or start-end element (\<name/\>) (with special name if given)
     void readElement   (const char* ElementName=nullptr);
+
+    /// Read in the next element. Return true if it succeeded and false otherwise
+    bool readNextElement();
 
     /** read until an end element is found
      *
@@ -156,7 +178,21 @@ public:
      */
     void readEndElement(const char* ElementName=nullptr, int level=-1);
     /// read until characters are found
-    void readCharacters();
+    void readCharacters(const char* filename, CharStreamFormat format = CharStreamFormat::Raw);
+
+    /** Obtain an input stream for reading characters
+     *
+     *  @return Return a input stream for reading characters. The stream will be
+     *  auto destroyed when you call with readElement() or readEndElement(), or
+     *  you can end it explicitly with endCharStream().
+     */
+    std::istream &beginCharStream(CharStreamFormat format = CharStreamFormat::Raw);
+    /// Manually end the current character stream
+    void endCharStream();
+    /// Obtain the current character stream
+    std::istream &charStream();
+    //@}
+
     /// read binary file
     void readBinFile(const char*);
     //@}
@@ -167,7 +203,7 @@ public:
     unsigned int getAttributeCount() const;
     /// check if the read element has a special attribute
     bool hasAttribute(const char* AttrName) const;
-    /// return the named attribute as an interer (does type checking)
+    /// return the named attribute as an integer (does type checking)
     long getAttributeAsInteger(const char* AttrName) const;
     unsigned long getAttributeAsUnsigned(const char* AttrName) const;
     /// return the named attribute as a double floating point (does type checking)
@@ -191,11 +227,11 @@ public:
     //@}
 
     /// Schema Version of the document
-    int DocumentSchema;
+    int DocumentSchema{0};
     /// Version of FreeCAD that wrote this document
     std::string ProgramVersion;
     /// Version of the file format
-    int FileVersion;
+    int FileVersion{0};
 
     /// sets simultaneously the global and local PartialRestore bits
     void setPartialRestore(bool on);
@@ -208,11 +244,6 @@ public:
     bool testStatus(ReaderStatus pos) const;
     /// set the status bits
     void setStatus(ReaderStatus pos, bool on);
-    struct FileEntry {
-        std::string FileName;
-        Base::Persistence *Object;
-    };
-    std::vector<FileEntry> FileList;
 
 protected:
     /// read the next element
@@ -223,28 +254,23 @@ protected:
     // -----------------------------------------------------------------------
     /** @name Content handler */
     //@{
-    virtual void startDocument();
-    virtual void endDocument();
-    virtual void startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname, const XERCES_CPP_NAMESPACE_QUALIFIER Attributes& attrs);
-    virtual void endElement  (const XMLCh* const uri, const XMLCh *const localname, const XMLCh *const qname);
-#if (XERCES_VERSION_MAJOR == 2)
-    virtual void characters         (const XMLCh* const chars, const unsigned int length);
-    virtual void ignorableWhitespace(const XMLCh* const chars, const unsigned int length);
-#else
-    virtual void characters         (const XMLCh* const chars, const XMLSize_t length);
-    virtual void ignorableWhitespace(const XMLCh* const chars, const XMLSize_t length);
-#endif
+    void startDocument() override;
+    void endDocument() override;
+    void startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname, const XERCES_CPP_NAMESPACE_QUALIFIER Attributes& attrs) override;
+    void endElement  (const XMLCh* const uri, const XMLCh *const localname, const XMLCh *const qname) override;
+    void characters         (const XMLCh* const chars, const XMLSize_t length) override;
+    void ignorableWhitespace(const XMLCh* const chars, const XMLSize_t length) override;
     //@}
 
     /** @name Lexical handler */
     //@{
-    virtual void startCDATA  ();
-    virtual void endCDATA    ();
+    void startCDATA  () override;
+    void endCDATA    () override;
     //@}
 
     /** @name Document handler */
     //@{
-    virtual void resetDocument();
+    void resetDocument() override;
     //@}
 
 
@@ -253,20 +279,21 @@ protected:
     // -----------------------------------------------------------------------
     /** @name Error handler */
     //@{
-    void warning(const XERCES_CPP_NAMESPACE_QUALIFIER SAXParseException& exc);
-    void error(const XERCES_CPP_NAMESPACE_QUALIFIER SAXParseException& exc);
-    void fatalError(const XERCES_CPP_NAMESPACE_QUALIFIER SAXParseException& exc);
-    void resetErrors();
+    void warning(const XERCES_CPP_NAMESPACE_QUALIFIER SAXParseException& exc) override;
+    void error(const XERCES_CPP_NAMESPACE_QUALIFIER SAXParseException& exc) override;
+    void fatalError(const XERCES_CPP_NAMESPACE_QUALIFIER SAXParseException& exc) override;
+    void resetErrors() override;
     //@}
 
-
-    int Level;
+private:
+    int Level{0};
     std::string LocalName;
     std::string Characters;
-    unsigned int CharacterCount;
+    unsigned int CharacterCount{0};
+    std::streamsize CharacterOffset{-1};
 
     std::map<std::string,std::string> AttrMap;
-    typedef std::map<std::string,std::string> AttrMapType;
+    using AttrMapType = std::map<std::string,std::string>;
 
     enum {
         None = 0,
@@ -278,18 +305,25 @@ protected:
         EndElement,
         StartCDATA,
         EndCDATA
-    }   ReadType;
+    }   ReadType{None};
 
 
     FileInfo _File;
     XERCES_CPP_NAMESPACE_QUALIFIER SAX2XMLReader* parser;
     XERCES_CPP_NAMESPACE_QUALIFIER XMLPScanToken token;
-    bool _valid;
-    bool _verbose;
+    bool _valid{false};
+    bool _verbose{true};
 
+    struct FileEntry {
+        std::string FileName;
+        Base::Persistence *Object;
+    };
+    std::vector<FileEntry> FileList;
     std::vector<std::string> FileNames;
 
     std::bitset<32> StatusBits;
+
+    std::unique_ptr<std::istream> CharStream;
 };
 
 class BaseExport Reader : public std::istream

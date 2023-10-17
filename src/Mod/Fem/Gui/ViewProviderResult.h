@@ -31,25 +31,27 @@
 namespace FemGui
 {
 
-class FemGuiExport ViewProviderResult : public Gui::ViewProviderDocumentObject
+class FemGuiExport ViewProviderResult: public Gui::ViewProviderDocumentObject
 {
-    PROPERTY_HEADER(FemGui::ViewProviderResult);
+    PROPERTY_HEADER_WITH_OVERRIDE(FemGui::ViewProviderResult);
 
 public:
     /// constructor
     ViewProviderResult();
 
     /// destructor
-    virtual ~ViewProviderResult();
+    ~ViewProviderResult() override;
 
     // shows solid in the tree
-    virtual bool isShow(void) const
-    { return true; }
+    bool isShow() const override
+    {
+        return true;
+    }
 };
 
-typedef Gui::ViewProviderPythonFeatureT<ViewProviderResult> ViewProviderResultPython;
+using ViewProviderResultPython = Gui::ViewProviderPythonFeatureT<ViewProviderResult>;
 
-} //namespace FemGui
+}  // namespace FemGui
 
 
-#endif // FEM_ViewProviderResult_H
+#endif  // FEM_ViewProviderResult_H

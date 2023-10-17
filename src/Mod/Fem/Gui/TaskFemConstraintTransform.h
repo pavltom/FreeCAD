@@ -28,6 +28,7 @@
 #define GUI_TASKVIEW_TaskFemConstraintTransform_H
 
 #include <QObject>
+#include <memory>
 
 #include "TaskFemConstraint.h"
 #include "ViewProviderFemConstraintTransform.h"
@@ -35,23 +36,25 @@
 
 class Ui_TaskFemConstraintTransform;
 
-namespace FemGui {
-class TaskFemConstraintTransform : public TaskFemConstraint
+namespace FemGui
+{
+class TaskFemConstraintTransform: public TaskFemConstraint
 {
     Q_OBJECT
 
 public:
-    TaskFemConstraintTransform(ViewProviderFemConstraintTransform *ConstraintView,QWidget *parent = nullptr);
-    ~TaskFemConstraintTransform();
-    const std::string getReferences() const;
-    double get_X_rot()const;
-    double get_Y_rot()const;
-    double get_Z_rot()const;
-    std::string get_transform_type(void) const;
+    explicit TaskFemConstraintTransform(ViewProviderFemConstraintTransform* ConstraintView,
+                                        QWidget* parent = nullptr);
+    ~TaskFemConstraintTransform() override;
+    const std::string getReferences() const override;
+    std::string get_X_rot() const;
+    std::string get_Y_rot() const;
+    std::string get_Z_rot() const;
+    std::string get_transform_type() const;
     static std::string getSurfaceReferences(const std::string showConstr);
 
 private Q_SLOTS:
-    void onReferenceDeleted(void);
+    void onReferenceDeleted();
     void Rect();
     void Cyl();
     void addToSelection();
@@ -61,26 +64,26 @@ private Q_SLOTS:
     void z_Changed(int z);
 
 protected:
-    bool event(QEvent *e);
-    void changeEvent(QEvent *e);
+    bool event(QEvent* e) override;
+    void changeEvent(QEvent* e) override;
     const QString makeText(const App::DocumentObject* obj) const;
 
 private:
     void updateUI();
-    Ui_TaskFemConstraintTransform* ui;
+    std::unique_ptr<Ui_TaskFemConstraintTransform> ui;
 };
 
-class TaskDlgFemConstraintTransform : public TaskDlgFemConstraint
+class TaskDlgFemConstraintTransform: public TaskDlgFemConstraint
 {
     Q_OBJECT
 
 public:
-    TaskDlgFemConstraintTransform(ViewProviderFemConstraintTransform *ConstraintView);
-    void open();
-    bool accept();
-    bool reject();
+    explicit TaskDlgFemConstraintTransform(ViewProviderFemConstraintTransform* ConstraintView);
+    void open() override;
+    bool accept() override;
+    bool reject() override;
 };
 
-} //namespace FemGui
+}  // namespace FemGui
 
-#endif // GUI_TASKVIEW_TaskFemConstraintTransform_H
+#endif  // GUI_TASKVIEW_TaskFemConstraintTransform_H

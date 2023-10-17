@@ -22,22 +22,12 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
-
-#include <App/Application.h>
-#include <Base/Console.h>
-#include <Base/Parameter.h>
-#include <Base/Tools.h>
-
-#include <Mod/TechDraw/App/DrawHatch.h>
-#include <Mod/TechDraw/App/DrawGeomHatch.h>
 
 #include "DlgPrefsTechDrawGeneralImp.h"
 #include "ui_DlgPrefsTechDrawGeneral.h"
-#include <Gui/PrefWidgets.h>
-
 #include "PreferencesGui.h"
+
 
 using namespace TechDrawGui;
 using namespace TechDraw;
@@ -100,8 +90,8 @@ void DlgPrefsTechDrawGeneralImp::loadSettings()
     ui->plsb_LabelSize->onRestore();
 
     ui->cbProjAngle->onRestore();
-    ui->cbHiddenLineStyle->onRestore(); 
-    
+    ui->cbHiddenLineStyle->onRestore();
+
     ui->pfc_DefTemp->onRestore();
     ui->pfc_DefDir->onRestore();
     ui->pfc_HatchFile->onRestore();

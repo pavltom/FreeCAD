@@ -54,13 +54,13 @@ public:
    * A constructor.
    * No special function so far.
    */
-  Observer(){}
+  Observer() = default;
 
   /**
    * A destructor.
    * No special function so far.
    */
-  virtual ~Observer(){}
+  virtual ~Observer() = default;
 
   /**
    * This method need to be reimplemented from the concrete Observer
@@ -69,14 +69,14 @@ public:
    * @param rcReason
    * \todo undocumented parameter 2
    */
-  virtual void OnChange(Subject<_MessageType>& rCaller,_MessageType rcReason)=0;
+  virtual void OnChange(Subject<_MessageType>& rCaller, _MessageType rcReason) = 0;
 
   /**
    * This method need to be reimplemented from the concrete Observer
    * and get called by the observed class
    * @param rCaller a reference to the calling object
    */
-  virtual void OnDestroy(Subject<_MessageType> & rCaller) {
+  virtual void OnDestroy(Subject<_MessageType>& rCaller) {
     (void)rCaller;
   }
 
@@ -85,7 +85,9 @@ public:
    * and returns the name of the observer. Needed to use the Get
    * Method of the Subject.
    */
-  virtual const char *Name(){return nullptr;}
+  virtual const char *Name() {
+      return nullptr;
+  }
 };
 
 /** Subject class
@@ -100,15 +102,15 @@ class Subject
 {
 public:
 
-  typedef  Observer<_MessageType> ObserverType;
-  typedef  _MessageType             MessageType;
-  typedef  Subject<_MessageType>  SubjectType;
+  using ObserverType = Observer<_MessageType>;
+  using MessageType  = _MessageType;
+  using SubjectType  = Subject<_MessageType>;
 
   /**
    * A constructor.
    * No special function so far.
    */
-  Subject(){}
+  Subject() = default;
 
   /**
    * A destructor.
@@ -118,8 +120,8 @@ public:
   {
     if (_ObserverSet.size() > 0)
     {
-      printf("Not detached all observers yet\n");
-      assert(0);
+      Base::Console().DeveloperWarning(std::string("~Subject()"),
+                                       "Not detached all observers yet\n");
     }
   }
 
@@ -133,10 +135,12 @@ public:
   {
 #ifdef FC_DEBUG
     size_t count = _ObserverSet.size();
-    //printf("Attach observer %p\n", ToObserv);
     _ObserverSet.insert(ToObserv);
-    if ( _ObserverSet.size() == count )
-      printf("Observer %p already attached\n", static_cast<void*>(ToObserv));
+    if ( _ObserverSet.size() == count ) {
+        Base::Console().DeveloperWarning(std::string("Subject::Attach"),
+                                         "Observer %p already attached\n",
+                                         static_cast<void*>(ToObserv));
+    }
 #else
     _ObserverSet.insert(ToObserv);
 #endif
@@ -152,10 +156,12 @@ public:
   {
 #ifdef FC_DEBUG
     size_t count = _ObserverSet.size();
-    //printf("Detach observer %p\n", ToObserv);
     _ObserverSet.erase(ToObserv);
-    if ( _ObserverSet.size() == count )
-      printf("Observer %p already detached\n", static_cast<void*>(ToObserv));
+    if (_ObserverSet.size() == count) {
+        Base::Console().DeveloperWarning(std::string("Subject::Detach"),
+                                         "Observer %p already detached\n",
+                                         static_cast<void*>(ToObserv));
+    }
 #else
     _ObserverSet.erase(ToObserv);
 #endif
@@ -191,7 +197,7 @@ public:
    */
   Observer<_MessageType> * Get(const char *Name)
   {
-    const char* OName;
+    const char* OName = nullptr;
     for(typename std::set<Observer<_MessageType> * >::iterator Iter=_ObserverSet.begin();Iter!=_ObserverSet.end();++Iter)
     {
       OName = (*Iter)->Name();   // get the name
@@ -215,6 +221,16 @@ protected:
   /// Vector of attached observers
   std::set<Observer <_MessageType> *> _ObserverSet;
 };
+
+// Workaround for MSVC
+#if defined (FreeCADBase_EXPORTS) && defined(_MSC_VER)
+#  define Base_EXPORT
+#else
+#  define Base_EXPORT  BaseExport
+#endif
+
+extern template class Base_EXPORT Observer<const char*>;
+extern template class Base_EXPORT Subject<const char*>;
 
 
 } //namespace Base

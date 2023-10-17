@@ -393,7 +393,7 @@ TopoDS_Face FaceTypedPlane::buildFace(const FaceVectorType &faces) const
     std::vector<EdgeVectorType> splitEdges;
     this->boundarySplit(faces, splitEdges);
     if (splitEdges.empty())
-        return TopoDS_Face();
+        return {};
     std::vector<EdgeVectorType>::iterator splitIt;
     for (splitIt = splitEdges.begin(); splitIt != splitEdges.end(); ++splitIt)
     {
@@ -409,7 +409,7 @@ TopoDS_Face FaceTypedPlane::buildFace(const FaceVectorType &faces) const
 
     BRepLib_MakeFace faceMaker(wires.at(0), Standard_True);
     if (faceMaker.Error() != BRepLib_FaceDone)
-        return TopoDS_Face();
+        return {};
     TopoDS_Face current = faceMaker.Face();
     if (wires.size() > 1)
     {
@@ -419,11 +419,11 @@ TopoDS_Face FaceTypedPlane::buildFace(const FaceVectorType &faces) const
             faceFix.Add(wires.at(index));
         faceFix.Perform();
         if (faceFix.Status(ShapeExtend_FAIL))
-            return TopoDS_Face();
+            return {};
         faceFix.FixOrientation();
         faceFix.Perform();
         if(faceFix.Status(ShapeExtend_FAIL))
-            return TopoDS_Face();
+            return {};
         current = faceFix.Face();
     }
 
@@ -622,7 +622,7 @@ TopoDS_Face FaceTypedCylinder::buildFace(const FaceVectorType &faces) const
     static TopoDS_Face dummy;
     std::vector<EdgeVectorType> boundaries;
     boundarySplit(faces, boundaries);
-    if (boundaries.size() < 1)
+    if (boundaries.empty())
         return dummy;
 
     //make wires
@@ -638,7 +638,7 @@ TopoDS_Face FaceTypedCylinder::buildFace(const FaceVectorType &faces) const
             return dummy;
         allWires.push_back(wireMaker.Wire());
     }
-    if (allWires.size() < 1)
+    if (allWires.empty())
         return dummy;
 
     // Sort wires by size, that is, the innermost wire comes last
@@ -967,7 +967,7 @@ TopoDS_Face FaceTypedBSpline::buildFace(const FaceVectorType &faces) const
     std::vector<EdgeVectorType> splitEdges;
     this->boundarySplit(faces, splitEdges);
     if (splitEdges.empty())
-        return TopoDS_Face();
+        return {};
     std::vector<EdgeVectorType>::iterator splitIt;
     for (splitIt = splitEdges.begin(); splitIt != splitEdges.end(); ++splitIt)
     {
@@ -984,19 +984,19 @@ TopoDS_Face FaceTypedBSpline::buildFace(const FaceVectorType &faces) const
     //make face from surface and outer wire.
     Handle(Geom_BSplineSurface) surface = Handle(Geom_BSplineSurface)::DownCast(BRep_Tool::Surface(faces.at(0)));
     if (!surface)
-        return TopoDS_Face();
+        return {};
     std::vector<TopoDS_Wire>::iterator wireIt;
     wireIt = wires.begin();
     BRepBuilderAPI_MakeFace faceMaker(surface, *wireIt);
     if (!faceMaker.IsDone())
-        return TopoDS_Face();
+        return {};
 
     //add additional boundaries.
     for (wireIt++; wireIt != wires.end(); ++wireIt)
     {
         faceMaker.Add(*wireIt);
         if (!faceMaker.IsDone())
-            return TopoDS_Face();
+            return {};
     }
 
     //fix newly constructed face. Orientation doesn't seem to get fixed the first call.
@@ -1004,11 +1004,11 @@ TopoDS_Face FaceTypedBSpline::buildFace(const FaceVectorType &faces) const
     faceFixer.SetContext(new ShapeBuild_ReShape());
     faceFixer.Perform();
     if (faceFixer.Status(ShapeExtend_FAIL))
-        return TopoDS_Face();
+        return {};
     faceFixer.FixOrientation();
     faceFixer.Perform();
     if (faceFixer.Status(ShapeExtend_FAIL))
-        return TopoDS_Face();
+        return {};
 
     return faceFixer.Face();
 }
@@ -1082,14 +1082,14 @@ bool FaceUniter::process()
                     // by a boolean cut, where one old shape is marked as modified, producing multiple new shapes
                     if (!temp.empty())
                     {
-                        for (FaceVectorType::iterator f = temp.begin(); f != temp.end(); ++f)
-                              modifiedShapes.emplace_back(*f, newFace);
+                        for (const auto & f : temp)
+                              modifiedShapes.emplace_back(f, newFace);
                     }
                 }
             }
         }
     }
-    if (facesToSew.size() > 0)
+    if (!facesToSew.empty())
     {
         modifiedSignal = true;
         workShell = ModelRefine::removeFaces(workShell, facesToRemove);
@@ -1115,11 +1115,11 @@ bool FaceUniter::process()
                 return false;
             }
             // update the list of modifications
-            for (std::vector<ShapePairType>::iterator it = modifiedShapes.begin(); it != modifiedShapes.end(); ++it)
+            for (auto & it : modifiedShapes)
             {
-                if (sew.IsModified(it->second))
+                if (sew.IsModified(it.second))
                 {
-                    it->second = sew.Modified(it->second);
+                    it.second = sew.Modified(it.second);
                     break;
                 }
             }
@@ -1169,11 +1169,11 @@ bool FaceUniter::process()
         for (mapIt.Initialize(faceMap); mapIt.More(); mapIt.Next())
         {
             bool isModifiedFace = false;
-            for (std::vector<ShapePairType>::iterator it = modifiedShapes.begin(); it != modifiedShapes.end(); ++it)
+            for (auto & it : modifiedShapes)
             {
-                if (mapIt.Key().IsSame(it->second)) {
+                if (mapIt.Key().IsSame(it.second)) {
                     // Note: IsEqual() for some reason does not work
-                    it->second = mapIt.Value();
+                    it.second = mapIt.Value();
                     isModifiedFace = true;
                 }
             }
@@ -1217,7 +1217,11 @@ Part::BRepBuilderAPI_RefineModel::BRepBuilderAPI_RefineModel(const TopoDS_Shape&
     Build();
 }
 
+#if OCC_VERSION_HEX >= 0x070600
+void Part::BRepBuilderAPI_RefineModel::Build(const Message_ProgressRange&)
+#else
 void Part::BRepBuilderAPI_RefineModel::Build()
+#endif
 {
     if (myShape.IsNull())
         Standard_Failure::Raise("Cannot remove splitter from empty shape");
@@ -1317,14 +1321,14 @@ void Part::BRepBuilderAPI_RefineModel::Build()
 void Part::BRepBuilderAPI_RefineModel::LogModifications(const ModelRefine::FaceUniter& uniter)
 {
     const std::vector<ShapePairType>& modShapes = uniter.getModifiedShapes();
-    for (std::vector<ShapePairType>::const_iterator it = modShapes.begin(); it != modShapes.end(); ++it) {
+    for (const auto & it : modShapes) {
         TopTools_ListOfShape list;
-        list.Append(it->second);
-        myModified.Bind(it->first, list);
+        list.Append(it.second);
+        myModified.Bind(it.first, list);
     }
     const ShapeVectorType& delShapes = uniter.getDeletedShapes();
-    for (ShapeVectorType::const_iterator it = delShapes.begin(); it != delShapes.end(); ++it) {
-        myDeleted.Append(*it);
+    for (const auto & it : delShapes) {
+        myDeleted.Append(it);
     }
 }
 

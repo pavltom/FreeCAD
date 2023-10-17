@@ -86,12 +86,12 @@ inline std::ostream& blanksN(std::ostream& os, int n)
 
 inline manipulator<int> tabs(int n)
 {
-    return manipulator<int>(&tabsN, n);
+    return {&tabsN, n};
 }
 
 inline manipulator<int> blanks(int n)
 {
-    return manipulator<int>(&blanksN, n);
+    return {&blanksN, n};
 }
 
 // ----------------------------------------------------------------------------
@@ -229,15 +229,14 @@ private:
 // ----------------------------------------------------------------------------
 
 class ConnectionBlocker {
-    typedef boost::signals2::connection Connection;
-    typedef boost::signals2::shared_connection_block ConnectionBlock;
+    using Connection = boost::signals2::connection;
+    using ConnectionBlock = boost::signals2::shared_connection_block;
     ConnectionBlock blocker;
 
 public:
     ConnectionBlocker(Connection& c) : blocker(c) {
     }
-    ~ConnectionBlocker() {
-    }
+    ~ConnectionBlocker() = default;
 };
 
 // ----------------------------------------------------------------------------
@@ -264,7 +263,7 @@ struct BaseExport Tools
      */
     static inline std::string toStdString(const QString& s) {
         QByteArray tmp = s.toUtf8();
-        return std::string(tmp.constData(), static_cast<size_t>(tmp.size()));
+        return {tmp.constData(), static_cast<size_t>(tmp.size())};
     }
 
     /**
@@ -275,6 +274,29 @@ struct BaseExport Tools
     static inline QString fromStdString(const std::string & s) {
         return QString::fromUtf8(s.c_str(), static_cast<int>(s.size()));
     }
+
+    /**
+     * @brief quoted Creates a quoted string.
+     * @param String to be quoted.
+     * @return A quoted std::string.
+     */
+    static std::string quoted(const char*);
+    /**
+     * @brief quoted Creates a quoted string.
+     * @param String to be quoted.
+     * @return A quoted std::string.
+     */
+    static std::string quoted(const std::string&);
+
+    /**
+     * @brief joinList
+     * Join the vector of strings \a vec using the separator \a sep
+     * @param vec
+     * @param sep
+     * @return
+     */
+    static std::string joinList(const std::vector<std::string>& vec,
+                                const std::string& sep = ", ");
 };
 
 

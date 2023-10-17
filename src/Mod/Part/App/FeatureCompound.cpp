@@ -42,9 +42,7 @@ Compound::Compound()
     Links.setSize(0);
 }
 
-Compound::~Compound()
-{
-}
+Compound::~Compound() = default;
 
 short Compound::mustExecute() const
 {
@@ -53,7 +51,7 @@ short Compound::mustExecute() const
     return 0;
 }
 
-App::DocumentObjectExecReturn *Compound::execute(void)
+App::DocumentObjectExecReturn *Compound::execute()
 {
     try {
         std::vector<ShapeHistory> history;
@@ -68,11 +66,11 @@ App::DocumentObjectExecReturn *Compound::execute(void)
         std::set<DocumentObject*> tempLinks;
 
         const std::vector<DocumentObject*>& links = Links.getValues();
-        for (std::vector<DocumentObject*>::const_iterator it = links.begin(); it != links.end(); ++it) {
-            if (*it) {
-                auto pos = tempLinks.insert(*it);
+        for (auto link : links) {
+            if (link) {
+                auto pos = tempLinks.insert(link);
                 if (pos.second) {
-                    const TopoDS_Shape& sh = Feature::getShape(*it);
+                    const TopoDS_Shape& sh = Feature::getShape(link);
                     if (!sh.IsNull()) {
                         builder.Add(comp, sh);
                         TopTools_IndexedMapOfShape faceMap;

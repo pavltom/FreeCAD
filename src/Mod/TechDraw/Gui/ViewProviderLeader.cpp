@@ -41,6 +41,7 @@
 #include <Mod/TechDraw/App/DrawWeldSymbol.h>
 
 #include "PreferencesGui.h"
+#include "ZVALUE.h"
 #include "QGIView.h"
 #include "TaskLeaderLine.h"
 #include "ViewProviderLeader.h"
@@ -67,24 +68,21 @@ ViewProviderLeader::ViewProviderLeader()
 
     static const char *group = "Line Format";
 
-    ADD_PROPERTY_TYPE(LineWidth,(getDefLineWeight()),group,(App::PropertyType)(App::Prop_None),"Line width");
+    ADD_PROPERTY_TYPE(LineWidth, (getDefLineWeight()), group, (App::PropertyType)(App::Prop_None), "Line width");
     LineStyle.setEnums(LineStyleEnums);
-    ADD_PROPERTY_TYPE(LineStyle,(1),group,(App::PropertyType)(App::Prop_None),"Line style");
-    ADD_PROPERTY_TYPE(Color,(getDefLineColor()),group,App::Prop_None,"Color of the Markup");
+    ADD_PROPERTY_TYPE(LineStyle, (1), group, (App::PropertyType)(App::Prop_None), "Line style");
+    ADD_PROPERTY_TYPE(Color, (getDefLineColor()), group, App::Prop_None, "Color of the Markup");
+
+    StackOrder.setValue(ZVALUE::DIMENSION);
 }
 
 ViewProviderLeader::~ViewProviderLeader()
 {
 }
 
-void ViewProviderLeader::attach(App::DocumentObject *pcFeat)
-{
-    ViewProviderDrawingView::attach(pcFeat);
-}
-
 bool ViewProviderLeader::setEdit(int ModNum)
 {
-//    Base::Console().Message("VPL::setEdit(%d)\n",ModNum);
+//    Base::Console().Message("VPL::setEdit(%d)\n", ModNum);
     if (ModNum != ViewProvider::Default) {
         return ViewProviderDrawingView::setEdit(ModNum);
     }
@@ -97,18 +95,7 @@ bool ViewProviderLeader::setEdit(int ModNum)
     return true;
 }
 
-void ViewProviderLeader::unsetEdit(int ModNum)
-{
-    Q_UNUSED(ModNum);
-    if (ModNum == ViewProvider::Default) {
-        Gui::Control().closeDialog();
-    }
-    else {
-        ViewProviderDrawingView::unsetEdit(ModNum);
-    }
-}
-
-bool ViewProviderLeader::doubleClicked(void)
+bool ViewProviderLeader::doubleClicked()
 {
 //    Base::Console().Message("VPL::doubleClicked()\n");
     setEdit(ViewProvider::Default);
@@ -145,7 +132,7 @@ void ViewProviderLeader::onChanged(const App::Property* p)
     ViewProviderDrawingView::onChanged(p);
 }
 
-std::vector<App::DocumentObject*> ViewProviderLeader::claimChildren(void) const
+std::vector<App::DocumentObject*> ViewProviderLeader::claimChildren() const
 {
     // Collect any child Document Objects and put them in the right place in the Feature tree
     // valid children of a ViewLeader are:
@@ -162,10 +149,9 @@ std::vector<App::DocumentObject*> ViewProviderLeader::claimChildren(void) const
             }
         }
         return temp;
-    } 
+    }
     catch (...) {
-        std::vector<App::DocumentObject*> tmp;
-        return tmp;
+        return std::vector<App::DocumentObject*>();
     }
 }
 
@@ -179,16 +165,12 @@ TechDraw::DrawLeaderLine* ViewProviderLeader::getFeature() const
     return dynamic_cast<TechDraw::DrawLeaderLine*>(pcObject);
 }
 
-double ViewProviderLeader::getDefLineWeight(void)
+double ViewProviderLeader::getDefLineWeight()
 {
-    int lgNumber = Preferences::lineGroup();
-    auto lg = TechDraw::LineGroup::lineGroupFactory(lgNumber);
-    double result = lg->getWeight("Thin");
-    delete lg;                                   //Coverity CID 174670
-    return result;
+    return TechDraw::LineGroup::getDefaultWidth("Thin");
 }
 
-App::Color ViewProviderLeader::getDefLineColor(void)
+App::Color ViewProviderLeader::getDefLineColor()
 {
     return PreferencesGui::leaderColor();
 }
@@ -237,7 +219,7 @@ bool ViewProviderLeader::onDelete(const std::vector<std::string> &)
     }
 
     QString bodyMessage;
-    QTextStream bodyMessageStream(&bodyMessage); 
+    QTextStream bodyMessageStream(&bodyMessage);
     bodyMessageStream << qApp->translate("Std_Delete",
         "You cannot delete this leader line because\nit has a weld symbol that would become broken.");
     QMessageBox::warning(Gui::getMainWindow(),

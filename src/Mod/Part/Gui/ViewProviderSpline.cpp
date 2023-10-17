@@ -20,38 +20,36 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 #ifndef _PreComp_
+# include <QAction>
+# include <QMenu>
+
 # include <BRepAdaptor_Curve.hxx>
 # include <BRepAdaptor_Surface.hxx>
-# include <GeomAbs_CurveType.hxx>
-# include <GeomAbs_SurfaceType.hxx>
 # include <Geom_BezierCurve.hxx>
-# include <Geom_BSplineCurve.hxx>
 # include <Geom_BezierSurface.hxx>
+# include <Geom_BSplineCurve.hxx>
 # include <Geom_BSplineSurface.hxx>
 # include <gp_Pnt.hxx>
 # include <TopoDS.hxx>
 # include <TopoDS_Edge.hxx>
-# include <TopoDS_Wire.hxx>
 # include <TopoDS_Face.hxx>
 # include <TopoDS_Shape.hxx>
 # include <TopoDS_Shell.hxx>
+# include <TopoDS_Wire.hxx>
 # include <TopExp_Explorer.hxx>
+
 # include <Inventor/nodes/SoCoordinate3.h>
 # include <Inventor/nodes/SoSeparator.h>
 # include <Inventor/nodes/SoSwitch.h>
-# include <QAction>
-# include <QMenu>
 #endif
 
-#include <App/PropertyStandard.h>
-#include <Mod/Part/App/PartFeature.h>
 #include <Gui/ActionFunction.h>
 #include <Gui/BitmapFactory.h>
-#include "SoFCShapeObject.h"
+
 #include "ViewProviderSpline.h"
+#include "SoFCShapeObject.h"
 
 
 using namespace PartGui;
@@ -66,11 +64,9 @@ ViewProviderSpline::ViewProviderSpline()
     extension.initExtension(this);
 }
 
-ViewProviderSpline::~ViewProviderSpline()
-{
-}
+ViewProviderSpline::~ViewProviderSpline() = default;
 
-QIcon ViewProviderSpline::getIcon(void) const
+QIcon ViewProviderSpline::getIcon() const
 {
     return Gui::BitmapFactory().pixmap(sPixmap);
 }
@@ -81,7 +77,6 @@ EXTENSION_PROPERTY_SOURCE(PartGui::ViewProviderSplineExtension, Gui::ViewProvide
 
 
 ViewProviderSplineExtension::ViewProviderSplineExtension()
-    : pcControlPoints(nullptr)
 {
     initExtensionType(ViewProviderSplineExtension::getExtensionClassTypeId());
     EXTENSION_ADD_PROPERTY(ControlPoints,(false));
@@ -99,7 +94,9 @@ void ViewProviderSplineExtension::extensionSetupContextMenu(QMenu* menu, QObject
     QAction* act = menu->addAction(QObject::tr("Show control points"));
     act->setCheckable(true);
     act->setChecked(ControlPoints.getValue());
-    func->toggle(act, std::bind(&ViewProviderSplineExtension::toggleControlPoints, this, sp::_1));
+    func->toggle(act, [this](bool on) {
+        this->toggleControlPoints(on);
+    });
 }
 
 void ViewProviderSplineExtension::extensionUpdateData(const App::Property* prop)
@@ -220,11 +217,11 @@ void ViewProviderSplineExtension::showControlPointsOfEdge(const TopoDS_Edge& edg
 
     int index=0;
     SbVec3f* verts = controlcoords->point.startEditing();
-    for (std::list<gp_Pnt>::iterator p = poles.begin(); p != poles.end(); ++p) {
-        verts[index++].setValue((float)p->X(), (float)p->Y(), (float)p->Z());
+    for (const auto & pole : poles) {
+        verts[index++].setValue((float)pole.X(), (float)pole.Y(), (float)pole.Z());
     }
-    for (std::list<gp_Pnt>::iterator k = knots.begin(); k != knots.end(); ++k) {
-        verts[index++].setValue((float)k->X(), (float)k->Y(), (float)k->Z());
+    for (const auto & knot : knots) {
+        verts[index++].setValue((float)knot.X(), (float)knot.Y(), (float)knot.Z());
     }
     controlcoords->point.finishEditing();
 
@@ -296,13 +293,13 @@ void ViewProviderSplineExtension::showControlPointsOfFace(const TopoDS_Face& fac
 
     int index=0;
     SbVec3f* verts = coords->point.startEditing();
-    for (std::vector<std::vector<gp_Pnt> >::iterator u = poles.begin(); u != poles.end(); ++u) {
-        for (std::vector<gp_Pnt>::iterator v = u->begin(); v != u->end(); ++v) {
-            verts[index++].setValue((float)v->X(), (float)v->Y(), (float)v->Z());
+    for (const auto & pole : poles) {
+        for (const auto& v : pole) {
+            verts[index++].setValue((float)v.X(), (float)v.Y(), (float)v.Z());
         }
     }
-    for (std::list<gp_Pnt>::iterator k = knots.begin(); k != knots.end(); ++k) {
-        verts[index++].setValue((float)k->X(), (float)k->Y(), (float)k->Z());
+    for (const auto & knot : knots) {
+        verts[index++].setValue((float)knot.X(), (float)knot.Y(), (float)knot.Z());
     }
     coords->point.finishEditing();
 

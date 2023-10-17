@@ -35,6 +35,7 @@
 # include <GeomFill_NSections.hxx>
 
 #include <Base/GeometryPyCXX.h>
+#include <Base/PyWrapParseTupleAndKeywords.h>
 #include <Base/VectorPy.h>
 
 #include "BSplineSurfacePy.h"
@@ -46,14 +47,14 @@
 using namespace Part;
 
 // returns a string which represents the object e.g. when printed in python
-std::string BSplineSurfacePy::representation(void) const
+std::string BSplineSurfacePy::representation() const
 {
     return "<BSplineSurface object>";
 }
 
 PyObject *BSplineSurfacePy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // Python wrapper
 {
-    // create a new instance of BSplineSurfacePy and the Twin object 
+    // create a new instance of BSplineSurfacePy and the Twin object
     return new BSplineSurfacePy(new GeomBSplineSurface);
 }
 
@@ -1166,10 +1167,15 @@ PyObject* BSplineSurfacePy::approximate(PyObject *args, PyObject *kwds)
     Standard_Real Y0=0;
     Standard_Real dY=0;
 
-    static char* kwds_interp[] = {"Points", "DegMin", "DegMax", "Continuity", "Tolerance", "X0", "dX", "Y0", "dY", "ParamType", "LengthWeight", "CurvatureWeight", "TorsionWeight", nullptr};
-    
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|iiidddddsddd", kwds_interp, &obj, &degMin, &degMax, &continuity, &tol3d, &X0, &dX, &Y0, &dY, &parType, &weight1, &weight2, &weight3))
+    static const std::array<const char *, 14> kwds_interp{"Points", "DegMin", "DegMax", "Continuity", "Tolerance", "X0",
+                                                          "dX", "Y0", "dY", "ParamType", "LengthWeight",
+                                                          "CurvatureWeight", "TorsionWeight", nullptr};
+
+    if (!Base::Wrapped_ParseTupleAndKeywords(args, kwds, "O|iiidddddsddd", kwds_interp, &obj, &degMin, &degMax,
+                                             &continuity, &tol3d, &X0, &dX, &Y0, &dY, &parType, &weight1, &weight2,
+                                             &weight3)) {
         return nullptr;
+    }
     try {
         Py::Sequence list(obj);
         Standard_Integer lu = list.size();
@@ -1220,7 +1226,7 @@ PyObject* BSplineSurfacePy::approximate(PyObject *args, PyObject *kwds)
             c = GeomAbs_C2;
             break;
         }
-        
+
         Approx_ParametrizationType pt;
         std::string pstr = parType;
         Standard_Boolean useParam = Standard_True;
@@ -1328,10 +1334,10 @@ PyObject* BSplineSurfacePy::interpolate(PyObject *args)
 
 PyObject* BSplineSurfacePy::buildFromPolesMultsKnots(PyObject *args, PyObject *keywds)
 {
-    static char *kwlist[] = {"poles", "umults", "vmults",
-        "uknots", "vknots", "uperiodic", "vperiodic", "udegree", "vdegree", "weights", nullptr};
-    PyObject* uperiodic = Py_False;
-    PyObject* vperiodic = Py_False;
+    static const std::array<const char *, 11> kwlist{"poles", "umults", "vmults", "uknots", "vknots", "uperiodic",
+                                                     "vperiodic", "udegree", "vdegree", "weights", nullptr};
+    PyObject* uperiodic = Py_False; // NOLINT
+    PyObject* vperiodic = Py_False; // NOLINT
     PyObject* poles = Py_None;
     PyObject* umults = Py_None;
     PyObject* vmults = Py_None;
@@ -1345,12 +1351,13 @@ PyObject* BSplineSurfacePy::buildFromPolesMultsKnots(PyObject *args, PyObject *k
     int sum_of_umults = 0;
     int sum_of_vmults = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "OOO|OOO!O!iiO", kwlist,
-        &poles, &umults, &vmults, //required
-        &uknots, &vknots, //optional
-        &PyBool_Type, &uperiodic, &PyBool_Type, &vperiodic, //optinoal
-        &udegree, &vdegree, &weights)) //optional
+    if (!Base::Wrapped_ParseTupleAndKeywords(args, keywds, "OOO|OOO!O!iiO", kwlist,
+                                             &poles, &umults, &vmults, //required
+                                             &uknots, &vknots, //optional
+                                             &PyBool_Type, &uperiodic, &PyBool_Type, &vperiodic, //optional
+                                             &udegree, &vdegree, &weights)) {
         return nullptr;
+    }
     try {
         Py::Sequence list(poles);
         Standard_Integer lu = list.size();
@@ -1553,7 +1560,7 @@ PyObject* BSplineSurfacePy::buildFromNSections(PyObject *args)
     }
 }
 
-Py::Long BSplineSurfacePy::getUDegree(void) const
+Py::Long BSplineSurfacePy::getUDegree() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
@@ -1561,7 +1568,7 @@ Py::Long BSplineSurfacePy::getUDegree(void) const
     return Py::Long(deg);
 }
 
-Py::Long BSplineSurfacePy::getVDegree(void) const
+Py::Long BSplineSurfacePy::getVDegree() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
@@ -1569,42 +1576,42 @@ Py::Long BSplineSurfacePy::getVDegree(void) const
     return Py::Long(deg);
 }
 
-Py::Long BSplineSurfacePy::getMaxDegree(void) const
+Py::Long BSplineSurfacePy::getMaxDegree() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
-    return Py::Long(surf->MaxDegree()); 
+    return Py::Long(surf->MaxDegree());
 }
 
-Py::Long BSplineSurfacePy::getNbUPoles(void) const
+Py::Long BSplineSurfacePy::getNbUPoles() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
-    return Py::Long(surf->NbUPoles()); 
+    return Py::Long(surf->NbUPoles());
 }
 
-Py::Long BSplineSurfacePy::getNbVPoles(void) const
+Py::Long BSplineSurfacePy::getNbVPoles() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
-    return Py::Long(surf->NbVPoles()); 
+    return Py::Long(surf->NbVPoles());
 }
 
-Py::Long BSplineSurfacePy::getNbUKnots(void) const
+Py::Long BSplineSurfacePy::getNbUKnots() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
-    return Py::Long(surf->NbUKnots()); 
+    return Py::Long(surf->NbUKnots());
 }
 
-Py::Long BSplineSurfacePy::getNbVKnots(void) const
+Py::Long BSplineSurfacePy::getNbVKnots() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
-    return Py::Long(surf->NbVKnots()); 
+    return Py::Long(surf->NbVKnots());
 }
 
-Py::Object BSplineSurfacePy::getFirstUKnotIndex(void) const
+Py::Object BSplineSurfacePy::getFirstUKnotIndex() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
@@ -1612,7 +1619,7 @@ Py::Object BSplineSurfacePy::getFirstUKnotIndex(void) const
     return Py::Long(index);
 }
 
-Py::Object BSplineSurfacePy::getLastUKnotIndex(void) const
+Py::Object BSplineSurfacePy::getLastUKnotIndex() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
@@ -1620,7 +1627,7 @@ Py::Object BSplineSurfacePy::getLastUKnotIndex(void) const
     return Py::Long(index);
 }
 
-Py::Object BSplineSurfacePy::getFirstVKnotIndex(void) const
+Py::Object BSplineSurfacePy::getFirstVKnotIndex() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
@@ -1628,7 +1635,7 @@ Py::Object BSplineSurfacePy::getFirstVKnotIndex(void) const
     return Py::Long(index);
 }
 
-Py::Object BSplineSurfacePy::getLastVKnotIndex(void) const
+Py::Object BSplineSurfacePy::getLastVKnotIndex() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
@@ -1636,13 +1643,19 @@ Py::Object BSplineSurfacePy::getLastVKnotIndex(void) const
     return Py::Long(index);
 }
 
-Py::List BSplineSurfacePy::getUKnotSequence(void) const
+Py::List BSplineSurfacePy::getUKnotSequence() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
     Standard_Integer m = 0;
-    for (int i=1; i<= surf->NbUKnots(); i++)
-        m += surf->UMultiplicity(i);
+    if (surf->IsUPeriodic()) {
+        // knots=poles+2*degree-mult(1)+2
+        m = surf->NbUPoles() + 2*surf->UDegree() - surf->UMultiplicity(1) + 2;
+    }
+    else {
+        for (int i=1; i<= surf->NbUKnots(); i++)
+            m += surf->UMultiplicity(i);
+    }
     TColStd_Array1OfReal k(1,m);
     surf->UKnotSequence(k);
     Py::List list;
@@ -1652,13 +1665,19 @@ Py::List BSplineSurfacePy::getUKnotSequence(void) const
     return list;
 }
 
-Py::List BSplineSurfacePy::getVKnotSequence(void) const
+Py::List BSplineSurfacePy::getVKnotSequence() const
 {
     Handle(Geom_BSplineSurface) surf = Handle(Geom_BSplineSurface)::DownCast
         (getGeometryPtr()->handle());
     Standard_Integer m = 0;
-    for (int i=1; i<= surf->NbVKnots(); i++)
-        m += surf->VMultiplicity(i);
+    if (surf->IsVPeriodic()) {
+        // knots=poles+2*degree-mult(1)+2
+        m = surf->NbVPoles() + 2*surf->VDegree() - surf->VMultiplicity(1) + 2;
+    }
+    else {
+        for (int i=1; i<= surf->NbVKnots(); i++)
+            m += surf->VMultiplicity(i);
+    }
     TColStd_Array1OfReal k(1,m);
     surf->VKnotSequence(k);
     Py::List list;
@@ -1668,12 +1687,42 @@ Py::List BSplineSurfacePy::getVKnotSequence(void) const
     return list;
 }
 
-PyObject *BSplineSurfacePy::getCustomAttributes(const char* /*attr*/) const
+PyObject* BSplineSurfacePy::scaleKnotsToBounds(PyObject *args)
 {
+    double u0=0.0;
+    double u1=1.0;
+    double v0=0.0;
+    double v1=1.0;
+
+    if (!PyArg_ParseTuple(args, "|dddd", &u0, &u1, &v0, &v1))
+        return nullptr;
+    try {
+        if (u0 >= u1 || v0 >= v1) {
+            Standard_Failure::Raise("Bad parameter range");
+            return nullptr;;
+        }
+        GeomBSplineSurface* surf = getGeomBSplineSurfacePtr();
+        surf->scaleKnotsToBounds(u0, u1, v0, v1);
+        Py_Return;
+    }
+    catch (Standard_Failure& e) {
+        std::string err = e.GetMessageString();
+        if (err.empty()) err = e.DynamicType()->Name();
+        PyErr_SetString(PartExceptionOCCError, err.c_str());
+        return nullptr;
+    }
+}
+
+PyObject *BSplineSurfacePy::getCustomAttributes(const char* attr) const
+{
+    // for backward compatibility
+    if (strcmp(attr, "setBounds") == 0) {
+        return PyObject_GetAttrString(const_cast<BSplineSurfacePy*>(this), "scaleKnotsToBounds");
+    }
     return nullptr;
 }
 
 int BSplineSurfacePy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)
 {
-    return 0; 
+    return 0;
 }

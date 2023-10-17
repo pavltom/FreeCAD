@@ -43,8 +43,8 @@ class GuiExport LocationWidget : public QWidget
 
 public:
     LocationWidget (QWidget * parent = nullptr);
-    virtual ~LocationWidget();
-    QSize sizeHint() const;
+    ~LocationWidget() override;
+    QSize sizeHint() const override;
 
     Base::Vector3d getPosition() const;
     void setPosition(const Base::Vector3d&);
@@ -52,11 +52,11 @@ public:
     Base::Vector3d getDirection() const;
     Base::Vector3d getUserDirection(bool* ok=nullptr) const;
 
-private Q_SLOTS:
-    void on_direction_activated(int);
+private:
+    void onDirectionActivated(int);
 
 private:
-    void changeEvent(QEvent*);
+    void changeEvent(QEvent*) override;
     void retranslateUi();
 
 private:
@@ -81,13 +81,13 @@ class GuiExport LocationDialog : public QDialog
 
 protected:
     LocationDialog(QWidget* parent = nullptr, Qt::WindowFlags fl = Qt::WindowFlags());
-    virtual ~LocationDialog();
+    ~LocationDialog() override;
 
 protected:
-    virtual void changeEvent(QEvent *e) = 0;
+    void changeEvent(QEvent *e) override = 0;
 
-private Q_SLOTS:
-    void on_direction_activated(int);
+private:
+    void onDirectionActivated(int);
 
 public:
     virtual Base::Vector3d getDirection() const = 0;
@@ -118,7 +118,7 @@ public:
         this->setupUi(this);
         this->retranslate();
     }
-    virtual ~LocationDialogUi(){}
+    ~LocationDialogUi() override = default;
 
     void retranslate()
     {
@@ -162,7 +162,7 @@ public:
                               this->zPos->value().getValue());
     }
 
-    Base::Vector3d getDirection() const
+    Base::Vector3d getDirection() const override
     {
         QVariant data = this->direction->itemData (this->direction->currentIndex());
         if (data.canConvert<Base::Vector3d>()) {
@@ -174,7 +174,7 @@ public:
     }
 
 protected:
-    void changeEvent(QEvent *e)
+    void changeEvent(QEvent *e) override
     {
         if (e->type() == QEvent::LanguageChange) {
             this->retranslate();
@@ -195,7 +195,7 @@ private:
         for (int i=0; i<this->direction->count()-1; i++) {
             QVariant data = this->direction->itemData (i);
             if (data.canConvert<Base::Vector3d>()) {
-                const Base::Vector3d val = data.value<Base::Vector3d>();
+                const auto val = data.value<Base::Vector3d>();
                 if (val == dir) {
                     this->direction->setCurrentIndex(i);
                     return;
@@ -212,7 +212,7 @@ private:
             QVariant::fromValue<Base::Vector3d>(dir));
         this->direction->setCurrentIndex(this->direction->count()-2);
     }
-    void directionActivated(int index)
+    void directionActivated(int index) override
     {
         // last item is selected to define direction by user
         if (index+1 == this->direction->count()) {
@@ -247,9 +247,7 @@ public:
         this->setupUi(dlg);
         this->retranslate(dlg);
     }
-    ~LocationUi()
-    {
-    }
+    ~LocationUi() = default;
 
     void retranslate(QDialog *dlg)
     {
@@ -315,7 +313,7 @@ public:
         for (int i=0; i<this->direction->count()-1; i++) {
             QVariant data = this->direction->itemData (i);
             if (data.canConvert<Base::Vector3d>()) {
-                const Base::Vector3d val = data.value<Base::Vector3d>();
+                const auto val = data.value<Base::Vector3d>();
                 if (val == dir) {
                     this->direction->setCurrentIndex(i);
                     return;
@@ -367,18 +365,15 @@ public:
       : LocationDialog(parent, fl), ui(this)
     {
     }
-    virtual ~LocationDialogImp()
-    {
-        // no need to delete child widgets, Qt does it all for us
-    }
+    ~LocationDialogImp() override = default;
 
-    Base::Vector3d getDirection() const
+    Base::Vector3d getDirection() const override
     {
         return ui.getDirection();
     }
 
 protected:
-    void changeEvent(QEvent *e)
+    void changeEvent(QEvent *e) override
     {
         if (e->type() == QEvent::LanguageChange) {
             ui.retranslate(this);
@@ -389,7 +384,7 @@ protected:
     }
 
 private:
-    void directionActivated(int index)
+    void directionActivated(int index) override
     {
         ui.directionActivated(this,index);
     }
@@ -428,16 +423,14 @@ public:
     LocationImpUi(Ui* ui) : ui(ui)
     {
     }
-    ~LocationImpUi()
-    {
-    }
+    ~LocationImpUi() override = default;
 
-    boost::any get()
+    boost::any get() override
     {
         return ui;
     }
 
-    void retranslate(QDialog *dlg)
+    void retranslate(QDialog *dlg) override
     {
         ui->retranslateUi(dlg);
 
@@ -465,21 +458,21 @@ public:
         }
     }
 
-    void setPosition(const Base::Vector3d& v)
+    void setPosition(const Base::Vector3d& v) override
     {
         ui->xPos->setValue(v.x);
         ui->yPos->setValue(v.y);
         ui->zPos->setValue(v.z);
     }
 
-    Base::Vector3d getPosition() const
+    Base::Vector3d getPosition() const override
     {
         return Base::Vector3d(ui->xPos->value().getValue(),
                               ui->yPos->value().getValue(),
                               ui->zPos->value().getValue());
     }
 
-    Base::Vector3d getDirection() const
+    Base::Vector3d getDirection() const override
     {
         QVariant data = ui->direction->itemData (ui->direction->currentIndex());
         if (data.canConvert<Base::Vector3d>()) {
@@ -491,7 +484,7 @@ public:
     }
 
 public:
-    void setDirection(const Base::Vector3d& dir)
+    void setDirection(const Base::Vector3d& dir) override
     {
         if (dir.Length() < Base::Vector3d::epsilon()) {
             return;
@@ -501,7 +494,7 @@ public:
         for (int i=0; i<ui->direction->count()-1; i++) {
             QVariant data = ui->direction->itemData (i);
             if (data.canConvert<Base::Vector3d>()) {
-                const Base::Vector3d val = data.value<Base::Vector3d>();
+                const auto val = data.value<Base::Vector3d>();
                 if (val == dir) {
                     ui->direction->setCurrentIndex(i);
                     return;
@@ -518,7 +511,7 @@ public:
             QVariant::fromValue<Base::Vector3d>(dir));
         ui->direction->setCurrentIndex(ui->direction->count()-2);
     }
-    bool directionActivated(LocationDialog* dlg, int index)
+    bool directionActivated(LocationDialog* dlg, int index) override
     {
         // last item is selected to define direction by user
         if (index+1 == ui->direction->count()) {
@@ -560,17 +553,17 @@ public:
         uit->setupUi(this);
         ui->retranslate(this);
     }
-    virtual ~LocationDialogUiImp();
+    ~LocationDialogUiImp() override;
 
-    Base::Vector3d getDirection() const;
+    Base::Vector3d getDirection() const override;
 
     Base::Vector3d getPosition() const;
 
 protected:
-    void changeEvent(QEvent *e);
+    void changeEvent(QEvent *e) override;
 
 private:
-    void directionActivated(int index);
+    void directionActivated(int index) override;
 
 protected:
     std::unique_ptr<AbstractUi> ui;

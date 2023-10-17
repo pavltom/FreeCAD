@@ -116,6 +116,11 @@ class Shape2DView(DraftObject):
                     "A list of exclusion points. Any edge touching any of those points will not be drawn.")
             obj.addProperty("App::PropertyVectorList", "ExclusionPoints",
                             "Draft", _tip)
+        if not "ExclusionNames" in pl:
+            _tip = QT_TRANSLATE_NOOP("App::Property",
+                    "A list of exclusion object names. Any object viewed that matches a name from the list will not be drawn.")
+            obj.addProperty("App::PropertyStringList", "ExclusionNames",
+                            "Draft", _tip)
         if not "OnlySolids" in pl:
             _tip = QT_TRANSLATE_NOOP("App::Property",
                     "If this is True, only solid geometry is handled. This overrides the base object's Only Solids property")
@@ -140,7 +145,9 @@ class Shape2DView(DraftObject):
     def getProjected(self,obj,shape,direction):
 
         "returns projected edges from a shape and a direction"
-        import Part, TechDraw, DraftGeomUtils
+        import Part
+        import TechDraw
+        import DraftGeomUtils
         edges = []
         _groups = TechDraw.projectEx(shape, direction)
         for g in _groups[0:5]:
@@ -183,20 +190,29 @@ class Shape2DView(DraftObject):
                     nedges.append(e)
         return nedges
 
-    def execute(self,obj):
-        if not getattr(obj,"AutoUpdate", True):
-            return True
-        import Part, DraftGeomUtils
-        obj.positionBySupport()
+    def excludeNames(self,obj,objs):
+        if hasattr(obj,"ExclusionNames"):
+            objs = [o for o in objs if not(o.Name in obj.ExclusionNames)]
+            return objs
+
+    def execute(self, obj):
+        if self.props_changed_placement_only(obj) \
+                or not getattr(obj, "AutoUpdate", True):
+            obj.positionBySupport()
+            self.props_changed_clear()
+            return
+
+        import Part
+        import DraftGeomUtils
         pl = obj.Placement
         if obj.Base:
             if utils.get_type(obj.Base) in ["BuildingPart","SectionPlane"]:
                 objs = []
                 if utils.get_type(obj.Base) == "SectionPlane":
-                    objs = obj.Base.Objects
+                    objs = self.excludeNames(obj,obj.Base.Objects)
                     cutplane = obj.Base.Shape
                 else:
-                    objs = obj.Base.Group
+                    objs = self.excludeNames(obj,obj.Base.Group)
                     cutplane = Part.makePlane(1000, 1000, App.Vector(-500, -500, 0))
                     m = 1
                     if obj.Base.ViewObject and hasattr(obj.Base.ViewObject,"CutMargin"):
@@ -225,29 +241,37 @@ class Shape2DView(DraftObject):
                                 else:
                                     shtypes.setdefault(o.Material.Name
                                                        if (hasattr(o,"Material") and o.Material)
-                                                       else "None",[]).append(o.Shape.copy())
+                                                       else "None",[]).extend(o.Shape.SubShapes)
                             elif hasattr(o,'Shape'):
                                 if onlysolids:
                                     shapes.extend(o.Shape.Solids)
                                 else:
-                                    shapes.append(o.Shape.copy())
+                                    shapes.extend(o.Shape.SubShapes)
                         for k, v in shtypes.items():
                             v1 = v.pop()
                             if v:
-                                v1 = v1.multiFuse(v)
-                                v1 = v1.removeSplitter()
+                                try:
+                                    v1 = v1.multiFuse(v)
+                                except (RuntimeError, Part.OCCError):
+                                    # multifuse can fail
+                                    for v2 in v:
+                                        v1 = v1.fuse(v2)
+                                try:
+                                    v1 = v1.removeSplitter()
+                                except (RuntimeError, Part.OCCError):
+                                    pass
                             if v1.Solids:
                                 shapes.extend(v1.Solids)
                             else:
                                 print("Shape2DView: Fusing Arch objects produced non-solid results")
-                                shapes.append(v1)
+                                shapes.extend(v1.SubShapes)
                     else:
                         for o in objs:
                             if hasattr(o,'Shape'):
                                 if onlysolids:
                                     shapes.extend(o.Shape.Solids)
                                 else:
-                                    shapes.append(o.Shape.copy())
+                                    shapes.extend(o.Shape.SubShapes)
                     clip = False
                     if hasattr(obj.Base,"Clip"):
                         clip = obj.Base.Clip
@@ -278,12 +302,12 @@ class Shape2DView(DraftObject):
                                 if onlysolids:
                                     cuts.extend(c.Solids)
                                 else:
-                                    cuts.append(c)
+                                    cuts.extend(c.SubShapes)
                             else:
                                 if onlysolids:
                                     cuts.extend(sh.Solids)
                                 else:
-                                    cuts.append(sh.copy())
+                                    cuts.extend(sh.SubShapes)
                         comp = Part.makeCompound(cuts)
                         obj.Shape = self.getProjected(obj,comp,proj)
                     elif obj.ProjectionMode in ["Cutlines", "Cutfaces"]:
@@ -312,12 +336,10 @@ class Shape2DView(DraftObject):
 
             elif obj.Base.isDerivedFrom("App::DocumentObjectGroup"):
                 shapes = []
-                objs = groups.get_group_contents(obj.Base)
+                objs = self.excludeNames(obj,groups.get_group_contents(obj.Base))
                 for o in objs:
                     if hasattr(o,'Shape'):
-                        if o.Shape:
-                            if not o.Shape.isNull():
-                                shapes.append(o.Shape)
+                        shapes.extend(o.Shape.SubShapes)
                 if shapes:
                     import Part
                     comp = Part.makeCompound(shapes)
@@ -341,8 +363,13 @@ class Shape2DView(DraftObject):
                                 obj.Shape = Part.makeCompound(views)
                     else:
                         App.Console.PrintWarning(obj.ProjectionMode+" mode not implemented\n")
-        if not DraftGeomUtils.isNull(pl):
-            obj.Placement = pl
+
+        obj.Placement = pl
+        obj.positionBySupport()
+        self.props_changed_clear()
+
+    def onChanged(self, obj, prop):
+        self.props_changed_store(prop)
 
 
 # Alias for compatibility with v0.18 and earlier

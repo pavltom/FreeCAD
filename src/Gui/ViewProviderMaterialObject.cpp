@@ -41,16 +41,11 @@ PROPERTY_SOURCE(Gui::ViewProviderMaterialObject, Gui::ViewProviderDocumentObject
 /**
  * Creates the view provider for an object group.
  */
-ViewProviderMaterialObject::ViewProviderMaterialObject()
-{
+ViewProviderMaterialObject::ViewProviderMaterialObject() = default;
 
-}
+ViewProviderMaterialObject::~ViewProviderMaterialObject() = default;
 
-ViewProviderMaterialObject::~ViewProviderMaterialObject()
-{
-}
-
-bool ViewProviderMaterialObject::doubleClicked(void)
+bool ViewProviderMaterialObject::doubleClicked()
 {
     Gui::Application::Instance->activeDocument()->setEdit(this, (int)ViewProvider::Default);
     return true;

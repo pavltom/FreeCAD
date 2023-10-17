@@ -36,7 +36,7 @@ struct CellAddress;
 AppExport CellAddress stringToAddress(const char *strAddress, bool silent=false);
 AppExport int decodeColumn(const std::string &colstr, bool silent=false);
 AppExport int decodeRow(const std::string &rowstr, bool silent=false);
-AppExport int validColumn(const std::string &colstr);
+AppExport bool validColumn(const std::string &colstr);
 AppExport int validRow(const std::string &rowstr);
 
 struct AppExport CellAddress {
@@ -49,15 +49,15 @@ struct AppExport CellAddress {
         ShowFull = Absolute | ShowRow | ShowColumn
     };
 
-    CellAddress(int row = -1, int col = -1, bool absRow=false, bool absCol=false) 
-        : _row(row), _col(col), _absRow(absRow), _absCol(absCol) 
+    explicit CellAddress(int row = -1, int col = -1, bool absRow=false, bool absCol=false)
+        : _row(row), _col(col), _absRow(absRow), _absCol(absCol)
     { }
 
-    CellAddress(const char * address) {
+    explicit CellAddress(const char * address) {
         *this = stringToAddress(address);
     }
 
-    CellAddress(const std::string & address) {
+    explicit CellAddress(const std::string & address) {
         *this = stringToAddress(address.c_str());
     }
 
@@ -117,7 +117,7 @@ protected:
 
 class AppExport Range {
 public:
-    Range(const char *range, bool normalize=false);
+    explicit Range(const char *range, bool normalize=false);
 
     Range(int _row_begin, int _col_begin, int _row_end, int _col_end, bool normalize=false);
 
@@ -162,7 +162,7 @@ public:
 
     CellAddress operator*() const { return CellAddress(row_curr, col_curr); }
 
-    inline bool operator<(const Range & other) const { 
+    inline bool operator<(const Range & other) const {
         if(from() < other.from())
             return true;
         if(from() > other.from())

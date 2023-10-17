@@ -28,7 +28,7 @@
 #endif
 
 #include <App/Application.h>
-#include <App/ComplexGeoData.h>
+#include <App/ElementNamingUtils.h>
 #include <App/Document.h>
 #include <App/DocumentObject.h>
 #include <App/Link.h>
@@ -60,14 +60,14 @@ class StdCmdLinkMakeGroup : public Gui::Command
 {
 public:
     StdCmdLinkMakeGroup();
-    const char* className() const
+    const char* className() const override
     { return "StdCmdLinkMakeGroup"; }
 
 protected:
-    virtual void activated(int iMsg);
-    virtual bool isActive(void);
-    virtual Action * createAction(void);
-    virtual void languageChange();
+    void activated(int iMsg) override;
+    bool isActive() override;
+    Action * createAction() override;
+    void languageChange() override;
 };
 
 StdCmdLinkMakeGroup::StdCmdLinkMakeGroup()
@@ -86,9 +86,9 @@ bool StdCmdLinkMakeGroup::isActive() {
     return !!App::GetApplication().getActiveDocument();
 }
 
-Action * StdCmdLinkMakeGroup::createAction(void)
+Action * StdCmdLinkMakeGroup::createAction()
 {
-    ActionGroup* pcAction = new ActionGroup(this, getMainWindow());
+    auto pcAction = new ActionGroup(this, getMainWindow());
     pcAction->setDropDownMenu(true);
     applyCommandData(this->className(), pcAction);
 
@@ -109,7 +109,7 @@ void StdCmdLinkMakeGroup::languageChange()
 
     if (!_pcAction)
         return;
-    ActionGroup* pcAction = qobject_cast<ActionGroup*>(_pcAction);
+    auto pcAction = qobject_cast<ActionGroup*>(_pcAction);
     QList<QAction*> acts = pcAction->actions();
     acts[0]->setText(QObject::tr("Simple group"));
     acts[1]->setText(QObject::tr("Group with links"));
@@ -206,7 +206,12 @@ StdCmdLinkMake::StdCmdLinkMake()
 {
     sGroup        = "Link";
     sMenuText     = QT_TR_NOOP("Make link");
-    sToolTipText  = QT_TR_NOOP("Create a link to the selected object(s)");
+    static std::string toolTip = std::string("<p>")
+        + QT_TR_NOOP("A Link is an object that references or links to another object in the same "
+        "document, or in another document.Unlike Clones, Links reference the original Shape directly, "
+        " making them more memory efficient which helps with the creation of complex assemblies.")
+        + "</p>";
+    sToolTipText = toolTip.c_str();
     sWhatsThis    = "Std_LinkMake";
     sStatusTip    = sToolTipText;
     eType         = AlterDoc;
@@ -214,7 +219,7 @@ StdCmdLinkMake::StdCmdLinkMake()
 }
 
 bool StdCmdLinkMake::isActive() {
-    return !!App::GetApplication().getActiveDocument();
+    return App::GetApplication().getActiveDocument();
 }
 
 void StdCmdLinkMake::activated(int) {
@@ -294,8 +299,8 @@ void StdCmdLinkMakeRelative::activated(int) {
             if(!sel.pObject || !sel.pObject->getNameInDocument())
                 continue;
             auto key = std::make_pair(sel.pObject,
-                    Data::ComplexGeoData::noElementName(sel.SubName));
-            auto element = Data::ComplexGeoData::findElementName(sel.SubName);
+                    Data::noElementName(sel.SubName));
+            auto element = Data::findElementName(sel.SubName);
             auto &info = linkInfo[key];
             info.first = sel.pResolvedObject;
             if(element && element[0])
@@ -423,7 +428,7 @@ static void linkConvert(bool unlink) {
                 replaceObj = link;
             }
 
-            // adjust subname for the the new object
+            // adjust subname for the new object
             auto pos = info.subname.rfind('.');
             if(pos==std::string::npos && pos)
                 info.subname.clear();
@@ -450,7 +455,7 @@ static void linkConvert(bool unlink) {
             if(obj)
                 recomputes.push_back(obj);
         }
-        if(recomputes.size())
+        if(!recomputes.empty())
             recomputes.front()->getDocument()->recompute(recomputes);
 
         Command::commitCommand();
@@ -726,7 +731,7 @@ static App::DocumentObject *getSelectedLink(bool finalLink, std::string *subname
 
         if(found) {
             linked = sels[0].pObject;
-            *subname = prefix.size()?prefix:prefix2 + *subname;
+            *subname = !prefix.empty()?prefix:prefix2 + *subname;
         }
     }
 
@@ -747,7 +752,7 @@ void StdCmdLinkSelectLinked::activated(int)
     }
     Selection().selStackPush();
     Selection().clearCompleteSelection();
-    if(subname.size()) {
+    if(!subname.empty()) {
         Selection().addSelection(linked->getDocument()->getName(),linked->getNameInDocument(),subname.c_str());
         auto doc = Application::Instance->getDocument(linked->getDocument());
         if(doc) {
@@ -857,7 +862,7 @@ public:
         addCommand(new StdCmdLinkSelectAllLinks());
     }
 
-    virtual const char* className() const {return "StdCmdLinkSelectActions";}
+    const char* className() const override {return "StdCmdLinkSelectActions";}
 };
 
 //======================================================================
@@ -872,12 +877,13 @@ public:
     {
         sGroup        = "View";
         sMenuText     = QT_TR_NOOP("Link actions");
-        sToolTipText  = QT_TR_NOOP("Link actions");
+        sToolTipText  = QT_TR_NOOP("Actions that apply to link objects");
         sWhatsThis    = "Std_LinkMakeRelative";
-        sStatusTip    = QT_TR_NOOP("Link actions");
+        sStatusTip    = QT_TR_NOOP("Actions that apply to link objects");
         eType         = AlterDoc;
         bCanLog       = false;
 
+        addCommand(new StdCmdLinkMake());
         addCommand(new StdCmdLinkMakeRelative());
         addCommand(new StdCmdLinkReplace());
         addCommand(new StdCmdLinkUnlink());
@@ -885,7 +891,7 @@ public:
         addCommand(new StdCmdLinkImportAll());
     }
 
-    virtual const char* className() const {return "StdCmdLinkActions";}
+    const char* className() const override {return "StdCmdLinkActions";}
 };
 
 //===========================================================================
@@ -895,10 +901,9 @@ public:
 
 namespace Gui {
 
-void CreateLinkCommands(void)
+void CreateLinkCommands()
 {
     CommandManager &rcCmdMgr = Application::Instance->commandManager();
-    rcCmdMgr.addCommand(new StdCmdLinkMake());
     rcCmdMgr.addCommand(new StdCmdLinkActions());
     rcCmdMgr.addCommand(new StdCmdLinkMakeGroup());
     rcCmdMgr.addCommand(new StdCmdLinkSelectActions());

@@ -1,9 +1,3 @@
-if(MSVC)
-    add_definitions(-DFCAppTechDraw -DHAVE_ACOSH -DHAVE_ASINH -DHAVE_ATANH)
-else(MSVC)
-    add_definitions(-DHAVE_LIMITS_H -DHAVE_CONFIG_H -DHAVE_ACOSH -DHAVE_ATANH -DHAVE_ASINH)
-endif(MSVC)
-
 include_directories(
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/src
@@ -15,29 +9,33 @@ include_directories(
     ${OCC_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIR}
     ${PYTHON_INCLUDE_DIRS}
+    ${XercesC_INCLUDE_DIRS}
     ${QT_QTCORE_INCLUDE_DIR}
 )
-
-if(BUILD_QT5)
-    include_directories(
-        ${Qt5XmlPatterns_INCLUDE_DIRS}
-    )
-    set(QtXmlPatternsLib ${Qt5XmlPatterns_LIBRARIES})
-else(BUILD_QT5)
-    include_directories(
-        ${QT_QTXMLPATTERNS_INCLUDE_DIR}
-    )
-    set(QtXmlPatternsLib ${QT_QTXMLPATTERNS_LIBRARY})
-endif(BUILD_QT5)
-
-link_directories(${OCC_LIBRARY_DIR})
 
 set(TechDrawLIBS
     Measure
     Part
     Spreadsheet
     Import
+    PartDesign
 )
+
+if(FREECAD_QT_MAJOR_VERSION EQUAL 5)
+    include_directories(
+        ${QtXmlPatterns_INCLUDE_DIRS}
+    )
+endif()
+
+include_directories(
+    ${QtConcurrent_INCLUDE_DIRS}
+)
+set(QtXmlPatternsLib ${QtXmlPatterns_LIBRARIES})
+list(APPEND TechDrawLIBS
+    ${QtConcurrent_LIBRARIES}
+)
+
+link_directories(${OCC_LIBRARY_DIR})
 
 generate_from_xml(DrawPagePy)
 generate_from_xml(DrawViewPy)
@@ -70,6 +68,8 @@ generate_from_xml(CosmeticExtensionPy)
 SET(Draw_SRCS
     DrawPage.cpp
     DrawPage.h
+    DrawComplexSection.cpp
+    DrawComplexSection.h
     DrawView.cpp
     DrawView.h
     DrawViewPart.cpp
@@ -100,6 +100,14 @@ SET(Draw_SRCS
     DrawViewDimExtent.h
     LandmarkDimension.cpp
     LandmarkDimension.h
+    DimensionGeometry.cpp
+    DimensionGeometry.h
+    DimensionReferences.cpp
+    DimensionReferences.h
+    DimensionFormatter.cpp
+    DimensionFormatter.h
+    GeometryMatcher.cpp
+    GeometryMatcher.h
     DrawViewBalloon.cpp
     DrawViewBalloon.h
     DrawViewSection.cpp
@@ -122,8 +130,6 @@ SET(Draw_SRCS
     DrawLeaderLine.h
     DrawRichAnno.cpp
     DrawRichAnno.h
-    QDomNodeModel.cpp
-    QDomNodeModel.h
     DrawTile.cpp
     DrawTile.h
     DrawTileWeld.cpp
@@ -161,6 +167,8 @@ SET(TechDraw_SRCS
     TechDrawExport.h
     ProjectionAlgos.cpp
     ProjectionAlgos.h
+    XMLQuery.cpp
+    XMLQuery.h
 )
 
 SET(Geometry_SRCS
@@ -168,8 +176,14 @@ SET(Geometry_SRCS
     Geometry.h
     GeometryObject.cpp
     GeometryObject.h
+    ShapeUtils.cpp
+    ShapeUtils.h
+    CenterLine.cpp
+    CenterLine.h
     Cosmetic.cpp
     Cosmetic.h
+    CosmeticVertex.cpp
+    CosmeticVertex.h
     PropertyGeomFormatList.cpp
     PropertyGeomFormatList.h
     PropertyCenterLineList.cpp
@@ -258,7 +272,7 @@ ADD_CUSTOM_COMMAND(TARGET TechDraw
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                    ${CMAKE_SOURCE_DIR}/src/Mod/TechDraw/Patterns
                    ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_DATADIR}/Mod/TechDraw/Patterns
-)   
+)
 
 ADD_CUSTOM_COMMAND(TARGET TechDraw
                    POST_BUILD
@@ -272,7 +286,7 @@ ADD_CUSTOM_COMMAND(TARGET TechDraw
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                    ${CMAKE_SOURCE_DIR}/src/Mod/TechDraw/Symbols
                    ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_DATADIR}/Mod/TechDraw/Symbols
-)   
+)
 
 SET_BIN_DIR(TechDraw TechDraw /Mod/TechDraw)
 SET_PYTHON_PREFIX_SUFFIX(TechDraw)

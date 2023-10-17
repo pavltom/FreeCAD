@@ -24,7 +24,7 @@
 
 __title__ = "FreeCAD FEM constraint body heat source document object"
 __author__ = "Markus Hovorka, Bernd Hahnebach"
-__url__ = "https://www.freecadweb.org"
+__url__ = "https://www.freecad.org"
 
 ## @package constraint_bodyheatsource
 #  \ingroup FEM
@@ -39,10 +39,17 @@ class ConstraintBodyHeatSource(base_fempythonobject.BaseFemPythonObject):
 
     def __init__(self, obj):
         super(ConstraintBodyHeatSource, self).__init__(obj)
+        self.add_properties(obj)
 
-        obj.addProperty(
-            "App::PropertyFloat",
-            "HeatSource",
-            "Base",
-            "Body heat source"
-        )
+    def onDocumentRestored(self, obj):
+        self.add_properties(obj)
+
+    def add_properties(self, obj):
+        if not hasattr(obj, "HeatSource"):
+            obj.addProperty(
+                "App::PropertyFloat",
+                "HeatSource",
+                "Base",
+                "Body heat source"
+            )
+            obj.HeatSource = 0.0

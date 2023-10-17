@@ -21,18 +21,19 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef FEM_CONSTRAINT_H
 #define FEM_CONSTRAINT_H
 
-#include <Base/Vector3D.h>
-#include <App/FeaturePython.h>
 #include <App/DocumentObject.h>
+#include <App/FeaturePython.h>
 #include <App/PropertyLinks.h>
-#include <App/PropertyGeo.h>
+#include <App/PropertyUnits.h>
+#include <Base/Vector3D.h>
 #include <Mod/Fem/FemGlobal.h>
 
-namespace Fem {
+
+namespace Fem
+{
 
 /**
  * @brief Base class of all Constraint Objects of the Fem module.
@@ -56,12 +57,13 @@ namespace Fem {
  *  and @ref Scale and the protected method @ref getPoints(points&, normals&,
  *  scale&).
  */
-class FemExport Constraint : public App::DocumentObject {
-    PROPERTY_HEADER(Fem::Constraint);
+class FemExport Constraint: public App::DocumentObject
+{
+    PROPERTY_HEADER_WITH_OVERRIDE(Fem::Constraint);
 
 public:
     Constraint();
-    virtual ~Constraint();
+    ~Constraint() override;
 
     /**
      * @brief List of objects the constraints applies to.
@@ -113,7 +115,7 @@ public:
      *  cleared right after the @ref execute call by the recompute mechanism.
      *  See Document::recompute() and DocumentObject::purgeTouched().
      */
-    virtual App::DocumentObjectExecReturn *execute();
+    App::DocumentObjectExecReturn* execute() override;
 
     /**
      * @brief Calculates scale factor based on length of edge.
@@ -154,16 +156,16 @@ public:
      */
     int calcDrawScaleFactor() const;
 
-    virtual const char* getViewProviderName() const {
+    const char* getViewProviderName() const override
+    {
         return "FemGui::ViewProviderFemConstraint";
     }
 
 protected:
-
     /**
      * @brief Updates NormalDirection if References change.
      */
-    virtual void onChanged(const App::Property* prop);
+    void onChanged(const App::Property* prop) override;
 
     /**
      * @brief Triggers @ref onChanged to update View Provider.
@@ -172,7 +174,7 @@ protected:
      *  This should not be necessary and is properly a bug in the View Provider
      *  of FemConstraint.
      */
-    virtual void onDocumentRestored();
+    void onDocumentRestored() override;
 
     /**
      * @brief Returns data based on References relevant for rendering widgets.
@@ -208,10 +210,9 @@ protected:
      *  returns true. If an error occurred and the data couldn't be extracted
      *  properly false is returned.
      */
-    bool getPoints(
-            std::vector<Base::Vector3d>& points,
-            std::vector<Base::Vector3d>& normals,
-            int * scale) const;
+    bool getPoints(std::vector<Base::Vector3d>& points,
+                   std::vector<Base::Vector3d>& normals,
+                   int* scale) const;
 
     /**
      * @brief Extract properties of cylindrical face.
@@ -220,19 +221,20 @@ protected:
      *  This method is very specific and doesn't require access to member
      *  variables. It should be rewritten at a different place.
      */
-    bool getCylinder(
-            double& radius, double& height,
-            Base::Vector3d& base, Base::Vector3d& axis) const;
+    bool
+    getCylinder(double& radius, double& height, Base::Vector3d& base, Base::Vector3d& axis) const;
 
     /**
-     * @brief Calculate point of cylidrical face where to render widget.
+     * @brief Calculate point of cylindrical face where to render widget.
      *
      * @note
      *  This method is very specific and doesn't require access to member
      *  variables. It should be rewritten at a different place.
      */
-    Base::Vector3d getBasePoint(const Base::Vector3d& base, const Base::Vector3d& axis,
-                                const App::PropertyLinkSub &location, const double& dist);
+    Base::Vector3d getBasePoint(const Base::Vector3d& base,
+                                const Base::Vector3d& axis,
+                                const App::PropertyLinkSub& location,
+                                const double& dist);
     /**
      * @brief Get normal vector of point calculated by @ref getBasePoint.
      *
@@ -240,13 +242,13 @@ protected:
      *  This method is very specific and doesn't require access to member
      *  variables. It should be rewritten at a different place.
      */
-    const Base::Vector3d getDirection(const App::PropertyLinkSub &direction);
+    const Base::Vector3d getDirection(const App::PropertyLinkSub& direction);
 };
 
-typedef App::FeaturePythonT<Constraint> ConstraintPython;
+using ConstraintPython = App::FeaturePythonT<Constraint>;
 
 
-} //namespace Fem
+}  // namespace Fem
 
 
-#endif // FEM_CONSTRAINT_H
+#endif  // FEM_CONSTRAINT_H

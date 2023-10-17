@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2008 Jürgen Riegel (juergen.riegel@web.de)              *
+ *   Copyright (c) 2008 Jürgen Riegel <juergen.riegel@web.de>              *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -32,46 +32,47 @@
 #include <Gui/Language/Translator.h>
 
 #include "Workbench.h"
-#include "ViewProviderPocket.h"
-#include "ViewProviderHole.h"
+#include "ViewProviderBase.h"
 #include "ViewProviderBody.h"
-#include "ViewProviderSketchBased.h"
-#include "ViewProviderPad.h"
+#include "ViewProviderBoolean.h"
 #include "ViewProviderChamfer.h"
-#include "ViewProviderFillet.h"
-#include "ViewProviderDraft.h"
-#include "ViewProviderDressUp.h"
-#include "ViewProviderRevolution.h"
-#include "ViewProviderGroove.h"
-#include "ViewProviderMirrored.h"
-#include "ViewProviderLinearPattern.h"
-#include "ViewProviderPolarPattern.h"
-#include "ViewProviderScaled.h"
-#include "ViewProviderMultiTransform.h"
-#include "ViewProviderTransformed.h"
-#include "ViewProviderDatumPoint.h"
+#include "ViewProviderDatumCS.h"
 #include "ViewProviderDatumLine.h"
 #include "ViewProviderDatumPlane.h"
-#include "ViewProviderBoolean.h"
-#include "ViewProviderPrimitive.h"
-#include "ViewProviderDatumCS.h"
-#include "ViewProviderThickness.h"
-#include "ViewProviderPipe.h"
-#include "ViewProviderLoft.h"
+#include "ViewProviderDatumPoint.h"
+#include "ViewProviderDraft.h"
+#include "ViewProviderDressUp.h"
+#include "ViewProviderFillet.h"
+#include "ViewProviderGroove.h"
 #include "ViewProviderHelix.h"
+#include "ViewProviderHole.h"
+#include "ViewProviderLinearPattern.h"
+#include "ViewProviderLoft.h"
+#include "ViewProviderMirrored.h"
+#include "ViewProviderMultiTransform.h"
+#include "ViewProviderPad.h"
+#include "ViewProviderPipe.h"
+#include "ViewProviderPocket.h"
+#include "ViewProviderPolarPattern.h"
+#include "ViewProviderPrimitive.h"
+#include "ViewProviderRevolution.h"
+#include "ViewProviderScaled.h"
 #include "ViewProviderShapeBinder.h"
-#include "ViewProviderBase.h"
+#include "ViewProviderSketchBased.h"
+#include "ViewProviderThickness.h"
+#include "ViewProviderTransformed.h"
 
 
 // use a different name to CreateCommand()
-void CreatePartDesignCommands(void);
-void CreatePartDesignBodyCommands(void);
-void CreatePartDesignPrimitiveCommands(void);
+void CreatePartDesignCommands();
+void CreatePartDesignBodyCommands();
+void CreatePartDesignPrimitiveCommands();
 
 void loadPartDesignResource()
 {
     // add resources and reloads the translators
     Q_INIT_RESOURCE(PartDesign);
+    Q_INIT_RESOURCE(PartDesign_translation);
     Gui::Translator::instance()->refresh();
 }
 
@@ -83,8 +84,6 @@ public:
     {
         initialize("This module is the PartDesignGui module."); // register with Python
     }
-
-    virtual ~Module() {}
 
 private:
 };

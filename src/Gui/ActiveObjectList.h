@@ -19,7 +19,6 @@
 *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
 *   USA                                                                   *
 *                                                                         *
-*   Juergen Riegel 2014                                                   *
 ***************************************************************************/
 
 
@@ -27,7 +26,9 @@
 #define GUI_ActiveObjectList_H
 
 #include <map>
+#include <string>
 #include <Gui/TreeItemMode.h>
+#include <FCGlobal.h>
 
 
 namespace App {
@@ -39,17 +40,17 @@ namespace Gui
     class Document;
     class ViewProviderDocumentObject;
 
-	/** List of active or special objects
-	* This class holds a list of objects with a special name.
-	* Its mainly used to points to something like the active Body or Part in a edit session.
-	* The class is used the viewer (editor) of a document.
-	* @see Gui::MDIViewer
-	* @author Jürgen Riegel
-	*/
+   /** List of active or special objects
+    * This class holds a list of objects with a special name.
+    * Its mainly used to points to something like the active Body or Part in a edit session.
+    * The class is used the viewer (editor) of a document.
+    * @see Gui::MDIViewer
+    * @author Jürgen Riegel
+    */
     class GuiExport ActiveObjectList
     {
     public:
-        ActiveObjectList(Document *doc)
+        explicit ActiveObjectList(Document *doc)
             :_Doc(doc)
         {}
 

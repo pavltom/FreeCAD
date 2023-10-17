@@ -59,35 +59,6 @@ ViewProviderProjGroup::~ViewProviderProjGroup()
 {
 }
 
-void ViewProviderProjGroup::attach(App::DocumentObject *pcFeat)
-{
-    // call parent attach method
-    ViewProviderDrawingView::attach(pcFeat);
-}
-
-void ViewProviderProjGroup::setDisplayMode(const char* ModeName)
-{
-    ViewProviderDrawingView::setDisplayMode(ModeName);
-}
-
-std::vector<std::string> ViewProviderProjGroup::getDisplayModes(void) const
-{
-    // get the modes of the father
-    std::vector<std::string> StrList = ViewProviderDrawingView::getDisplayModes();
-    StrList.push_back("Drawing");
-    return StrList;
-}
-
-void ViewProviderProjGroup::updateData(const App::Property* prop)
-{
-    ViewProviderDrawingView::updateData(prop);
- }
-
-void ViewProviderProjGroup::onChanged(const App::Property *prop)
-{
-    ViewProviderDrawingView::onChanged(prop);
-}
-
 void ViewProviderProjGroup::setupContextMenu(QMenu* menu, QObject* receiver, const char* member)
 {
     Q_UNUSED(menu);
@@ -114,24 +85,13 @@ bool ViewProviderProjGroup::setEdit(int ModNum)
         projDlg->setCreateMode(false);
         Gui::Control().showDialog(projDlg);
     } else {
-        Gui::Control().showDialog(new TaskDlgProjGroup(getObject(),false));
+        Gui::Control().showDialog(new TaskDlgProjGroup(getObject(), false));
     }
 
     return true;
 }
 
-void ViewProviderProjGroup::unsetEdit(int ModNum)
-{
-    Q_UNUSED(ModNum);
-    if (ModNum == ViewProvider::Default) {
-        Gui::Control().closeDialog();
-    }
-    else {
-        ViewProviderDrawingView::unsetEdit(ModNum);
-    }
-}
-
-bool ViewProviderProjGroup::doubleClicked(void)
+bool ViewProviderProjGroup::doubleClicked()
 {
     setEdit(0);
     return true;
@@ -158,21 +118,21 @@ bool ViewProviderProjGroup::onDelete(const std::vector<std::string> &)
         // add names to a list
         if (!viewSection.empty()) {
             for (auto SecIterator : viewSection) {
-                ViewList.push_back(SecIterator->Label.getValue());
+                ViewList.emplace_back(SecIterator->Label.getValue());
             }
         }
         // get its detail views
         auto viewDetail = Item->getDetailRefs();
         if (!viewDetail.empty()) {
             for (auto DetIterator : viewDetail) {
-                ViewList.push_back(DetIterator->Label.getValue());
+                ViewList.emplace_back(DetIterator->Label.getValue());
             }
         }
         // get its leader lines
         auto viewLead = Item->getLeaders();
         if (!viewLead.empty()) {
             for (auto LeadIterator : viewLead) {
-                ViewList.push_back(LeadIterator->Label.getValue());
+                ViewList.emplace_back(LeadIterator->Label.getValue());
             }
         }
     }
@@ -221,7 +181,7 @@ bool ViewProviderProjGroup::canDelete(App::DocumentObject *obj) const
     return true;
 }
 
-std::vector<App::DocumentObject*> ViewProviderProjGroup::claimChildren(void) const
+std::vector<App::DocumentObject*> ViewProviderProjGroup::claimChildren() const
 {
     // Collect any child fields
     std::vector<App::DocumentObject*> temp;

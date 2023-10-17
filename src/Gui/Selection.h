@@ -28,7 +28,6 @@
 #include <list>
 #include <string>
 #include <vector>
-#include <CXX/Objects.hxx>
 
 #include <App/DocumentObject.h>
 #include <App/DocumentObserver.h>
@@ -36,6 +35,8 @@
 
 #include "SelectionObject.h"
 
+
+using PyObject = struct _object;
 
 namespace App
 {
@@ -105,7 +106,7 @@ public:
         if (typeName)
             TypeName = typeName;
         pTypeName = TypeName.c_str();
-    }
+    }//explicit bombs
 
     SelectionChanges(MsgType type,
                      const std::string &docName,
@@ -230,7 +231,7 @@ public:
      *                 1 resolve sub-object with old style element name
      *                 2 resolve sub-object with new style element name
      */
-    SelectionObserver(bool attach = true, ResolveMode resolve = ResolveMode::OldStyleElement);
+    explicit SelectionObserver(bool attach = true, ResolveMode resolve = ResolveMode::OldStyleElement);
     /** Constructor
      *
      * @param vp: filtering view object.
@@ -243,7 +244,7 @@ public:
      * Constructs an selection observer that receives only selection event of
      * objects within the same document as the input view object.
      */
-    SelectionObserver(const Gui::ViewProviderDocumentObject *vp, bool attach=true, ResolveMode resolve = ResolveMode::OldStyleElement);
+    explicit SelectionObserver(const Gui::ViewProviderDocumentObject *vp, bool attach=true, ResolveMode resolve = ResolveMode::OldStyleElement);
 
     virtual ~SelectionObserver();
     bool blockSelection(bool block);
@@ -260,61 +261,12 @@ private:
     void _onSelectionChanged(const SelectionChanges& msg);
 
 private:
-    typedef boost::signals2::connection Connection;
+    using Connection = boost::signals2::connection;
     Connection connectSelection;
     std::string filterDocName;
     std::string filterObjName;
     ResolveMode resolve;
     bool blockedSelection;
-};
-
-/**
- * The SelectionObserverPython class implements a mechanism to register
- * a Python class instance implementing the required interface in order
- * to be notified on selection changes.
- *
- * @author Werner Mayer
- */
-class GuiExport SelectionObserverPython : public SelectionObserver
-{
-
-public:
-    /// Constructor
-    SelectionObserverPython(const Py::Object& obj, ResolveMode resolve = ResolveMode::OldStyleElement);
-    virtual ~SelectionObserverPython();
-
-    static void addObserver(const Py::Object& obj, ResolveMode resolve = ResolveMode::OldStyleElement);
-    static void removeObserver(const Py::Object& obj);
-
-private:
-    void onSelectionChanged(const SelectionChanges& msg);
-    void addSelection(const SelectionChanges&);
-    void removeSelection(const SelectionChanges&);
-    void setSelection(const SelectionChanges&);
-    void clearSelection(const SelectionChanges&);
-    void setPreselection(const SelectionChanges&);
-    void removePreselection(const SelectionChanges&);
-    void pickedListChanged();
-
-private:
-    Py::Object inst;
-
-#define FC_PY_SEL_OBSERVER \
-    FC_PY_ELEMENT(onSelectionChanged) \
-    FC_PY_ELEMENT(addSelection) \
-    FC_PY_ELEMENT(removeSelection) \
-    FC_PY_ELEMENT(setSelection) \
-    FC_PY_ELEMENT(clearSelection) \
-    FC_PY_ELEMENT(setPreselection) \
-    FC_PY_ELEMENT(removePreselection) \
-    FC_PY_ELEMENT(pickedListChanged)
-
-#undef FC_PY_ELEMENT
-#define FC_PY_ELEMENT(_name) Py::Object py_##_name;
-
-    FC_PY_SEL_OBSERVER
-
-    static std::vector<SelectionObserverPython*> _instances;
 };
 
 /** SelectionGate
@@ -324,7 +276,7 @@ private:
 class GuiExport SelectionGate
 {
 public:
-    virtual ~SelectionGate(){}
+    virtual ~SelectionGate() = default;
     virtual bool allow(App::Document*,App::DocumentObject*, const char*)=0;
 
     /**
@@ -342,8 +294,8 @@ public:
 class GuiExport SelectionGateFilterExternal: public SelectionGate
 {
 public:
-    SelectionGateFilterExternal(const char *docName, const char *objName=nullptr);
-    virtual bool allow(App::Document*,App::DocumentObject*, const char*) override;
+    explicit SelectionGateFilterExternal(const char *docName, const char *objName=nullptr);
+    bool allow(App::Document*,App::DocumentObject*, const char*) override;
 private:
     std::string DocName;
     std::string ObjName;
@@ -419,11 +371,11 @@ public:
     /// sets different coords for the preselection
     void setPreselectCoord(float x, float y, float z);
     /// returns the present preselection
-    const SelectionChanges& getPreselection(void) const;
+    const SelectionChanges& getPreselection() const;
     /// add a SelectionGate to control what is selectable
     void addSelectionGate(Gui::SelectionGate *gate, ResolveMode resolve = ResolveMode::OldStyleElement);
     /// remove the active SelectionGate
-    void rmvSelectionGate(void);
+    void rmvSelectionGate();
 
     int disableCommandLog();
     int enableCommandLog(bool silent=false);
@@ -568,7 +520,7 @@ public:
     bool hasPreselection() const;
 
     /// Size of selected entities for all documents
-    unsigned int size(void) const {
+    unsigned int size() const {
         return static_cast<unsigned int>(_SelList.size());
     }
 
@@ -579,10 +531,16 @@ public:
      */
     //@{
     /// Return the current selection stack size
-    int selStackBackSize() const {return _SelStackBack.size();}
+    std::size_t selStackBackSize() const
+    {
+        return _SelStackBack.size();
+    }
 
     /// Return the current forward selection stack size
-    int selStackForwardSize() const {return _SelStackForward.size();}
+    std::size_t selStackForwardSize() const
+    {
+        return _SelStackForward.size();
+    }
 
     /** Obtain selected objects from stack
      *
@@ -643,8 +601,24 @@ public:
             const char* pDocName=nullptr, Base::Type typeId=App::DocumentObject::getClassTypeId()) const;
     //@}
 
-    static SelectionSingleton& instance(void);
-    static void destruct (void);
+    /** @name Selection style functions
+     *
+     * The selection style changes the way selection works. In Greedy selection
+     * it is as if you were pressing Ctrl.
+     */
+    //@{
+    enum class SelectionStyle {
+        NormalSelection,
+        GreedySelection
+    };
+    /// Changes the style of selection between greedy and normal.
+    void setSelectionStyle(SelectionStyle selStyle);
+    /// Get the style of selection.
+    SelectionStyle getSelectionStyle();
+    //@}
+
+    static SelectionSingleton& instance();
+    static void destruct ();
     friend class SelectionFilter;
 
     // Python interface
@@ -664,6 +638,7 @@ protected:
     static PyObject *sGetCompleteSelection(PyObject *self,PyObject *args);
     static PyObject *sGetSelectionEx      (PyObject *self,PyObject *args);
     static PyObject *sGetSelectionObject  (PyObject *self,PyObject *args);
+    static PyObject *sSetSelectionStyle   (PyObject *self,PyObject *args);
     static PyObject *sAddSelObserver      (PyObject *self,PyObject *args);
     static PyObject *sRemSelObserver      (PyObject *self,PyObject *args);
     static PyObject *sAddSelectionGate    (PyObject *self,PyObject *args);
@@ -681,7 +656,7 @@ protected:
     /// Construction
     SelectionSingleton();
     /// Destruction
-    virtual ~SelectionSingleton();
+    ~SelectionSingleton() override;
 
     /// Observer message from the App doc
     void slotDeletedObject(const App::DocumentObject&);
@@ -719,9 +694,9 @@ protected:
     mutable std::list<_SelObj> _SelList;
 
     mutable std::list<_SelObj> _PickedList;
-    bool _needPickedList;
+    bool _needPickedList{false};
 
-    typedef std::set<App::SubObjectT> SelStackItem;
+    using SelStackItem = std::set<App::SubObjectT>;
     std::deque<SelStackItem> _SelStackBack;
     std::deque<SelStackItem> _SelStackForward;
 
@@ -745,6 +720,8 @@ protected:
 
     int logDisabled = 0;
     bool logHasSelection = false;
+
+    SelectionStyle selectionStyle;
 };
 
 /**
@@ -756,13 +733,13 @@ inline std::vector<T*> SelectionSingleton::getObjectsOfType(const char* pDocName
     std::vector<T*> type;
     std::vector<App::DocumentObject*> obj = this->getObjectsOfType(T::getClassTypeId(), pDocName, resolve);
     type.reserve(obj.size());
-    for (std::vector<App::DocumentObject*>::iterator it = obj.begin(); it != obj.end(); ++it)
+    for (auto it = obj.begin(); it != obj.end(); ++it)
         type.push_back(static_cast<T*>(*it));
     return type;
 }
 
 /// Get the global instance
-inline SelectionSingleton& Selection(void)
+inline SelectionSingleton& Selection()
 {
     return SelectionSingleton::instance();
 }
@@ -771,7 +748,7 @@ inline SelectionSingleton& Selection(void)
  */
 class GuiExport SelectionLogDisabler {
 public:
-    SelectionLogDisabler(bool silent=false) :silent(silent) {
+    explicit SelectionLogDisabler(bool silent=false) :silent(silent) {
         Selection().disableCommandLog();
     }
     ~SelectionLogDisabler() {

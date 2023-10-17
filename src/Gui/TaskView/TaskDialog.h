@@ -28,6 +28,8 @@
 #include <vector>
 
 #include <QDialogButtonBox>
+#include <QPointer>
+#include <FCGlobal.h>
 
 
 namespace App {
@@ -38,6 +40,9 @@ namespace Gui {
 namespace TaskView {
 
 class TaskContent;
+class TaskDialogAttorney;
+class TaskDialogPy;
+class TaskView;
 
 /// Father class of content with header and Icon
 class GuiExport TaskDialog : public QObject
@@ -50,17 +55,19 @@ public:
     };
 
     TaskDialog();
-    ~TaskDialog();
+    ~TaskDialog() override;
+
+    void addTaskBox(QWidget*);
 
     void setButtonPosition(ButtonPosition p)
     { pos = p; }
     ButtonPosition buttonPosition() const
     { return pos; }
-    const std::vector<QWidget*> &getDialogContent(void) const;
+    const std::vector<QWidget*> &getDialogContent() const;
     bool canClose() const;
 
     /// tells the framework which buttons are wished for the dialog
-    virtual QDialogButtonBox::StandardButtons getStandardButtons(void) const
+    virtual QDialogButtonBox::StandardButtons getStandardButtons() const
     { return QDialogButtonBox::Ok|QDialogButtonBox::Cancel; }
     virtual void modifyStandardButtons(QDialogButtonBox*)
     {}
@@ -90,19 +97,19 @@ public:
       Indicates whether this task dialog allows other commands to modify
       the document while it is open.
     */
-    virtual bool isAllowedAlterDocument(void) const
+    virtual bool isAllowedAlterDocument() const
     { return false; }
     /*!
       Indicates whether this task dialog allows other commands to modify
       the 3d view while it is open.
     */
-    virtual bool isAllowedAlterView(void) const
+    virtual bool isAllowedAlterView() const
     { return true; }
     /*!
       Indicates whether this task dialog allows other commands to modify
       the selection while it is open.
     */
-    virtual bool isAllowedAlterSelection(void) const
+    virtual bool isAllowedAlterSelection() const
     { return true; }
     virtual bool needsFullSpace() const
     { return false; }
@@ -132,6 +139,7 @@ Q_SIGNALS:
     void aboutToBeDestroyed();
     
 protected:
+    QPointer<QDialogButtonBox> buttonBox;
     /// List of TaskBoxes of that dialog
     std::vector<QWidget*> Content;
     ButtonPosition pos;
@@ -140,6 +148,21 @@ private:
     std::string documentName;
     bool escapeButton;
     bool autoCloseTransaction;
+
+    friend class TaskDialogAttorney;
+};
+
+class TaskDialogAttorney {
+private:
+    static void setButtonBox(TaskDialog* dlg, QDialogButtonBox* box) {
+        dlg->buttonBox = box;
+    }
+    static QDialogButtonBox* getButtonBox(TaskDialog* dlg) {
+        return dlg->buttonBox;
+    }
+
+    friend class TaskDialogPy;
+    friend class TaskView;
 };
 
 } //namespace TaskView

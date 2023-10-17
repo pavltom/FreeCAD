@@ -42,7 +42,7 @@ class View3DInventorViewer;
 
 class PickedPoint {
 public:
-    PickedPoint() {}
+    PickedPoint() = default;
     PickedPoint(const Base::Vector3d& p, const Base::Vector3d& n) : point(p), normal(n) {}
     Base::Vector3d point;
     Base::Vector3d normal;
@@ -191,7 +191,7 @@ class GuiExport ManualAlignment : public QObject
 
 protected:
     ManualAlignment();
-    ~ManualAlignment();
+    ~ManualAlignment() override;
 
 public:
     static ManualAlignment* instance();
@@ -249,7 +249,7 @@ private:
 
     static ManualAlignment* _instance;
 
-    typedef boost::signals2::connection Connection;
+    using Connection = boost::signals2::connection;
     Connection connectApplicationDeletedDocument;
     Connection connectDocumentDeletedObject;
 

@@ -21,62 +21,47 @@
  ***************************************************************************/
 
 #include "PreCompiled.h"
-
 #ifndef _PreComp_
-#include <cmath>
-#include <QStatusBar>
-#include <QGraphicsScene>
+# include <cmath>
+# include <QStatusBar>
 #endif // #ifndef _PreComp_
 
 #include <Base/Console.h>
 #include <Base/Tools.h>
-#include <Base/Quantity.h>
 #include <Base/UnitsApi.h>
-
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
-#include <Gui/Control.h>
 #include <Gui/Document.h>
 #include <Gui/MainWindow.h>
-#include <Gui/Selection.h>
 #include <Gui/ViewProvider.h>
-#include <Gui/WaitCursor.h>
-
 #include <Mod/TechDraw/App/DrawPage.h>
-#include <Mod/TechDraw/App/DrawUtil.h>
-#include <Mod/TechDraw/App/DrawView.h>
-#include <Mod/TechDraw/App/DrawViewPart.h>
 #include <Mod/TechDraw/App/DrawProjGroup.h>
 #include <Mod/TechDraw/App/DrawProjGroupItem.h>
+#include <Mod/TechDraw/App/DrawUtil.h>
+#include <Mod/TechDraw/App/DrawViewPart.h>
 #include <Mod/TechDraw/App/Cosmetic.h>
 
-#include <Mod/TechDraw/Gui/ui_TaskCosVertex.h>
-
-#include "QGSPage.h"
-#include "QGVPage.h"
-#include "QGIView.h"
-#include "QGIPrimPath.h"
-#include "MDIViewPage.h"
-#include "ViewProviderPage.h"
-#include "QGTracker.h"
-#include "QGEPath.h"
-#include "Rez.h"
-
+#include "ui_TaskCosVertex.h"
 #include "TaskCosVertex.h"
+#include "MDIViewPage.h"
+#include "QGIView.h"
+#include "QGSPage.h"
+#include "QGTracker.h"
+#include "Rez.h"
+#include "ViewProviderPage.h"
+
 
 using namespace Gui;
 using namespace TechDraw;
 using namespace TechDrawGui;
+using DU = DrawUtil;
 
 TaskCosVertex::TaskCosVertex(TechDraw::DrawViewPart* baseFeat,
                                TechDraw::DrawPage* page) :
     ui(new Ui_TaskCosVertex),
     blockUpdate(false),
     m_tracker(nullptr),
-    m_mdi(nullptr),
-    m_scene(nullptr),
-    m_view(nullptr),
     m_baseFeat(baseFeat),
     m_basePage(page),
     m_qgParent(nullptr),
@@ -94,21 +79,14 @@ TaskCosVertex::TaskCosVertex(TechDraw::DrawViewPart* baseFeat,
 
     Gui::Document* activeGui = Gui::Application::Instance->getDocument(m_basePage->getDocument());
     Gui::ViewProvider* vp = activeGui->getViewProvider(m_basePage);
-    ViewProviderPage* vpp = static_cast<ViewProviderPage*>(vp);
-    m_mdi = vpp->getMDIViewPage();
-    m_scene = m_mdi->getQGSPage();
-    m_view = m_mdi->getQGVPage();
+    m_vpp = static_cast<ViewProviderPage*>(vp);
 
     setUiPrimary();
 
-    connect(ui->pbTracker, SIGNAL(clicked(bool)),
-            this, SLOT(onTrackerClicked(bool)));
+    connect(ui->pbTracker, &QPushButton::clicked,
+            this, &TaskCosVertex::onTrackerClicked);
 
     m_trackerMode = QGTracker::TrackerMode::Point;
-}
-
-TaskCosVertex::~TaskCosVertex()
-{
 }
 
 void TaskCosVertex::updateTask()
@@ -118,9 +96,9 @@ void TaskCosVertex::updateTask()
     //    blockUpdate = false;
 }
 
-void TaskCosVertex::changeEvent(QEvent* e)
+void TaskCosVertex::changeEvent(QEvent* event)
 {
-    if (e->type() == QEvent::LanguageChange) {
+    if (event->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
     }
 }
@@ -145,7 +123,8 @@ void TaskCosVertex::setUiPrimary()
     ui->dsbY->setUnit(Base::Unit::Length);
 }
 
-void TaskCosVertex::updateUi(void)
+// set the ui x,y to apparent coords (ie invertY)
+void TaskCosVertex::updateUi()
 {
     double x = m_savePoint.x();
     double y = - m_savePoint.y();
@@ -168,9 +147,9 @@ void TaskCosVertex::addCosVertex(QPointF qPos)
 
 
 //********** Tracker routines *******************************************************************
-void TaskCosVertex::onTrackerClicked(bool b)
+void TaskCosVertex::onTrackerClicked(bool clicked)
 {
-    Q_UNUSED(b);
+    Q_UNUSED(clicked);
 //    Base::Console().Message("TCV::onTrackerClicked() m_pbTrackerState: %d\n",
 //                            m_pbTrackerState);
 
@@ -186,8 +165,8 @@ void TaskCosVertex::onTrackerClicked(bool b)
     }
 
     m_inProgressLock = true;
-    m_saveContextPolicy = m_mdi->contextMenuPolicy();
-    m_mdi->setContextMenuPolicy(Qt::PreventContextMenu);
+    m_saveContextPolicy = m_vpp->getMDIViewPage()->contextMenuPolicy();
+    m_vpp->getMDIViewPage()->setContextMenuPolicy(Qt::PreventContextMenu);
     m_trackerMode = QGTracker::TrackerMode::Point;
     setEditCursor(Qt::CrossCursor);
     startTracker();
@@ -201,7 +180,7 @@ void TaskCosVertex::onTrackerClicked(bool b)
     enableTaskButtons(false);
 }
 
-void TaskCosVertex::startTracker(void)
+void TaskCosVertex::startTracker()
 {
 //    Base::Console().Message("TCV::startTracker()\n");
     if (m_trackerMode == QGTracker::TrackerMode::None) {
@@ -209,10 +188,10 @@ void TaskCosVertex::startTracker(void)
     }
 
     if (!m_tracker) {
-        m_tracker = new QGTracker(m_scene, m_trackerMode);
+        m_tracker = new QGTracker(m_vpp->getQGSPage(), m_trackerMode);
         QObject::connect(
-            m_tracker, SIGNAL(drawingFinished(std::vector<QPointF>, QGIView*)),
-            this, SLOT(onTrackerFinished(std::vector<QPointF>, QGIView*))
+            m_tracker, &QGTracker::drawingFinished,
+            this, &TaskCosVertex::onTrackerFinished
         );
     }
     else {
@@ -252,11 +231,23 @@ void TaskCosVertex::onTrackerFinished(std::vector<QPointF> pts, QGIView* qgParen
         x += Rez::guiX(dpg->X.getValue());
         y += Rez::guiX(dpg->Y.getValue());
     }
-    //x,y are scene pos of dvp/dpgi
+    //x, y are scene pos of dvp/dpgi
 
     QPointF basePosScene(x, -y);                 //base position in scene coords
     QPointF displace = dragEnd - basePosScene;
     QPointF scenePosCV = displace / scale;
+
+    // if the base view is rotated, we need to unrotate it before saving
+    double rotDeg = m_baseFeat->Rotation.getValue();
+    if (rotDeg != 0.0) {
+        //  Invert Y value so the math works.
+        Base::Vector3d posToRotate = DU::invertY(DU::toVector3d(scenePosCV));
+        double rotRad = rotDeg * M_PI / 180.0;
+        // we always rotate around the origin.
+        posToRotate.RotateZ(-rotRad);
+        // now put Y value back to display form
+        scenePosCV = DU::toQPointF(DU::invertY(posToRotate));
+    }
 
     m_savePoint = Rez::appX(scenePosCV);
     updateUi();
@@ -268,29 +259,29 @@ void TaskCosVertex::onTrackerFinished(std::vector<QPointF> pts, QGIView* qgParen
     ui->pbTracker->setEnabled(true);
     enableTaskButtons(true);
     setEditCursor(Qt::ArrowCursor);
-    m_mdi->setContextMenuPolicy(m_saveContextPolicy);
+    m_vpp->getMDIViewPage()->setContextMenuPolicy(m_saveContextPolicy);
 
 }
 
-void TaskCosVertex::removeTracker(void)
+void TaskCosVertex::removeTracker()
 {
 //    Base::Console().Message("TCV::removeTracker()\n");
     if (m_tracker && m_tracker->scene()) {
-        m_scene->removeItem(m_tracker);
+        m_vpp->getQGSPage()->removeItem(m_tracker);
         delete m_tracker;
         m_tracker = nullptr;
     }
 }
 
-void TaskCosVertex::setEditCursor(QCursor c)
+void TaskCosVertex::setEditCursor(QCursor cursor)
 {
     if (m_baseFeat) {
-        QGIView* qgivBase = m_scene->findQViewForDocObj(m_baseFeat);
-        qgivBase->setCursor(c);
+        QGIView* qgivBase = m_vpp->getQGSPage()->findQViewForDocObj(m_baseFeat);
+        qgivBase->setCursor(cursor);
     }
 }
 
-void TaskCosVertex::abandonEditSession(void)
+void TaskCosVertex::abandonEditSession()
 {
     QString msg = tr("In progress edit abandoned. Start over.");
     getMainWindow()->statusBar()->show();
@@ -308,10 +299,10 @@ void TaskCosVertex::saveButtons(QPushButton* btnOK,
     m_btnCancel = btnCancel;
 }
 
-void TaskCosVertex::enableTaskButtons(bool b)
+void TaskCosVertex::enableTaskButtons(bool button)
 {
-    m_btnOK->setEnabled(b);
-    m_btnCancel->setEnabled(b);
+    m_btnOK->setEnabled(button);
+    m_btnCancel->setEnabled(button);
 }
 
 //******************************************************************************
@@ -322,6 +313,8 @@ bool TaskCosVertex::accept()
         return false;
 
     removeTracker();
+    // whatever is in the ui for x,y is treated as an unscaled, unrotated, invertedY position.
+    // the position from the tracker is unscaled & unrotated before updating the ui
     double x = ui->dsbX->value().getValue();
     double y = ui->dsbY->value().getValue();
     QPointF uiPoint(x, -y);
@@ -329,7 +322,7 @@ bool TaskCosVertex::accept()
 
     m_baseFeat->recomputeFeature();
     m_baseFeat->requestPaint();
-    m_mdi->setContextMenuPolicy(m_saveContextPolicy);
+    m_vpp->getMDIViewPage()->setContextMenuPolicy(m_saveContextPolicy);
     m_trackerMode = QGTracker::TrackerMode::None;
     Gui::Command::doCommand(Gui::Command::Gui, "Gui.ActiveDocument.resetEdit()");
 
@@ -344,8 +337,8 @@ bool TaskCosVertex::reject()
 
     removeTracker();
     m_trackerMode = QGTracker::TrackerMode::None;
-    if (m_mdi) {
-        m_mdi->setContextMenuPolicy(m_saveContextPolicy);
+    if (m_vpp->getMDIViewPage()) {
+        m_vpp->getMDIViewPage()->setContextMenuPolicy(m_saveContextPolicy);
     }
 
     //make sure any dangling objects are cleaned up

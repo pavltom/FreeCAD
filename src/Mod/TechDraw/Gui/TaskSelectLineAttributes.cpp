@@ -22,48 +22,11 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-#include <cmath>
-#include <BRepBndLib.hxx>
-#include <Bnd_Box.hxx>
-#include <QButtonGroup>
-#include <QStatusBar>
-#include <QGraphicsScene>
-#endif // #ifndef _PreComp_
-
-#include <BRepBuilderAPI_MakeEdge.hxx>
-
-#include <Base/Console.h>
-#include <Base/Tools.h>
-#include <Base/UnitsApi.h>
-
-#include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
-#include <Gui/Command.h>
-#include <Gui/Control.h>
-#include <Gui/Document.h>
-#include <Gui/MainWindow.h>
-#include <Gui/Selection.h>
-#include <Gui/ViewProvider.h>
-#include <Gui/WaitCursor.h>
-
-#include <Mod/TechDraw/App/Cosmetic.h>
-#include <Mod/TechDraw/App/DrawPage.h>
-#include <Mod/TechDraw/App/DrawUtil.h>
-#include <Mod/TechDraw/App/DrawView.h>
-#include <Mod/TechDraw/App/DrawViewPart.h>
-#include <Mod/TechDraw/App/Geometry.h>
 
 #include "ui_TaskSelectLineAttributes.h"
 #include "TaskSelectLineAttributes.h"
-#include "MDIViewPage.h"
-#include "PreferencesGui.h"
-#include "QGVPage.h"
-#include "QGIPrimPath.h"
-#include "QGIView.h"
-#include "Rez.h"
-#include "ViewProviderPage.h"
-#include "ViewProviderViewPart.h"
+
 
 using namespace Gui;
 using namespace TechDraw;
@@ -97,7 +60,7 @@ enum class EdgeColor {
 // managing global line attributes
 //===========================================================================
 
-lineAttributes::lineAttributes(void)
+lineAttributes::lineAttributes()
 {
     style = int(EdgeStyle::dotted);
     width = int(EdgeWidth::middle);
@@ -114,18 +77,15 @@ void lineAttributes::setWidth(int newWidth)
     width = newWidth;
 }
 
-float lineAttributes::getWidthValue(void)
+float lineAttributes::getWidthValue()
 {
     switch(EdgeWidth(width)) {
         case EdgeWidth::small:
             return 0.18f;
-            break;
         case EdgeWidth::middle:
             return 0.35f;
-            break;
         case EdgeWidth::thick:
             return 0.5f;
-            break;
         default:
             return 0.35f;
     }
@@ -136,7 +96,7 @@ void lineAttributes::setColor(int newColor)
     color = newColor;
 }
 
-App::Color lineAttributes::getColorValue(void)
+App::Color lineAttributes::getColorValue()
 {
     switch (EdgeColor(color)) {
     case EdgeColor::black:
@@ -164,7 +124,7 @@ App::Color lineAttributes::getColorValue(void)
 // managing global dimension attributes
 //===========================================================================
 
-dimAttributes::dimAttributes(void)
+dimAttributes::dimAttributes()
 {
     cascadeSpacing = 7.0;
     lineStretch = 2.0;

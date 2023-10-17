@@ -46,11 +46,9 @@ ViewProviderHole::ViewProviderHole()
     sPixmap = "PartDesign_Hole.svg";
 }
 
-ViewProviderHole::~ViewProviderHole()
-{
-}
+ViewProviderHole::~ViewProviderHole() = default;
 
-std::vector<App::DocumentObject*> ViewProviderHole::claimChildren(void)const
+std::vector<App::DocumentObject*> ViewProviderHole::claimChildren()const
 {
     std::vector<App::DocumentObject*> temp;
     temp.push_back(static_cast<PartDesign::Hole*>(getObject())->Profile.getValue());

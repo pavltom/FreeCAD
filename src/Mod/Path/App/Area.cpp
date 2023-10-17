@@ -20,7 +20,6 @@
  *                                                                          *
  ****************************************************************************/
 
-
 #include "PreCompiled.h"
 
 // From Boost 1.75 on the geometry component requires C++14
@@ -28,74 +27,58 @@
 
 #ifndef _PreComp_
 # include <cfloat>
-# include <boost/version.hpp>
-# include <boost/config.hpp>
 
 # include <boost_geometry.hpp>
-# include <boost/geometry/index/rtree.hpp>
-# include <boost/geometry/geometries/geometries.hpp>
 # include <boost/geometry/geometries/register/point.hpp>
-# include <boost/range/adaptor/indexed.hpp>
+# include <boost/geometry/index/rtree.hpp>
 # include <boost/range/adaptor/transformed.hpp>
 
 # include <Bnd_Box.hxx>
-# include <BRepLib.hxx>
 # include <BRep_Builder.hxx>
 # include <BRep_Tool.hxx>
 # include <BRepAdaptor_Curve.hxx>
 # include <BRepAdaptor_Surface.hxx>
 # include <BRepBndLib.hxx>
-# include <BRepBuilderAPI_Copy.hxx>
-# include <BRepBuilderAPI_FindPlane.hxx>
 # include <BRepBuilderAPI_MakeEdge.hxx>
 # include <BRepBuilderAPI_MakeFace.hxx>
 # include <BRepBuilderAPI_MakeVertex.hxx>
 # include <BRepBuilderAPI_MakeWire.hxx>
 # include <BRepExtrema_DistShapeShape.hxx>
+# include <BRepLib.hxx>
 # include <BRepLib_MakeFace.hxx>
 # include <BRepLib_FindSurface.hxx>
-# include <BRepTools.hxx>
 # include <BRepTools_WireExplorer.hxx>
-# include <GeomAbs_JoinType.hxx>
-# include <GeomAPI_ProjectPointOnCurve.hxx>
-# include <Geom_Circle.hxx>
-# include <Geom_Ellipse.hxx>
-# include <Geom_Line.hxx>
-# include <Geom_Plane.hxx>
 # include <GCPnts_QuasiUniformDeflection.hxx>
 # include <GCPnts_UniformAbscissa.hxx>
 # include <GCPnts_UniformDeflection.hxx>
+# include <GeomAPI_ProjectPointOnCurve.hxx>
 # include <gp_Circ.hxx>
-# include <gp_GTrsf.hxx>
-# include <HLRBRep.hxx>
+# include <HLRAlgo_Projector.hxx>
 # include <HLRBRep_Algo.hxx>
 # include <HLRBRep_HLRToShape.hxx>
-# include <HLRAlgo_Projector.hxx>
+# include <Precision.hxx>
+# include <ShapeAnalysis_FreeBounds.hxx>
 # include <ShapeExtend_WireData.hxx>
 # include <ShapeFix_ShapeTolerance.hxx>
 # include <ShapeFix_Wire.hxx>
-# include <ShapeAnalysis_FreeBounds.hxx>
 # include <Standard_Failure.hxx>
 # include <Standard_Version.hxx>
 # include <TopExp.hxx>
 # include <TopExp_Explorer.hxx>
-# include <TopoDS.hxx>
 # include <TopoDS_Compound.hxx>
-# include <TopoDS_Solid.hxx>
-# include <TopoDS_Vertex.hxx>
 # include <TopTools_HSequenceOfShape.hxx>
 #endif
 
-#include <Base/Exception.h>
-#include <Base/Tools.h>
-
 #include <App/Application.h>
 #include <App/Document.h>
-#include <Mod/Part/App/PartFeature.h>
-#include <Mod/Part/App/FaceMakerBullseye.h>
+#include <Base/Exception.h>
 #include <Mod/Part/App/CrossSection.h>
+#include <Mod/Part/App/FaceMakerBullseye.h>
+#include <Mod/Part/App/PartFeature.h>
+#include <Mod/Path/libarea/Area.h>
+
 #include "Area.h"
-#include "../libarea/Area.h"
+
 
 //FIXME: ISO C++11 requires at least one argument for the "..." in a variadic macro
 #if defined(__clang__)
@@ -107,7 +90,7 @@
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-typedef bgi::linear<16> RParameters;
+using RParameters = bgi::linear<16>;
 
 BOOST_GEOMETRY_REGISTER_POINT_3D_GET_SET(
     gp_Pnt, double, bg::cs::cartesian, X, Y, Z, SetX, SetY, SetZ)
@@ -205,7 +188,7 @@ Area::Area(const Area& other, bool deep_copy)
     if (!deep_copy || !other.isBuilt())
         return;
     if (other.myArea)
-        myArea.reset(new CArea(*other.myArea));
+        myArea = std::make_unique<CArea>(*other.myArea);
     myShapePlane = other.myShapePlane;
     myShape = other.myShape;
     myShapeDone = other.myShapeDone;
@@ -346,7 +329,7 @@ static std::vector<gp_Pnt> discretize(const TopoDS_Edge& edge, double deflection
     ret.push_back(curve.Value(reversed ? elast : efirst));
 
     // NOTE: QuasiUniformDeflection has trouble with some B-Spline, see
-    // https://forum.freecadweb.org/viewtopic.php?f=15&t=42628
+    // https://forum.freecad.org/viewtopic.php?f=15&t=42628
     //
     // GCPnts_QuasiUniformDeflection discretizer(curve, deflection, first, last);
     //
@@ -513,6 +496,81 @@ void Area::add(const TopoDS_Shape& shape, short op) {
     myShapes.emplace_back(op, shape);
 }
 
+std::shared_ptr<Area> Area::getClearedArea(double tipDiameter, double diameter) {
+    build();
+#define AREA_MY(_param) myParams.PARAM_FNAME(_param)
+    PARAM_ENUM_CONVERT(AREA_MY, PARAM_FNAME, PARAM_ENUM_EXCEPT, AREA_PARAMS_OFFSET_CONF);
+    PARAM_ENUM_CONVERT(AREA_MY, PARAM_FNAME, PARAM_ENUM_EXCEPT, AREA_PARAMS_CLIPPER_FILL);
+    (void)SubjectFill;
+    (void)ClipFill;
+
+    // Do not fit arcs after these offsets; it introduces unnecessary approximation error, and all off
+    // those arcs will be converted back to segments again for clipper differencing in getRestArea anyway
+    CAreaConfig conf(myParams, /*no_fit_arcs*/ true);
+
+    const double roundPrecision = myParams.Accuracy;
+    const double buffer = 2 * roundPrecision;
+
+    // A = myArea
+    // prevCenters = offset(A, -rTip)
+    const double rTip = tipDiameter / 2.;
+    CArea prevCenter(*myArea);
+    prevCenter.OffsetWithClipper(-rTip, JoinType, EndType, myParams.MiterLimit, roundPrecision);
+
+    // prevCleared = offset(prevCenter, r).
+    CArea prevCleared(prevCenter);
+    prevCleared.OffsetWithClipper(diameter / 2. + buffer, JoinType, EndType, myParams.MiterLimit, roundPrecision);
+
+    std::shared_ptr<Area> clearedArea = make_shared<Area>(*this);
+    clearedArea->myArea.reset(new CArea(prevCleared));
+
+    return clearedArea;
+}
+
+std::shared_ptr<Area> Area::getRestArea(std::vector<std::shared_ptr<Area>> clearedAreas, double diameter) {
+    build();
+    PARAM_ENUM_CONVERT(AREA_MY, PARAM_FNAME, PARAM_ENUM_EXCEPT, AREA_PARAMS_OFFSET_CONF);
+    PARAM_ENUM_CONVERT(AREA_MY, PARAM_FNAME, PARAM_ENUM_EXCEPT, AREA_PARAMS_CLIPPER_FILL);
+
+    const double roundPrecision = myParams.Accuracy;
+    const double buffer = 2 * roundPrecision;
+
+    // transform all clearedAreas into our workplane
+    Area clearedAreasInPlane(&myParams);
+    clearedAreasInPlane.myArea.reset(new CArea());
+    for (std::shared_ptr<Area> clearedArea : clearedAreas) {
+      gp_Trsf trsf = clearedArea->myTrsf;
+      trsf.Invert();
+      trsf.SetTranslationPart(gp_Vec{trsf.TranslationPart().X(), trsf.TranslationPart().Y(), -myTrsf.TranslationPart().Z()}); // discard z-height of cleared workplane, set to myWorkPlane's height
+      TopoDS_Shape clearedShape = Area::toShape(*clearedArea->myArea, false, &trsf);
+      Area::addShape(*(clearedAreasInPlane.myArea), clearedShape, &myTrsf, .01 /*default value*/,
+          &myWorkPlane);
+    }
+
+    // remaining = A - prevCleared
+    CArea remaining(*myArea);
+    remaining.Clip(toClipperOp(Area::OperationDifference), &*(clearedAreasInPlane.myArea), SubjectFill, ClipFill);
+
+    // rest = intersect(A, offset(remaining, dTool))
+    CArea restCArea(remaining);
+    restCArea.OffsetWithClipper(diameter + buffer, JoinType, EndType, myParams.MiterLimit, roundPrecision);
+    restCArea.Clip(toClipperOp(Area::OperationIntersection), &*myArea, SubjectFill, ClipFill);
+
+    gp_Trsf trsf(myTrsf.Inverted());
+    TopoDS_Shape restShape = Area::toShape(restCArea, false, &trsf);
+    std::shared_ptr<Area> restArea = make_shared<Area>(&myParams);
+    restArea->add(restShape, OperationCompound);
+
+    return restArea;
+}
+
+TopoDS_Shape Area::toTopoShape()
+{
+    build();
+    gp_Trsf trsf = myTrsf.Inverted();
+    return toShape(*myArea, false, &trsf);
+}
+
 
 void Area::setParams(const AreaParams& params) {
 #define AREA_SRC(_param) params.PARAM_FNAME(_param)
@@ -545,7 +603,7 @@ void Area::addToBuild(CArea& area, const TopoDS_Shape& shape) {
         }
     }
 
-    if (areaOpen.m_curves.size()) {
+    if (!areaOpen.m_curves.empty()) {
         if (&area == myArea.get() || myParams.OpenMode == OpenModeNone)
             myAreaOpen->m_curves.splice(myAreaOpen->m_curves.end(), areaOpen.m_curves);
         else
@@ -568,7 +626,7 @@ static inline void getEndPoints(const TopoDS_Wire& wire, gp_Pnt& p1, gp_Pnt& p2)
 
 struct WireJoiner {
 
-    typedef bg::model::box<gp_Pnt> Box;
+    using Box = bg::model::box<gp_Pnt>;
 
     static bool getBBox(const TopoDS_Edge& e, Box& box) {
         Bnd_Box bound;
@@ -616,7 +674,7 @@ struct WireJoiner {
         }
     };
 
-    typedef std::list<EdgeInfo> Edges;
+    using Edges = std::list<EdgeInfo>;
     Edges edges;
 
     struct VertexInfo {
@@ -638,7 +696,7 @@ struct WireJoiner {
 
     struct PntGetter
     {
-        typedef const gp_Pnt& result_type;
+        using result_type = const gp_Pnt&;
         result_type operator()(const VertexInfo& v) const {
             return v.pt();
         }
@@ -648,7 +706,7 @@ struct WireJoiner {
 
     struct BoxGetter
     {
-        typedef const Box& result_type;
+        using result_type = const Box&;
         result_type operator()(Edges::iterator it) const {
             return it->box;
         }
@@ -706,7 +764,7 @@ struct WireJoiner {
     //
     void join(double tol) {
         tol = tol * tol;
-        while (edges.size()) {
+        while (!edges.empty()) {
             auto it = edges.begin();
             BRepBuilderAPI_MakeWire mkWire;
             mkWire.Add(it->edge);
@@ -715,7 +773,7 @@ struct WireJoiner {
 
             bool done = false;
             for (int idx = 0; !done && idx < 2; ++idx) {
-                while (edges.size()) {
+                while (!edges.empty()) {
                     std::vector<VertexInfo> ret;
                     ret.reserve(1);
                     const gp_Pnt& pt = idx == 0 ? pstart : pend;
@@ -913,12 +971,12 @@ struct WireJoiner {
             size_t iStart;
             size_t iEnd;
             size_t iCurrent;
-            StackInfo(size_t idx) :iStart(idx), iEnd(idx), iCurrent(idx) {}
+            explicit StackInfo(size_t idx) :iStart(idx), iEnd(idx), iCurrent(idx) {}
         };
         std::vector<StackInfo> stack;
         std::vector<VertexInfo> vertexStack;
 
-        for (int iteration = 1; edgesToVisit.size(); ++iteration) {
+        for (int iteration = 1; !edgesToVisit.empty(); ++iteration) {
             EdgeInfo* currentInfo = *edgesToVisit.begin();
             int currentIdx = 1; // used to tell whether search connection from the start(0) or end(1)
             TopoDS_Edge& e = currentInfo->edge;
@@ -1083,7 +1141,7 @@ void Area::showShape(const TopoDS_Shape& shape, const char* name, const char* fm
             va_end(args);
             name = buf;
         }
-        Part::Feature* pcFeature = (Part::Feature*)pcDoc->addObject("Part::Feature", name);
+        Part::Feature* pcFeature = static_cast<Part::Feature*>(pcDoc->addObject("Part::Feature", name));
         pcFeature->Shape.setValue(shape);
     }
 }
@@ -1566,7 +1624,7 @@ std::vector<shared_ptr<Area> > Area::makeSections(
                     }
                 }
             }
-            if (area->myShapes.size()) {
+            if (!area->myShapes.empty()) {
                 sections.push_back(area);
                 FC_TIME_LOG(t1, "makeSection " << z);
                 showShape(area->getShape(), nullptr, "section_%u_final", i);
@@ -1606,7 +1664,7 @@ TopoDS_Shape Area::getPlane(gp_Trsf* trsf) {
 }
 
 bool Area::isBuilt() const {
-    return (myArea || mySections.size());
+    return (myArea || !mySections.empty());
 }
 
 std::list<Area::Shape> Area::getProjectedShapes(const gp_Trsf& trsf, bool inverse) const
@@ -1641,7 +1699,6 @@ void Area::build() {
     if (myShapes.empty())
         throw Base::ValueError("no shape added");
 
-#define AREA_MY(_param) myParams.PARAM_FNAME(_param)
     PARAM_ENUM_CONVERT(AREA_MY, PARAM_FNAME, PARAM_ENUM_EXCEPT, AREA_PARAMS_CLIPPER_FILL);
 
     if (myHaveSolid && myParams.SectionCount) {
@@ -1654,8 +1711,8 @@ void Area::build() {
     getPlane(&trsf);
 
     try {
-        myArea.reset(new CArea());
-        myAreaOpen.reset(new CArea());
+        myArea = std::make_unique<CArea>();
+        myAreaOpen = std::make_unique<CArea>();
 
         CAreaConfig conf(myParams);
         CArea areaClip;
@@ -1675,7 +1732,7 @@ void Area::build() {
                 if (myParams.OpenMode != OpenModeNone)
                     myArea->m_curves.splice(myArea->m_curves.end(), myAreaOpen->m_curves);
                 pending = false;
-                if (areaClip.m_curves.size()) {
+                if (!areaClip.m_curves.empty()) {
                     if (op == OperationCompound)
                         myArea->m_curves.splice(myArea->m_curves.end(), areaClip.m_curves);
                     else {
@@ -2220,7 +2277,7 @@ TopoDS_Shape Area::toShape(const CCurve& _c, const gp_Trsf* trsf, int reorient) 
             double r = center.Distance(pt);
             double r2 = center.Distance(pnext);
             bool fix_arc = fabs(r - r2) > Precision::Confusion();
-            while (1) {
+            while (true) {
                 if (fix_arc) {
                     double d = pt.Distance(pnext);
                     double rr = r * r;
@@ -2343,15 +2400,15 @@ struct WireInfo {
     }
 };
 
-typedef std::list<WireInfo> Wires;
-typedef std::pair<Wires::iterator, size_t> RValue;
+using Wires = std::list<WireInfo>;
+using RValue = std::pair<Wires::iterator, size_t>;
 
 struct RGetter
 {
-    typedef const gp_Pnt& result_type;
+    using result_type = const gp_Pnt&;
     result_type operator()(const RValue& v) const { return v.first->points[v.second]; }
 };
-typedef bgi::rtree<RValue, RParameters, RGetter> RTree;
+using RTree = bgi::rtree<RValue, RParameters, RGetter>;
 
 struct ShapeParams {
     double abscissa;
@@ -2374,7 +2431,7 @@ struct ShapeParams {
 bool operator<(const Wires::iterator& a, const Wires::iterator& b) {
     return &(*a) < &(*b);
 }
-typedef std::map<Wires::iterator, size_t> RResults;
+using RResults = std::map<Wires::iterator, size_t>;
 
 struct GetWires {
     Wires& wires;
@@ -2646,7 +2703,7 @@ struct ShapeInfo {
                 if (mySupportEdge) {
                     //if best point is on some edge, split the edge in half
                     if (edge.IsEqual(mySupport)) {
-                        //to fix PointProjectionFailed.     
+                        //to fix PointProjectionFailed.
                         GeomAPI_ProjectPointOnCurve gpp;
                         gpp.Init(myBestPt, curve);
                         gpp.Perform(myBestPt);
@@ -3041,7 +3098,7 @@ std::list<TopoDS_Shape> Area::sortWires(const std::list<TopoDS_Shape>& shapes,
     gp_Pnt pstart, pend;
     if (_pstart)
         pstart = *_pstart;
-    bool use_bound = !has_start || _pstart == nullptr;
+    bool use_bound = !has_start || !_pstart;
 
     //Second stage, group shape by its plane, and find overall boundary
 
@@ -3121,7 +3178,7 @@ std::list<TopoDS_Shape> Area::sortWires(const std::list<TopoDS_Shape>& shapes,
     auto current_it = shape_list.end();
     double current_height = (pstart.*getter)();
     double max_dist = sort_mode == SortModeGreedy ? threshold * threshold : 0;
-    while (shape_list.size()) {
+    while (!shape_list.empty()) {
         AREA_TRACE("sorting " << shape_list.size() << ' ' << AREA_XYZ(pstart));
         double best_d = DBL_MAX;
         auto best_it = shape_list.begin();
@@ -3314,7 +3371,7 @@ void Area::toPath(Toolpath& path, const std::list<TopoDS_Shape>& shapes,
         PARAM_REF(PARAM_FARG, AREA_PARAMS_ARC_PLANE),
         PARAM_FIELDS(PARAM_FARG, AREA_PARAMS_SORT));
 
-    if (wires.size() == 0)
+    if (wires.empty())
         return;
 
     short currentArcPlane = arc_plane;

@@ -20,8 +20,11 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
+
+#ifndef _PreComp_
+# include <QObject>
+#endif
 
 #include <App/Document.h>
 #include <Base/Console.h>
@@ -36,15 +39,11 @@ using namespace PartGui;
 PROPERTY_SOURCE(PartGui::ViewProviderPart, PartGui::ViewProviderPartExt)
 
 
-ViewProviderPart::ViewProviderPart()
-{
-}
+ViewProviderPart::ViewProviderPart() = default;
 
-ViewProviderPart::~ViewProviderPart()
-{
-}
+ViewProviderPart::~ViewProviderPart() = default;
 
-bool ViewProviderPart::doubleClicked(void)
+bool ViewProviderPart::doubleClicked()
 {
     try {
         QString text = QObject::tr("Edit %1").arg(QString::fromUtf8(getObject()->Label.getValue()));

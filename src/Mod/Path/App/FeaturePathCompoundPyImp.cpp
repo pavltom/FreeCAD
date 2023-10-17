@@ -20,21 +20,17 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
-
-#include "FeaturePathCompound.h"
-#include <CXX/Objects.hxx>
 
 // inclusion of the generated files (generated out of FeaturePathCompoundPy.xml)
 #include "FeaturePathCompoundPy.h"
 #include "FeaturePathCompoundPy.cpp"
 
+
 using namespace Path;
 
-
 // returns a string which represents the object e.g. when printed in python
-std::string FeaturePathCompoundPy::representation(void) const
+std::string FeaturePathCompoundPy::representation() const
 {
     return std::string("<Path::FeatureCompound>");
 }

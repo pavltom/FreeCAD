@@ -71,11 +71,11 @@ public:
             QWidget* parent = nullptr, Qt::WindowFlags fl = Qt::WindowFlags());
 
     /// Destructor
-    ~DlgObjectSelection();
+    ~DlgObjectSelection() override;
 
     /// Options for getSelections()
     enum class SelectionOptions {
-        /// Invert the selection, i.e. return the unselected objects 
+        /// Invert the selection, i.e. return the unselected objects
         Invert = 1,
         /// Sort the returned object in depending order
         Sort = 2,
@@ -91,8 +91,8 @@ public:
     /// Override the prompt message
     void setMessage(const QString &);
 
-    void accept();
-    void reject();
+    void accept() override;
+    void reject() override;
 
 private Q_SLOTS:
     void onDepItemChanged(QTreeWidgetItem * item, int);
@@ -102,6 +102,7 @@ private Q_SLOTS:
     void onAutoDeps(bool);
     void onItemExpanded(QTreeWidgetItem *item);
     void onUseOriginalsBtnClicked();
+    void onShowDeps();
 
 private:
     QTreeWidgetItem *getItem(App::DocumentObject *obj,
@@ -125,8 +126,8 @@ private:
     std::map<App::SubObjectT, QTreeWidgetItem*> depMap;
     std::map<App::SubObjectT, QTreeWidgetItem*> inMap;
     std::map<App::SubObjectT, Qt::CheckState> itemChanged;
-    QTreeWidgetItem *allItem = nullptr;    
-    
+    QTreeWidgetItem *allItem = nullptr;
+
     QPushButton* useOriginalsBtn;
     bool returnOriginals = false;
 

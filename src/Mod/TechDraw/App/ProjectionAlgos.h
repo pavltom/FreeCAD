@@ -19,41 +19,45 @@
  *   Suite 330, Boston, MA  02111-1307, USA                                *
  *                                                                         *
  ***************************************************************************/
-//this file originally part of TechDraw workbench
+//this file originally part of Drawing workbench
 //migrated to TechDraw workbench 2022-01-26 by Wandererfan
 
+#ifndef TechDrawProjectionAlgos_h_
+#define TechDrawProjectionAlgos_h_
 
-#ifndef _TechDrawProjectionAlgos_h_
-#define _TechDrawProjectionAlgos_h_
+#include <map>
+#include <string>
+#include <TopoDS_Shape.hxx>
 
+#include <Base/Vector3D.h>
 #include <Mod/TechDraw/TechDrawGlobal.h>
 
-#include <TopoDS_Shape.hxx>
-#include <Base/Vector3D.h>
-#include <string>
 
 class BRepAdaptor_Curve;
 
 namespace TechDraw
 {
 
+  const TopoDS_Shape& build3dCurves(const TopoDS_Shape& shape);
+  
 /** Algo class for projecting shapes and creating SVG output of it
  */
 class TechDrawExport ProjectionAlgos
 {
 public:
     /// Constructor
-    ProjectionAlgos(const TopoDS_Shape &Input,const Base::Vector3d &Dir);
+    ProjectionAlgos(const TopoDS_Shape &Input, const Base::Vector3d &Dir);
     virtual ~ProjectionAlgos();
 
-    void execute(void);
+    void execute();
 
     enum ExtractionType {
         Plain = 0,
         WithHidden = 1,
         WithSmooth = 2
     };
-    typedef std::map<std::string,std::string> XmlAttributes;
+
+    using XmlAttributes = std::map<std::string,std::string>;
 
     std::string getSVG(ExtractionType type, double tolerance=0.05,
                        XmlAttributes V_style=XmlAttributes(),

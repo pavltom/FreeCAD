@@ -22,24 +22,18 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#include <cassert>
-#include <QGraphicsScene>
-#include <QGraphicsSceneHoverEvent>
-#include <QMouseEvent>
-#include <QPainter>
-#include <QStyleOptionGraphicsItem>
-#endif
+# include <cassert>
 
-#include <App/Application.h>
-#include <App/Material.h>
-#include <Base/Console.h>
-#include <Base/Parameter.h>
+# include <QPainter>
+# include <QStyleOptionGraphicsItem>
+#endif
 
 #include "QGDisplayArea.h"
 
+
 using namespace TechDrawGui;
 
-QGDisplayArea::QGDisplayArea(void)
+QGDisplayArea::QGDisplayArea()
 {
     setHandlesChildEvents(false);
     setCacheMode(QGraphicsItem::NoCache);
@@ -62,7 +56,7 @@ void QGDisplayArea::centerAt(double cX, double cY)
     double height = box.height();
     double newX = cX - width/2.;
     double newY = cY - height/2.;
-    setPos(newX,newY);
+    setPos(newX, newY);
 }
 
 void QGDisplayArea::paint ( QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) {

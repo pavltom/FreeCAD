@@ -23,7 +23,7 @@
 
 __title__ = "FreeCAD FEM solver object Z88"
 __author__ = "Bernd Hahnebach"
-__url__ = "https://www.freecadweb.org"
+__url__ = "https://www.freecad.org"
 
 ## @package SolverZ88
 #  \ingroup FEM
@@ -78,7 +78,27 @@ class Proxy(solverbase.Proxy):
         return True
 
     def edit(self, directory):
-        pattern = os.path.join(directory, "*.txt")
+        pattern = os.path.join(directory, "z88i1.txt")
+        FreeCAD.Console.PrintMessage("{}\n".format(pattern))
+        f = glob.glob(pattern)[0]
+        FemGui.open(f)
+        pattern = os.path.join(directory, "z88i2.txt")
+        FreeCAD.Console.PrintMessage("{}\n".format(pattern))
+        f = glob.glob(pattern)[0]
+        FemGui.open(f)
+        pattern = os.path.join(directory, "z88i5.txt")
+        FreeCAD.Console.PrintMessage("{}\n".format(pattern))
+        f = glob.glob(pattern)[0]
+        FemGui.open(f)
+        pattern = os.path.join(directory, "z88man.txt")
+        FreeCAD.Console.PrintMessage("{}\n".format(pattern))
+        f = glob.glob(pattern)[0]
+        FemGui.open(f)
+        pattern = os.path.join(directory, "z88mat.txt")
+        FreeCAD.Console.PrintMessage("{}\n".format(pattern))
+        f = glob.glob(pattern)[0]
+        FemGui.open(f)
+        pattern = os.path.join(directory, "z88elp.txt")
         FreeCAD.Console.PrintMessage("{}\n".format(pattern))
         f = glob.glob(pattern)[0]
         FemGui.open(f)

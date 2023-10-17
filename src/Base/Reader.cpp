@@ -24,6 +24,7 @@
 #include "PreCompiled.h"
 
 #ifndef _PreComp_
+#include <memory>
 # include <xercesc/sax2/XMLReaderFactory.hpp>
 #endif
 
@@ -31,6 +32,7 @@
 
 #include "Reader.h"
 #include "Base64.h"
+#include "Base64Filter.h"
 #include "Console.h"
 #include "InputSource.h"
 #include "Persistence.h"
@@ -42,6 +44,7 @@
 #include <zipios++/zipios-config.h>
 #endif
 #include <zipios++/zipinputstream.h>
+#include <boost/iostreams/filtering_stream.hpp>
 
 
 XERCES_CPP_NAMESPACE_USE
@@ -54,9 +57,7 @@ using namespace std;
 // ---------------------------------------------------------------------------
 
 Base::XMLReader::XMLReader(const char* FileName, std::istream& str)
-  : DocumentSchema(0), ProgramVersion(""), FileVersion(0), Level(0),
-    CharacterCount(0), ReadType(None), _File(FileName), _valid(false),
-    _verbose(true)
+  : _File(FileName)
 {
 #ifdef _MSC_VER
     str.imbue(std::locale::empty());
@@ -66,13 +67,6 @@ Base::XMLReader::XMLReader(const char* FileName, std::istream& str)
 
     // create the parser
     parser = XMLReaderFactory::createXMLReader();
-    //parser->setFeature(XMLUni::fgSAX2CoreNameSpaces, false);
-    //parser->setFeature(XMLUni::fgXercesSchema, false);
-    //parser->setFeature(XMLUni::fgXercesSchemaFullChecking, false);
-    //parser->setFeature(XMLUni::fgXercesIdentityConstraintChecking, false);
-    //parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes, false);
-    //parser->setFeature(XMLUni::fgSAX2CoreValidation, true);
-    //parser->setFeature(XMLUni::fgXercesDynamic, true);
 
     parser->setContentHandler(this);
     parser->setLexicalHandler(this);
@@ -190,48 +184,28 @@ bool Base::XMLReader::read()
         parser->parseNext(token);
     }
     catch (const XMLException& toCatch) {
-#if 0
-        char* message = XMLString::transcode(toCatch.getMessage());
-        cerr << "Exception message is: \n"
-             << message << "\n";
-        XMLString::release(&message);
-        return false;
-#else
+
         char* message = XMLString::transcode(toCatch.getMessage());
         std::string what = message;
         XMLString::release(&message);
         throw Base::XMLBaseException(what);
-#endif
     }
     catch (const SAXParseException& toCatch) {
-#if 0
-        char* message = XMLString::transcode(toCatch.getMessage());
-        cerr << "Exception message is: \n"
-             << message << "\n";
-        XMLString::release(&message);
-        return false;
-#else
+
         char* message = XMLString::transcode(toCatch.getMessage());
         std::string what = message;
         XMLString::release(&message);
         throw Base::XMLParseException(what);
-#endif
     }
     catch (...) {
-#if 0
-        cerr << "Unexpected Exception \n" ;
-        return false;
-#else
         throw Base::XMLBaseException("Unexpected XML exception");
-#endif
     }
-
     return true;
 }
 
 void Base::XMLReader::readElement(const char* ElementName)
 {
-    bool ok;
+    bool ok{};
     int currentLevel = Level;
     std::string currentName = LocalName;
     do {
@@ -249,8 +223,44 @@ void Base::XMLReader::readElement(const char* ElementName)
              (ElementName && LocalName != ElementName));
 }
 
+bool Base::XMLReader::readNextElement()
+{
+    bool ok{};
+    while (true) {
+        ok = read();
+        if (!ok)
+            break;
+        if (ReadType == StartElement)
+            break;
+        if (ReadType == StartEndElement)
+            break;
+        if (ReadType == EndElement)
+            break;
+        if (ReadType == EndDocument)
+            break;
+    };
+
+    return (ReadType == StartElement ||
+            ReadType == StartEndElement);
+}
+
 int Base::XMLReader::level() const {
     return Level;
+}
+
+bool Base::XMLReader::isEndOfElement() const
+{
+    return (ReadType == EndElement);
+}
+
+bool Base::XMLReader::isStartOfDocument() const
+{
+    return (ReadType == StartDocument);
+}
+
+bool Base::XMLReader::isEndOfDocument() const
+{
+    return (ReadType == EndDocument);
 }
 
 void Base::XMLReader::readEndElement(const char* ElementName, int level)
@@ -268,7 +278,7 @@ void Base::XMLReader::readEndElement(const char* ElementName, int level)
         throw Base::XMLParseException("End of document reached");
     }
 
-    bool ok;
+    bool ok{};
     do {
         ok = read(); if (!ok) break;
         if (ReadType == EndDocument)
@@ -279,8 +289,99 @@ void Base::XMLReader::readEndElement(const char* ElementName, int level)
                         || (level>=0 && level!=Level))));
 }
 
-void Base::XMLReader::readCharacters()
+void Base::XMLReader::readCharacters(const char* filename, CharStreamFormat format)
 {
+    Base::FileInfo fi(filename);
+    Base::ofstream to(fi, std::ios::out | std::ios::binary | std::ios::trunc);
+    if (!to) {
+        throw Base::FileException("XMLReader::readCharacters() Could not open file!");
+    }
+
+    beginCharStream(format) >> to.rdbuf();
+    to.close();
+    endCharStream();
+}
+
+std::streamsize Base::XMLReader::read(char_type* s, std::streamsize n)
+{
+
+    char_type* buf = s;
+    if (CharacterOffset < 0) {
+        return -1;
+    }
+
+    for (;;) {
+        std::streamsize copy_size =
+            static_cast<std::streamsize>(Characters.size()) - CharacterOffset;
+        if (n < copy_size) {
+            copy_size = n;
+        }
+        std::memcpy(s, Characters.c_str() + CharacterOffset, copy_size);
+        n -= copy_size;
+        s += copy_size;
+        CharacterOffset += copy_size;
+
+        if (!n) {
+            break;
+        }
+
+        if (ReadType == Chars) {
+            read();
+        }
+        else {
+            CharacterOffset = -1;
+            break;
+        }
+    }
+
+    return s - buf;
+}
+
+void Base::XMLReader::endCharStream()
+{
+    CharacterOffset = -1;
+    CharStream.reset();
+}
+
+std::istream& Base::XMLReader::charStream()
+{
+    if (!CharStream) {
+        throw Base::XMLParseException("no current character stream");
+    }
+    return *CharStream;
+}
+
+std::istream& Base::XMLReader::beginCharStream(CharStreamFormat format)
+{
+    if (CharStream) {
+        throw Base::XMLParseException("recursive character stream");
+    }
+
+    // TODO: An XML element can actually contain a mix of child elements and
+    // characters. So we should not actually demand 'StartElement' here. But
+    // with the current implementation of character stream, we cannot track
+    // child elements and character content at the same time.
+    if (ReadType == StartElement) {
+        CharacterOffset = 0;
+        read();
+    }
+    else if (ReadType == StartEndElement) {
+        // If we are currently at a self-closing element, just leave the offset
+        // as negative and do not read any characters. This will result in an
+        // empty input stream for the caller.
+        CharacterOffset = -1;
+    }
+    else {
+        throw Base::XMLParseException("invalid state while reading character stream");
+    }
+
+    CharStream = std::make_unique<boost::iostreams::filtering_istream>();
+    auto* filteringStream = dynamic_cast<boost::iostreams::filtering_istream*>(CharStream.get());
+    if(format == CharStreamFormat::Base64Encoded) {
+        filteringStream->push(base64_decoder(Base::base64DefaultBufferSize, Base64ErrorHandling::silent));
+    }
+    filteringStream->push(boost::ref(*this));
+    return *CharStream;
 }
 
 void Base::XMLReader::readBinFile(const char* filename)
@@ -290,7 +391,7 @@ void Base::XMLReader::readBinFile(const char* filename)
     if (!to)
         throw Base::FileException("XMLReader::readBinFile() Could not open file!");
 
-    bool ok;
+    bool ok{};
     do {
         ok = read(); if (!ok) break;
     } while (ReadType != EndCDATA);
@@ -380,8 +481,8 @@ const std::vector<std::string>& Base::XMLReader::getFilenames() const
 bool Base::XMLReader::isRegistered(Base::Persistence *Object) const
 {
     if (Object) {
-        for (std::vector<FileEntry>::const_iterator it = FileList.begin(); it != FileList.end(); ++it) {
-            if (it->Object == Object)
+        for (const auto & it : FileList) {
+            if (it.Object == Object)
                 return true;
         }
     }
@@ -451,22 +552,14 @@ void Base::XMLReader::endCDATA ()
     ReadType = EndCDATA;
 }
 
-#if (XERCES_VERSION_MAJOR == 2)
-void Base::XMLReader::characters(const   XMLCh* const chars, const unsigned int length)
-#else
 void Base::XMLReader::characters(const   XMLCh* const chars, const XMLSize_t length)
-#endif
 {
     Characters = StrX(chars).c_str();
     ReadType = Chars;
     CharacterCount += length;
 }
 
-#if (XERCES_VERSION_MAJOR == 2)
-void Base::XMLReader::ignorableWhitespace( const   XMLCh* const /*chars*/, const unsigned int /*length*/)
-#else
 void Base::XMLReader::ignorableWhitespace( const   XMLCh* const /*chars*/, const XMLSize_t /*length*/)
-#endif
 {
     //fSpaceCount += length;
 }

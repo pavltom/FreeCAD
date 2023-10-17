@@ -20,10 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
-#include "Voronoi.h"
 #include "VoronoiVertex.h"
 
 
@@ -55,7 +53,7 @@ VoronoiVertex::VoronoiVertex(Voronoi::diagram_type *d, const Voronoi::diagram_ty
 VoronoiVertex::~VoronoiVertex() {
 }
 
-bool VoronoiVertex::isBound(void) const {
+bool VoronoiVertex::isBound() const {
   if (ptr && dia.isValid() && index != Voronoi::InvalidIndex) {
     if (&(dia->vertices()[index]) == ptr) {
       return true;

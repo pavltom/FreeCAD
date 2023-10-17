@@ -58,6 +58,7 @@
 #endif
 
 #include <Base/GeometryPyCXX.h>
+#include <Base/PyWrapParseTupleAndKeywords.h>
 #include <Base/VectorPy.h>
 
 #include "GeometryCurvePy.h"
@@ -80,7 +81,7 @@ extern const Py::Object makeTrimmedCurvePy(const Handle(Geom_Curve)& c, double f
 using namespace Part;
 
 // returns a string which represents the object e.g. when printed in python
-std::string GeometryCurvePy::representation(void) const
+std::string GeometryCurvePy::representation() const
 {
     return "<Curve object>";
 }
@@ -160,16 +161,16 @@ PyObject* GeometryCurvePy::discretize(PyObject *args, PyObject *kwds)
         }
         else {
             // use Number kwds
-            static char* kwds_numPoints[] = {"Number","First","Last",nullptr};
+            static const std::array<const char *, 4> kwds_numPoints {"Number", "First", "Last", nullptr};
             PyErr_Clear();
-            if (PyArg_ParseTupleAndKeywords(args, kwds, "i|dd", kwds_numPoints, &numPoints, &first, &last)) {
+            if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "i|dd", kwds_numPoints, &numPoints, &first, &last)) {
                 uniformAbscissaPoints = true;
             }
             else {
                 // use Abscissa kwds
-                static char* kwds_Distance[] = {"Distance","First","Last",nullptr};
+                static const std::array<const char *, 4> kwds_Distance {"Distance", "First", "Last", nullptr};
                 PyErr_Clear();
-                if (PyArg_ParseTupleAndKeywords(args, kwds, "d|dd", kwds_Distance, &distance, &first, &last)) {
+                if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "d|dd", kwds_Distance, &distance, &first, &last)) {
                     uniformAbscissaDistance = true;
                 }
             }
@@ -199,10 +200,10 @@ PyObject* GeometryCurvePy::discretize(PyObject *args, PyObject *kwds)
         }
 
         // use Deflection kwds
-        static char* kwds_Deflection[] = {"Deflection","First","Last",nullptr};
+        static const std::array<const char *, 4> kwds_Deflection {"Deflection", "First", "Last", nullptr};
         PyErr_Clear();
         double deflection;
-        if (PyArg_ParseTupleAndKeywords(args, kwds, "d|dd", kwds_Deflection, &deflection, &first, &last)) {
+        if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "d|dd", kwds_Deflection, &deflection, &first, &last)) {
             GCPnts_UniformDeflection discretizer(adapt, deflection, first, last);
             if (discretizer.IsDone () && discretizer.NbPoints () > 0) {
                 Py::List points;
@@ -221,12 +222,14 @@ PyObject* GeometryCurvePy::discretize(PyObject *args, PyObject *kwds)
         }
 
         // use TangentialDeflection kwds
-        static char* kwds_TangentialDeflection[] = {"Angular","Curvature","First","Last","Minimum",nullptr};
+        static const std::array<const char *, 6> kwds_TangentialDeflection{"Angular", "Curvature", "First", "Last",
+                                                                           "Minimum", nullptr};
         PyErr_Clear();
         double angular;
         double curvature;
         int minimumPoints = 2;
-        if (PyArg_ParseTupleAndKeywords(args, kwds, "dd|ddi", kwds_TangentialDeflection, &angular, &curvature, &first, &last, &minimumPoints)) {
+        if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "dd|ddi", kwds_TangentialDeflection, &angular, &curvature,
+                                                &first, &last, &minimumPoints)) {
             GCPnts_TangentialDeflection discretizer(adapt, first, last, angular, curvature, minimumPoints);
             if (discretizer.NbPoints () > 0) {
                 Py::List points;
@@ -245,10 +248,11 @@ PyObject* GeometryCurvePy::discretize(PyObject *args, PyObject *kwds)
         }
 
         // use QuasiNumber kwds
-        static char* kwds_QuasiNumPoints[] = {"QuasiNumber","First","Last",nullptr};
+        static const std::array<const char *, 4> kwds_QuasiNumPoints {"QuasiNumber", "First", "Last", nullptr};
         PyErr_Clear();
         int quasiNumPoints;
-        if (PyArg_ParseTupleAndKeywords(args, kwds, "i|dd", kwds_QuasiNumPoints, &quasiNumPoints, &first, &last)) {
+        if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "i|dd", kwds_QuasiNumPoints, &quasiNumPoints, &first,
+                                                &last)) {
             GCPnts_QuasiUniformAbscissa discretizer(adapt, quasiNumPoints, first, last);
             if (discretizer.NbPoints () > 0) {
                 Py::List points;
@@ -267,10 +271,11 @@ PyObject* GeometryCurvePy::discretize(PyObject *args, PyObject *kwds)
         }
 
         // use QuasiDeflection kwds
-        static char* kwds_QuasiDeflection[] = {"QuasiDeflection","First","Last",nullptr};
+        static const std::array<const char *, 4> kwds_QuasiDeflection {"QuasiDeflection", "First", "Last", nullptr};
         PyErr_Clear();
         double quasiDeflection;
-        if (PyArg_ParseTupleAndKeywords(args, kwds, "d|dd", kwds_QuasiDeflection, &quasiDeflection, &first, &last)) {
+        if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "d|dd", kwds_QuasiDeflection, &quasiDeflection, &first,
+                                                &last)) {
             GCPnts_QuasiUniformDeflection discretizer(adapt, quasiDeflection, first, last);
             if (discretizer.NbPoints () > 0) {
                 Py::List points;
@@ -554,12 +559,13 @@ PyObject* GeometryCurvePy::normal(PyObject *args)
 
 PyObject* GeometryCurvePy::projectPoint(PyObject *args, PyObject* kwds)
 {
-    PyObject* v;
-    const char* meth = "NearestPoint";
-    static char *kwlist[] = {"Point", "Method", nullptr};
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|s", kwlist,
-        &Base::VectorPy::Type, &v, &meth))
+    PyObject *v;
+    const char *meth = "NearestPoint";
+    static const std::array<const char *, 3> kwlist{"Point", "Method", nullptr};
+    if (!Base::Wrapped_ParseTupleAndKeywords(args, kwds, "O!|s", kwlist,
+                                             &Base::VectorPy::Type, &v, &meth)) {
         return nullptr;
+    }
 
     try {
         Base::Vector3d vec = Py::Vector(v, false).toVector();
@@ -975,7 +981,7 @@ PyObject* GeometryCurvePy::continuityWith(PyObject *args)
     return nullptr;
 }
 
-Py::String GeometryCurvePy::getContinuity(void) const
+Py::String GeometryCurvePy::getContinuity() const
 {
     GeomAbs_Shape c = Handle(Geom_Curve)::DownCast
         (getGeometryPtr()->handle())->Continuity();
@@ -1009,13 +1015,13 @@ Py::String GeometryCurvePy::getContinuity(void) const
     return Py::String(str);
 }
 
-Py::Float GeometryCurvePy::getFirstParameter(void) const
+Py::Float GeometryCurvePy::getFirstParameter() const
 {
     return Py::Float(Handle(Geom_Curve)::DownCast
         (getGeometryPtr()->handle())->FirstParameter());
 }
 
-Py::Float GeometryCurvePy::getLastParameter(void) const
+Py::Float GeometryCurvePy::getLastParameter() const
 {
     return Py::Float(Handle(Geom_Curve)::DownCast
         (getGeometryPtr()->handle())->LastParameter());
@@ -1093,8 +1099,8 @@ PyObject* GeometryCurvePy::intersectCC(PyObject *args)
         }
 
         Py::List points;
-        for (size_t i = 0; i < pairs.size(); i++) {
-            points.append(Py::asObject(new PointPy(new GeomPoint(pairs[i].first))));
+        for (const auto & pair : pairs) {
+            points.append(Py::asObject(new PointPy(new GeomPoint(pair.first))));
         }
 
         return Py::new_reference_to(points);
@@ -1135,7 +1141,7 @@ PyObject* GeometryCurvePy::intersect(PyObject *args)
     return nullptr;
 }
 
-Py::Object GeometryCurvePy::getRotation(void) const
+Py::Object GeometryCurvePy::getRotation() const
 {
     Handle(Geom_Conic) s = Handle(Geom_Conic)::DownCast(getGeometryPtr()->handle());
     if(!s)

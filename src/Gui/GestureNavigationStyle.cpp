@@ -93,8 +93,8 @@ namespace Gui {
 class NS::Event : public sc::event<NS::Event>
 {
 public:
-    Event():inventor_event(nullptr), modifiers{}, flags(new Flags){}
-    virtual ~Event(){}
+    Event() : flags(new Flags){}
+    virtual ~Event() = default;
 
     void log() const {
         if (isPress(1))
@@ -197,8 +197,8 @@ public:
     };
 
 public:
-    const SoEvent* inventor_event;
-    unsigned int modifiers;
+    const SoEvent* inventor_event{nullptr};
+    unsigned int modifiers{0};
     unsigned int mbstate() const {return modifiers & MASKBUTTONS;}
     unsigned int kbdstate() const {return modifiers & MASKMODIFIERS;}
 
@@ -220,9 +220,9 @@ public:
 class NS::NaviMachine : public sc::state_machine<NS::NaviMachine, NS::IdleState>
 {
 public:
-    typedef sc::state_machine<NS::NaviMachine, NS::IdleState> superclass;
+    using superclass = sc::state_machine<NS::NaviMachine, NS::IdleState>;
 
-    NaviMachine(NS& ns) : ns(ns) {}
+    explicit NaviMachine(NS& ns) : ns(ns) {}
     NS& ns;
 
 public:
@@ -236,16 +236,16 @@ public:
 class NS::IdleState : public sc::state<NS::IdleState, NS::NaviMachine>
 {
 public:
-    typedef sc::custom_reaction<NS::Event> reactions;
+    using reactions = sc::custom_reaction<NS::Event>;
 
-    IdleState(my_context ctx):my_base(ctx)
+    explicit IdleState(my_context ctx):my_base(ctx)
     {
         auto &ns = this->outermost_context().ns;
         ns.setViewingMode(NavigationStyle::IDLE);
         if (ns.logging)
             Base::Console().Log(" -> IdleState\n");
     }
-    virtual ~IdleState(){}
+    virtual ~IdleState() = default;
 
     sc::result react(const NS::Event& ev){
         auto &ns = this->outermost_context().ns;
@@ -339,7 +339,7 @@ public:
 class NS::AwaitingMoveState : public sc::state<NS::AwaitingMoveState, NS::NaviMachine>
 {
 public:
-    typedef sc::custom_reaction<NS::Event> reactions;
+    using reactions = sc::custom_reaction<NS::Event>;
 
 private:
     SbVec2s base_pos;
@@ -347,7 +347,7 @@ private:
     int hold_timeout; //in milliseconds
 
 public:
-    AwaitingMoveState(my_context ctx):my_base(ctx)
+    explicit AwaitingMoveState(my_context ctx):my_base(ctx)
     {
         auto &ns = this->outermost_context().ns;
         if (ns.logging)
@@ -480,21 +480,22 @@ public:
 class NS::RotateState : public sc::state<NS::RotateState, NS::NaviMachine>
 {
 public:
-    typedef sc::custom_reaction<NS::Event> reactions;
+    using reactions = sc::custom_reaction<NS::Event>;
 
 private:
     SbVec2s base_pos;
 
 public:
-    RotateState(my_context ctx):my_base(ctx)
+    explicit RotateState(my_context ctx):my_base(ctx)
     {
         auto &ns = this->outermost_context().ns;
+        ns.setRotationCenter(ns.getFocalPoint());
         ns.setViewingMode(NavigationStyle::DRAGGING);
         this->base_pos = static_cast<const NS::Event*>(this->triggering_event())->inventor_event->getPosition();
         if (ns.logging)
             Base::Console().Log(" -> RotateState\n");
     }
-    virtual ~RotateState(){}
+    virtual ~RotateState() = default;
 
     sc::result react(const NS::Event& ev){
         if(ev.isMouseButtonEvent()){
@@ -522,14 +523,14 @@ public:
 class NS::PanState : public sc::state<NS::PanState, NS::NaviMachine>
 {
 public:
-    typedef sc::custom_reaction<NS::Event> reactions;
+    using reactions = sc::custom_reaction<NS::Event>;
 
 private:
     SbVec2s base_pos;
     float ratio;
 
 public:
-    PanState(my_context ctx):my_base(ctx)
+    explicit PanState(my_context ctx):my_base(ctx)
     {
         auto &ns = this->outermost_context().ns;
         ns.setViewingMode(NavigationStyle::PANNING);
@@ -539,7 +540,7 @@ public:
         this->ratio = ns.viewer->getSoRenderManager()->getViewportRegion().getViewportAspectRatio();
         ns.pan(ns.viewer->getSoRenderManager()->getCamera());//set up panningplane
     }
-    virtual ~PanState(){}
+    virtual ~PanState() = default;
 
     sc::result react(const NS::Event& ev){
         if(ev.isMouseButtonEvent()){
@@ -569,14 +570,14 @@ public:
 class NS::StickyPanState : public sc::state<NS::StickyPanState, NS::NaviMachine>
 {
 public:
-    typedef sc::custom_reaction<NS::Event> reactions;
+    using reactions = sc::custom_reaction<NS::Event>;
 
 private:
     SbVec2s base_pos;
     float ratio;
 
 public:
-    StickyPanState(my_context ctx):my_base(ctx)
+    explicit StickyPanState(my_context ctx):my_base(ctx)
     {
         auto &ns = this->outermost_context().ns;
         ns.setViewingMode(NavigationStyle::PANNING);
@@ -616,22 +617,23 @@ public:
 class NS::TiltState : public sc::state<NS::TiltState, NS::NaviMachine>
 {
 public:
-    typedef sc::custom_reaction<NS::Event> reactions;
+    using reactions = sc::custom_reaction<NS::Event>;
 
 private:
     SbVec2s base_pos;
 
 public:
-    TiltState(my_context ctx):my_base(ctx)
+    explicit TiltState(my_context ctx):my_base(ctx)
     {
         auto &ns = this->outermost_context().ns;
+        ns.setRotationCenter(ns.getFocalPoint());
         ns.setViewingMode(NavigationStyle::DRAGGING);
         this->base_pos = static_cast<const NS::Event*>(this->triggering_event())->inventor_event->getPosition();
         if (ns.logging)
             Base::Console().Log(" -> TiltState\n");
         ns.pan(ns.viewer->getSoRenderManager()->getCamera());//set up panningplane
     }
-    virtual ~TiltState(){}
+    virtual ~TiltState() = default;
 
     sc::result react(const NS::Event& ev){
         if(ev.isMouseButtonEvent()){
@@ -664,7 +666,7 @@ public:
 class NS::GestureState : public sc::state<NS::GestureState, NS::NaviMachine>
 {
 public:
-    typedef sc::custom_reaction<NS::Event> reactions;
+    using reactions = sc::custom_reaction<NS::Event>;
 
 private:
     SbVec2s base_pos;
@@ -672,7 +674,7 @@ private:
     bool enableTilt = false;
 
 public:
-    GestureState(my_context ctx):my_base(ctx)
+    explicit GestureState(my_context ctx):my_base(ctx)
     {
         auto &ns = this->outermost_context().ns;
         ns.setViewingMode(NavigationStyle::PANNING);
@@ -723,7 +725,7 @@ public:
                              panDist,
                              SbVec2f(0,0));
             } else if (ev.inventor_event->isOfType(SoGesturePinchEvent::getClassTypeId())){
-                const SoGesturePinchEvent* const pinch = static_cast<const SoGesturePinchEvent*>(ev.inventor_event);
+                const auto pinch = static_cast<const SoGesturePinchEvent*>(ev.inventor_event);
                 SbVec2f panDist = ns.normalizePixelPos(pinch->deltaCenter.getValue());
                 ns.panCamera(ns.viewer->getSoRenderManager()->getCamera(),
                              ratio,
@@ -750,16 +752,16 @@ public:
 class NS::AwaitingReleaseState : public sc::state<NS::AwaitingReleaseState, NS::NaviMachine>
 {
 public:
-    typedef sc::custom_reaction<NS::Event> reactions;
+    using reactions = sc::custom_reaction<NS::Event>;
 
 public:
-    AwaitingReleaseState(my_context ctx):my_base(ctx)
+    explicit AwaitingReleaseState(my_context ctx):my_base(ctx)
     {
         auto &ns = this->outermost_context().ns;
         if (ns.logging)
             Base::Console().Log(" -> AwaitingReleaseState\n");
     }
-    virtual ~AwaitingReleaseState(){}
+    virtual ~AwaitingReleaseState() = default;
 
     sc::result react(const NS::Event& ev){
         auto &ns = this->outermost_context().ns;
@@ -800,17 +802,17 @@ public:
 class NS::InteractState : public sc::state<NS::InteractState, NS::NaviMachine>
 {
 public:
-    typedef sc::custom_reaction<NS::Event> reactions;
+    using reactions = sc::custom_reaction<NS::Event>;
 
 public:
-    InteractState(my_context ctx):my_base(ctx)
+    explicit InteractState(my_context ctx):my_base(ctx)
     {
         auto &ns = this->outermost_context().ns;
         ns.setViewingMode(NavigationStyle::INTERACT);
         if (ns.logging)
             Base::Console().Log(" -> InteractState\n");
     }
-    virtual ~InteractState(){}
+    virtual ~InteractState() = default;
 
     sc::result react(const NS::Event& ev){
         if(ev.isMouseButtonEvent()){
@@ -842,10 +844,7 @@ GestureNavigationStyle::GestureNavigationStyle()
 
 }
 
-GestureNavigationStyle::~GestureNavigationStyle()
-{
-
-}
+GestureNavigationStyle::~GestureNavigationStyle() = default;
 
 const char* GestureNavigationStyle::mouseButtons(ViewerMode mode)
 {
@@ -963,7 +962,7 @@ bool GestureNavigationStyle::isDraggerUnderCursor(SbVec2s pos)
     rp.apply(this->viewer->getSoRenderManager()->getSceneGraph());
     SoPickedPoint* pick = rp.getPickedPoint();
     if (pick){
-        const SoFullPath* fullpath = static_cast<const SoFullPath*>(pick->getPath());
+        const auto fullpath = static_cast<const SoFullPath*>(pick->getPath());
         for(int i = 0; i < fullpath->getLength(); ++i){
             if(fullpath->getNode(i)->isOfType(SoDragger::getClassTypeId()))
                 return true;
@@ -994,7 +993,7 @@ void GestureNavigationStyle::onRollGesture(int direction)
         cmd = App::GetApplication().GetParameterGroupByPath
             ("User parameter:BaseApp/Preferences/View")->GetASCII("GestureRollBackCommand");
     }
-    if (cmd.size() == 0)
+    if (cmd.empty())
         return;
     std::stringstream code;
     code << "Gui.runCommand(\"" << cmd << "\")";

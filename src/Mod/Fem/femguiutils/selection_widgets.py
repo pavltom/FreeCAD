@@ -24,13 +24,11 @@
 
 __title__ = "FreeCAD FEM select widget"
 __author__ = "Markus Hovorka, Bernd Hahnebach"
-__url__ = "https://www.freecadweb.org"
+__url__ = "https://www.freecad.org"
 
 ## @package FemSelectWidget
 #  \ingroup FEM
 #  \brief FreeCAD FEM FemSelectWidget
-
-import sys
 
 from PySide import QtGui
 from PySide import QtCore
@@ -210,10 +208,7 @@ class SolidSelector(_Selector):
                     foundSolids.add("Solid" + str(solidId + 1))
         if len(foundSolids) == 1:
             it = iter(foundSolids)
-            if sys.version_info.major >= 3:
-                return next(it)
-            else:
-                return it.next()
+            return next(it)
         return None
 
     def _findSub(self, sub, subList):
@@ -269,9 +264,9 @@ class GeometryElementsSelection(QtGui.QWidget):
     def initUI(self):
         # ArchPanel is coded without ui-file too
         # title
-        self.setWindowTitle(
-            self.tr("Geometry reference selector for a") + " " + self.sel_elem_text
-        )
+        self.setWindowTitle(self.tr(
+            "Geometry reference selector for a {}"
+        ).format(self.sel_elem_text))
         # button
         self.pushButton_Add = QtGui.QPushButton(self.tr("Add"))
         # label
@@ -279,12 +274,11 @@ class GeometryElementsSelection(QtGui.QWidget):
         self._helpTextLbl.setWordWrap(True)
         helpTextPart1 = self.tr(
             'Click on "Add" and select geometric elements to add them to the list.{}'
-            "The following geometry elements are allowed to select: {}{}{}"
-            .format("<br>", "<b>", self.sel_elem_text, "</b>")
-        )
+            "The following geometry elements can be selected: {}{}{}"
+        ).format("<br>", "<b>", self.sel_elem_text, "</b>")
         helpTextEmpty = self.tr(
-            "{}If no geometry is added to the list, all remaining ones are used.".format("<br>")
-        )
+            "{}If no geometry is added to the list, all remaining ones are used."
+        ).format("<br>")
         if self.showHintEmptyList is True:
             self._helpTextLbl.setText(
                 helpTextPart1 + helpTextEmpty
@@ -484,12 +478,12 @@ class GeometryElementsSelection(QtGui.QWidget):
             self.sel_server = FemSelectionObserver(self.selectionParser, print_message)
 
     def selectionParser(self, selection):
-        FreeCAD.Console.PrintMessage("Selection: {}  {}  {}\n".format(
-            selection[0].Shape.ShapeType,
-            selection[0].Name,
-            selection[1]
-        ))
         if hasattr(selection[0], "Shape") and selection[1]:
+            FreeCAD.Console.PrintMessage("Selection: {}  {}  {}\n".format(
+                selection[0].Shape.ShapeType,
+                selection[0].Name,
+                selection[1]
+            ))
             sobj = selection[0]
             elt = sobj.Shape.getElement(selection[1])
             ele_ShapeType = elt.ShapeType
@@ -604,7 +598,7 @@ class FemSelectionObserver:
     def __init__(self, parseSelectionFunction, print_message=""):
         self.parseSelectionFunction = parseSelectionFunction
         FreeCADGui.Selection.addObserver(self)
-        FreeCAD.Console.PrintMessage(print_message + "!\n")
+        # FreeCAD.Console.PrintMessage(print_message + "!\n")
 
     def addSelection(self, docName, objName, sub, pos):
         selected_object = FreeCAD.getDocument(docName).getObject(objName)  # get the obj objName

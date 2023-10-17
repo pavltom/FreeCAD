@@ -24,36 +24,36 @@
 #ifndef DRAWINGGUI_VIEWPROVIDERANNOTATION_H
 #define DRAWINGGUI_VIEWPROVIDERANNOTATION_H
 
+#include <Mod/TechDraw/TechDrawGlobal.h>
+
 #include <Mod/TechDraw/App/DrawViewAnnotation.h>
 
 #include "ViewProviderDrawingView.h"
 
 
-namespace TechDrawGui {
-
-
-class TechDrawGuiExport ViewProviderAnnotation : public ViewProviderDrawingView
+namespace TechDrawGui
 {
-    PROPERTY_HEADER(TechDrawGui::ViewProviderAnnotation);
+
+
+class TechDrawGuiExport ViewProviderAnnotation: public ViewProviderDrawingView
+{
+    PROPERTY_HEADER_WITH_OVERRIDE(TechDrawGui::ViewProviderAnnotation);
 
 public:
     /// constructor
     ViewProviderAnnotation();
     /// destructor
-    virtual ~ViewProviderAnnotation();
+    ~ViewProviderAnnotation() override;
 
+    bool useNewSelectionModel() const override { return false; }
+    void updateData(const App::Property*) override;
 
-    virtual void attach(App::DocumentObject *);
-    virtual void setDisplayMode(const char* ModeName);
-    virtual bool useNewSelectionModel(void) const {return false;}
-    /// returns a list of all possible modes
-    virtual std::vector<std::string> getDisplayModes(void) const;
-    virtual void updateData(const App::Property*);
+    std::vector<App::DocumentObject*> claimChildren(void) const override;
 
-    virtual TechDraw::DrawViewAnnotation* getViewObject() const;
+    TechDraw::DrawViewAnnotation* getViewObject() const override;
 };
 
-} // namespace TechDrawGui
+}// namespace TechDrawGui
 
 
-#endif // DRAWINGGUI_VIEWPROVIDERANNOTATION_H
+#endif// DRAWINGGUI_VIEWPROVIDERANNOTATION_H

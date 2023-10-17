@@ -26,6 +26,7 @@
 #include <Mod/TechDraw/TechDrawGlobal.h>
 
 #include <QGraphicsItem>
+#include <QPen>
 
 QT_BEGIN_NAMESPACE
 class QPainter;
@@ -33,6 +34,7 @@ class QStyleOptionGraphicsItem;
 QT_END_NAMESPACE
 
 #include <Base/Parameter.h>
+#include <Base/Vector3D.h>
 
 #include "QGIPrimPath.h"
 
@@ -42,6 +44,14 @@ namespace TechDrawGui
 class QGSPage;
 class QGIView;
 
+//TODO: make this a proper enum
+static constexpr int TRACKERPICK(0);
+static constexpr int TRACKEREDIT(1);
+static constexpr int TRACKERCANCEL(2);
+static constexpr int TRACKERCANCELEDIT(3);
+static constexpr int TRACKERFINISHED(4);
+static constexpr int TRACKERSAVE(5);
+
 class TechDrawGuiExport QGTracker : public QObject, public QGIPrimPath
 {
     Q_OBJECT
@@ -49,15 +59,15 @@ public:
     enum TrackerMode { None, Line, Circle, Rectangle, Point };
 
     explicit QGTracker(QGSPage* scene = nullptr, QGTracker::TrackerMode m = QGTracker::TrackerMode::None);
-    ~QGTracker();
+    ~QGTracker() override;
 
 
     enum {Type = QGraphicsItem::UserType + 210};
 
     int type() const override { return Type;}
-    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = nullptr ) override;
-    virtual QPainterPath shape() const override;
-    virtual QRectF boundingRect() const override;
+    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = nullptr ) override;
+    QPainterPath shape() const override;
+    QRectF boundingRect() const override;
 
     void onMousePress(QPointF);
     void onMouseMove(QPointF pos);
@@ -70,10 +80,10 @@ public:
     void setSquareFromPoints(std::vector<QPointF> pts);
     void setCircleFromPoints(std::vector<QPointF> pts);
     void setPoint(std::vector<QPointF> pts);
-    std::vector<Base::Vector3d> convertPoints(void);
-    void terminateDrawing(void);
+    std::vector<Base::Vector3d> convertPoints();
+    void terminateDrawing();
     void sleep(bool b);
-    TrackerMode getTrackerMode(void) { return m_trackerMode; }
+    TrackerMode getTrackerMode() { return m_trackerMode; }
     void setTrackerMode(TrackerMode m) { m_trackerMode = m; }
     QPointF snapToAngle(QPointF pt);
 
@@ -82,15 +92,12 @@ Q_SIGNALS:
     void qViewPicked(QPointF pos, TechDrawGui::QGIView* qgParent);
 
 protected:
-    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-    virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
-    virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
-    virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
-    virtual void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
-    virtual void keyPressEvent(QKeyEvent * event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+    void keyPressEvent(QKeyEvent * event) override;
 
-    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
     void getPickedQGIV(QPointF pos);
 
     QColor getTrackerColor();

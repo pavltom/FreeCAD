@@ -40,7 +40,7 @@ using namespace Part;
 extern const char* gce_ErrorStatusText(gce_ErrorType et);
 
 // returns a string which represents the object e.g. when printed in python
-std::string ArcOfCirclePy::representation(void) const
+std::string ArcOfCirclePy::representation() const
 {
     Handle(Geom_TrimmedCurve) trim = Handle(Geom_TrimmedCurve)::DownCast
         (getGeomArcOfCirclePtr()->handle());
@@ -55,10 +55,10 @@ std::string ArcOfCirclePy::representation(void) const
 
     std::stringstream str;
     str << "ArcOfCircle (";
-    str << "Radius : " << fRad << ", "; 
-    str << "Position : (" << loc.X() << ", "<< loc.Y() << ", "<< loc.Z() << "), "; 
-    str << "Direction : (" << dir.X() << ", "<< dir.Y() << ", "<< dir.Z() << "), "; 
-    str << "Parameter : (" << u1 << ", " << u2 << ")"; 
+    str << "Radius : " << fRad << ", ";
+    str << "Position : (" << loc.X() << ", "<< loc.Y() << ", "<< loc.Z() << "), ";
+    str << "Direction : (" << dir.X() << ", "<< dir.Y() << ", "<< dir.Z() << "), ";
+    str << "Parameter : (" << u1 << ", " << u2 << ")";
     str << ")";
 
     return str.str();
@@ -66,7 +66,7 @@ std::string ArcOfCirclePy::representation(void) const
 
 PyObject *ArcOfCirclePy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // Python wrapper
 {
-    // create a new instance of ArcOfCirclePy and the Twin object 
+    // create a new instance of ArcOfCirclePy and the Twin object
     return new ArcOfCirclePy(new GeomArcOfCircle);
 }
 
@@ -126,9 +126,9 @@ int ArcOfCirclePy::PyInit(PyObject* args, PyObject* /*kwds*/)
     return -1;
 }
 
-Py::Float ArcOfCirclePy::getRadius(void) const
+Py::Float ArcOfCirclePy::getRadius() const
 {
-    return Py::Float(getGeomArcOfCirclePtr()->getRadius()); 
+    return Py::Float(getGeomArcOfCirclePtr()->getRadius());
 }
 
 void  ArcOfCirclePy::setRadius(Py::Float arg)
@@ -136,7 +136,7 @@ void  ArcOfCirclePy::setRadius(Py::Float arg)
     getGeomArcOfCirclePtr()->setRadius((double)arg);
 }
 
-Py::Object ArcOfCirclePy::getCircle(void) const
+Py::Object ArcOfCirclePy::getCircle() const
 {
     Handle(Geom_TrimmedCurve) trim = Handle(Geom_TrimmedCurve)::DownCast
         (getGeomArcOfCirclePtr()->handle());
@@ -151,5 +151,5 @@ PyObject *ArcOfCirclePy::getCustomAttributes(const char* ) const
 
 int ArcOfCirclePy::setCustomAttributes(const char* , PyObject *)
 {
-    return 0; 
+    return 0;
 }

@@ -114,7 +114,10 @@ public:
     void getEulerAngles(EulerSequence seq, double &alpha, double &beta, double &gamma) const;
     void setEulerAngles(EulerSequence seq, double alpha, double beta, double gamma);
     bool isIdentity() const;
+    bool isIdentity(double tol) const;
     bool isNull() const;
+    bool isSame(const Rotation&) const;
+    bool isSame(const Rotation&, double tol) const;
     //@}
 
     /** Invert rotations. */
@@ -133,11 +136,14 @@ public:
     const double & operator [] (unsigned short usIndex) const{return quat[usIndex];}
     void operator = (const Rotation&);
 
+    Rotation& multRight(const Base::Rotation& q);
+    Rotation& multLeft(const Base::Rotation& q);
+
     void multVec(const Vector3d & src, Vector3d & dst) const;
     Vector3d multVec(const Vector3d & src) const;
+    void multVec(const Vector3f & src, Vector3f & dst) const;
+    Vector3f multVec(const Vector3f & src) const;
     void scaleAngle(const double scaleFactor);
-    bool isSame(const Rotation&) const;
-    bool isSame(const Rotation&, double tol) const;
     //@}
 
     /** Specialty constructors */

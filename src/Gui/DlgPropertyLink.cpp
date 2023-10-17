@@ -44,6 +44,7 @@
 #include "PropertyView.h"
 #include "Selection.h"
 #include "Tree.h"
+#include "TreeParams.h"
 #include "View3DInventor.h"
 #include "ViewProviderDocumentObject.h"
 
@@ -52,10 +53,10 @@ using namespace Gui::Dialog;
 
 class ItemDelegate: public QStyledItemDelegate {
 public:
-    ItemDelegate(QObject* parent=nullptr): QStyledItemDelegate(parent) {}
+    explicit ItemDelegate(QObject* parent=nullptr): QStyledItemDelegate(parent) {}
 
-    virtual QWidget* createEditor(QWidget *parent,
-            const QStyleOptionViewItem &option, const QModelIndex &index) const
+    QWidget* createEditor(QWidget *parent,
+            const QStyleOptionViewItem &option, const QModelIndex &index) const override
     {
         if(index.column() != 1)
             return nullptr;
@@ -70,6 +71,13 @@ DlgPropertyLink::DlgPropertyLink(QWidget* parent)
   , ui(new Ui_DlgPropertyLink)
 {
     ui->setupUi(this);
+    connect(ui->checkObjectType, &QCheckBox::toggled,
+            this, &DlgPropertyLink::onObjectTypeToggled);
+    connect(ui->typeTree, &QTreeWidget::itemSelectionChanged,
+            this, &DlgPropertyLink::onTypeTreeItemSelectionChanged);
+    connect(ui->searchBox, &ExpressionLineEdit::textChanged,
+            this, &DlgPropertyLink::onSearchBoxTextChanged);
+
     ui->typeTree->hide();
     ui->searchBox->installEventFilter(this);
     ui->searchBox->setNoProperty(true);
@@ -77,22 +85,23 @@ DlgPropertyLink::DlgPropertyLink(QWidget* parent)
 
     timer = new QTimer(this);
     timer->setSingleShot(true);
-    connect(timer, SIGNAL(timeout()), this, SLOT(onTimer()));
+
+    connect(timer, &QTimer::timeout, this, &DlgPropertyLink::onTimer);
 
     ui->treeWidget->setEditTriggers(QAbstractItemView::DoubleClicked);
     ui->treeWidget->setItemDelegate(new ItemDelegate(this));
     ui->treeWidget->setMouseTracking(true);
-    connect(ui->treeWidget, SIGNAL(itemEntered(QTreeWidgetItem*, int)),
-            this, SLOT(onItemEntered(QTreeWidgetItem*)));
+    connect(ui->treeWidget, &QTreeWidget::itemEntered,
+            this, &DlgPropertyLink::onItemEntered);
 
-    connect(ui->treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
-            this, SLOT(onItemExpanded(QTreeWidgetItem*)));
+    connect(ui->treeWidget, &QTreeWidget::itemExpanded,
+            this, &DlgPropertyLink::onItemExpanded);
 
-    connect(ui->treeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelectionChanged()));
+    connect(ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &DlgPropertyLink::onItemSelectionChanged);
 
-    connect(ui->searchBox, SIGNAL(returnPressed()), this, SLOT(onItemSearch()));
+    connect(ui->searchBox, &QLineEdit::returnPressed, this, &DlgPropertyLink::onItemSearch);
 
-    connect(ui->buttonBox, SIGNAL(clicked(QAbstractButton*)), this, SLOT(onClicked(QAbstractButton*)));
+    connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &DlgPropertyLink::onClicked);
 
     refreshButton = ui->buttonBox->addButton(tr("Reset"), QDialogButtonBox::ActionRole);
     resetButton = ui->buttonBox->addButton(tr("Clear"), QDialogButtonBox::ResetRole);
@@ -178,7 +187,7 @@ static inline bool isLinkSub(const QList<App::SubObjectT>& links)
 QString DlgPropertyLink::formatLinks(App::Document *ownerDoc, QList<App::SubObjectT> links)
 {
     if(!ownerDoc || links.empty())
-        return QString();
+        return {};
 
     auto obj = links.front().getObject();
     if(!obj)
@@ -449,7 +458,7 @@ void DlgPropertyLink::showEvent(QShowEvent *ev) {
 }
 
 void DlgPropertyLink::onItemEntered(QTreeWidgetItem *) {
-    int timeout = Gui::TreeParams::Instance()->PreSelectionDelay()/2;
+    int timeout = Gui::TreeParams::getPreSelectionDelay()/2;
     if(timeout < 0)
         timeout = 1;
     timer->start(timeout);
@@ -466,7 +475,7 @@ void DlgPropertyLink::detachObserver() {
         detachSelection();
 
     auto view = qobject_cast<Gui::PropertyView*>(parentView.data());
-    if(view && savedSelections.size()) {
+    if(view && !savedSelections.empty()) {
         try {
             Gui::Selection().clearSelection();
         }
@@ -501,7 +510,7 @@ void DlgPropertyLink::onItemSelectionChanged()
     selections = newSelections;
 
     auto sobjs = getLinkFromItem(newSelections.back());
-    App::DocumentObject *obj = sobjs.size()?sobjs.front().getObject():nullptr;
+    App::DocumentObject *obj = !sobjs.empty()?sobjs.front().getObject():nullptr;
     if(!obj) {
         Gui::Selection().clearSelection();
         return;
@@ -509,7 +518,7 @@ void DlgPropertyLink::onItemSelectionChanged()
 
     bool focus = false;
     // Do auto view switch if tree view does not do it
-    if(!TreeParams::Instance()->SyncView()) {
+    if(!TreeParams::getSyncView()) {
         focus = ui->treeWidget->hasFocus();
         auto doc = Gui::Application::Instance->getDocument(sobjs.front().getDocumentName().c_str());
         if(doc) {
@@ -760,7 +769,7 @@ QString DlgPropertyLink::linksToPython(const QList<App::SubObjectT>& links) {
         ss << '(' << links.front().getObjectPython() << ", [";
         for(const auto& link : links) {
             const auto &sub = link.getSubName();
-            if(sub.size())
+            if(!sub.empty())
                 ss << "u'" << Base::Tools::escapedUnicodeFromUtf8(sub.c_str()) << "',";
         }
         ss << "])";
@@ -900,7 +909,7 @@ QTreeWidgetItem *DlgPropertyLink::createItem(
     item->setData(0, Qt::UserRole+1, QByteArray(obj->getDocument()->getName()));
 
     if(allowSubObject) {
-        item->setChildIndicatorPolicy(obj->getLinkedObject(true)->getOutList().size()?
+        item->setChildIndicatorPolicy(!obj->getLinkedObject(true)->getOutList().empty()?
                 QTreeWidgetItem::ShowIndicator:QTreeWidgetItem::DontShowIndicator);
         item->setFlags(item->flags() | Qt::ItemIsEditable | Qt::ItemIsUserCheckable);
     }
@@ -1045,13 +1054,13 @@ void DlgPropertyLink::onItemExpanded(QTreeWidgetItem * item) {
     }
 }
 
-void DlgPropertyLink::on_checkObjectType_toggled(bool on)
+void DlgPropertyLink::onObjectTypeToggled(bool on)
 {
     ui->typeTree->setVisible(on);
     filterObjects();
 }
 
-void DlgPropertyLink::on_typeTree_itemSelectionChanged() {
+void DlgPropertyLink::onTypeTreeItemSelectionChanged() {
 
     selectedTypes.clear();
     const auto items = ui->typeTree->selectedItems();
@@ -1062,7 +1071,7 @@ void DlgPropertyLink::on_typeTree_itemSelectionChanged() {
         filterObjects();
 }
 
-void DlgPropertyLink::on_searchBox_textChanged(const QString& text)
+void DlgPropertyLink::onSearchBoxTextChanged(const QString& text)
 {
     itemSearch(text,false);
 }

@@ -20,11 +20,10 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #include "PreCompiled.h"
 
-#include "Voronoi.h"
 #include "VoronoiCell.h"
+
 
 using namespace Base;
 using namespace Path;
@@ -54,7 +53,7 @@ VoronoiCell::VoronoiCell(Voronoi::diagram_type *d, const Voronoi::diagram_type::
 VoronoiCell::~VoronoiCell() {
 }
 
-bool VoronoiCell::isBound(void) const {
+bool VoronoiCell::isBound() const {
   if (ptr && dia.isValid() && index != Voronoi::InvalidIndex) {
     if (&(dia->cells()[index]) == ptr) {
       return true;

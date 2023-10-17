@@ -169,11 +169,7 @@ const char* AttachEngine::eRefTypeStrings[]= {
 
 TYPESYSTEM_SOURCE_ABSTRACT(Attacher::AttachEngine, Base::BaseClass)
 
-AttachEngine::AttachEngine()
- : mapMode(mmDeactivated), mapReverse(false), attachParameter(0.0),
-   surfU(0.0), surfV(0.0)
-{
-}
+AttachEngine::AttachEngine() = default;
 
 void AttachEngine::setUp(const App::PropertyLinkSubList &references,
                          eMapMode mapMode, bool mapReverse,
@@ -344,9 +340,8 @@ void AttachEngine::suggestMapModes(SuggestResult &result) const
         if (! this->modeEnabled[iMode])
             continue;
         const refTypeStringList &listStrings = modeRefTypes[iMode];
-        for (std::size_t iStr = 0; iStr < listStrings.size(); ++iStr) {
+        for (const auto & str : listStrings) {
             int score = 1; //-1 = topo incompatible, 0 = topo compatible, geom incompatible; 1+ = compatible (the higher - the more specific is the mode for the support)
-            const refTypeString &str = listStrings[iStr];
             for (std::size_t iChr = 0; iChr < str.size() && iChr < typeStr.size(); ++iChr) {
                 int match = AttachEngine::isShapeOfType(typeStr[iChr], str[iChr]);
                 switch(match){
@@ -398,7 +393,7 @@ void AttachEngine::suggestMapModes(SuggestResult &result) const
                 }
             }
             if (score > 0){
-                if(mlist.size() == 0)
+                if(mlist.empty())
                     mlist.push_back(eMapMode(iMode));
                 else if (mlist.back() != eMapMode(iMode))
                     mlist.push_back(eMapMode(iMode));
@@ -413,7 +408,7 @@ void AttachEngine::EnableAllSupportedModes()
     this->modeEnabled.resize(mmDummy_NumberOfModes,false);
     assert(modeRefTypes.size() > 0);
     for (std::size_t i = 0; i < this->modeEnabled.size(); i++) {
-        modeEnabled[i] = modeRefTypes[i].size() > 0;
+        modeEnabled[i] = !modeRefTypes[i].empty();
     }
 }
 
@@ -623,7 +618,7 @@ std::string AttachEngine::getModeName(eMapMode mmode)
 {
     if(mmode < 0 || mmode >= mmDummy_NumberOfModes)
         throw AttachEngineException("AttachEngine::getModeName: Attachment Mode index is out of range");
-    return std::string(AttachEngine::eMapModeStrings[mmode]);
+    return {AttachEngine::eMapModeStrings[mmode]};
 }
 
 eMapMode AttachEngine::getModeByName(const std::string &modeName)
@@ -988,7 +983,7 @@ Base::Placement AttachEngine3D::calculateAttachedPlacement(const Base::Placement
     std::vector<eRefType> types;
     readLinks(this->references, parts, shapes, copiedShapeStorage, types);
 
-    if (parts.size() == 0)
+    if (parts.empty())
         throw ExceptionCancel();
 
 
@@ -1010,7 +1005,7 @@ Base::Placement AttachEngine3D::calculateAttachedPlacement(const Base::Placement
         //should have been filtered out already!
         break;
     case mmTranslate:{
-        if (shapes.size() < 1)
+        if (shapes.empty())
             throw Base::ValueError("AttachEngine3D::calculateAttachedPlacement: no subobjects specified (need one vertex).");
         const TopoDS_Shape &sh = *shapes[0];
         if (sh.IsNull())
@@ -1116,7 +1111,7 @@ Base::Placement AttachEngine3D::calculateAttachedPlacement(const Base::Placement
         SketchBasePoint = gpr.CentreOfMass();
     }break;
     case mmFlatFace:{
-        if (shapes.size() < 1)
+        if (shapes.empty())
             throw Base::ValueError("AttachEngine3D::calculateAttachedPlacement: no subobjects specified (needed one planar face).");
 
         const TopoDS_Face &face = TopoDS::Face(*(shapes[0]));
@@ -1222,7 +1217,7 @@ Base::Placement AttachEngine3D::calculateAttachedPlacement(const Base::Placement
     case mmFrenetTB:
     case mmRevolutionSection:
     case mmConcentric: {//all alignments to point on curve
-        if (shapes.size() < 1)
+        if (shapes.empty())
             throw Base::ValueError("AttachEngine3D::calculateAttachedPlacement: no subshapes specified (need one edge, and an optional vertex).");
 
         bool bThruVertex = false;
@@ -1284,7 +1279,7 @@ Base::Placement AttachEngine3D::calculateAttachedPlacement(const Base::Placement
             try{
                 adapt.D2(u,p,d,dd);
             } catch (Standard_Failure &e){
-                //ignore. This is brobably due to insufficient continuity.
+                //ignore. This is probably due to insufficient continuity.
                 dd = gp_Vec(0., 0., 0.);
                 Base::Console().Warning("AttachEngine3D::calculateAttachedPlacement: can't calculate second derivative of curve. OCC error: %s\n", e.GetMessageString());
             }
@@ -1345,8 +1340,8 @@ Base::Placement AttachEngine3D::calculateAttachedPlacement(const Base::Placement
 
         std::vector<gp_Pnt> points;
 
-        for (std::size_t i = 0; i < shapes.size(); i++) {
-            const TopoDS_Shape &sh = *shapes[i];
+        for (const auto & shape : shapes) {
+            const TopoDS_Shape &sh = *shape;
             if (sh.IsNull())
                 throw Base::ValueError("Null shape in AttachEngine3D::calculateAttachedPlacement()!");
             if (sh.ShapeType() == TopAbs_VERTEX){
@@ -1593,7 +1588,7 @@ double AttachEngine3D::calculateFoldAngle(gp_Vec axA, gp_Vec axB, gp_Vec edA, gp
     //DeepSOIC: this hardcore math can probably be replaced with a couple of
     //clever OCC calls... See forum thread "Sketch mapping enhancement" for a
     //picture on how this math was derived.
-    //http://forum.freecadweb.org/viewtopic.php?f=8&t=10511&sid=007946a934530ff2a6c9259fb32624ec&start=40#p87584
+    //http://forum.freecad.org/viewtopic.php?f=8&t=10511&sid=007946a934530ff2a6c9259fb32624ec&start=40#p87584
     axA.Normalize();
     axB.Normalize();
     edA.Normalize();
@@ -1756,7 +1751,7 @@ Base::Placement AttachEngineLine::calculateAttachedPlacement(const Base::Placeme
         std::vector<eRefType> types;
         readLinks(this->references, parts, shapes, copiedShapeStorage, types);
 
-        if (parts.size() == 0)
+        if (parts.empty())
             throw ExceptionCancel();
 
 
@@ -1807,8 +1802,8 @@ Base::Placement AttachEngineLine::calculateAttachedPlacement(const Base::Placeme
         case mm1TwoPoints:{
             std::vector<gp_Pnt> points;
 
-            for (std::size_t i = 0; i < shapes.size(); i++) {
-                const TopoDS_Shape &sh = *shapes[i];
+            for (const auto & shape : shapes) {
+                const TopoDS_Shape &sh = *shape;
                 if (sh.IsNull())
                     throw Base::ValueError("Null shape in AttachEngineLine::calculateAttachedPlacement()!");
                 if (sh.ShapeType() == TopAbs_VERTEX){

@@ -32,11 +32,6 @@ using namespace Part;
 //---------- Geometry Extension
 TYPESYSTEM_SOURCE(Part::GeometryMigrationExtension,Part::GeometryExtension)
 
-GeometryMigrationExtension::GeometryMigrationExtension():ConstructionState(false)
-{
-
-}
-
 void GeometryMigrationExtension::copyAttributes(Part::GeometryExtension * cpy) const
 {
     Part::GeometryExtension::copyAttributes(cpy);
@@ -44,7 +39,7 @@ void GeometryMigrationExtension::copyAttributes(Part::GeometryExtension * cpy) c
     static_cast<GeometryMigrationExtension *>(cpy)->GeometryMigrationFlags  = this->GeometryMigrationFlags;
 }
 
-std::unique_ptr<Part::GeometryExtension> GeometryMigrationExtension::copy(void) const
+std::unique_ptr<Part::GeometryExtension> GeometryMigrationExtension::copy() const
 {
     auto cpy = std::make_unique<GeometryMigrationExtension>();
 
@@ -57,7 +52,7 @@ std::unique_ptr<Part::GeometryExtension> GeometryMigrationExtension::copy(void) 
 #endif
 }
 
-PyObject * GeometryMigrationExtension::getPyObject(void)
+PyObject * GeometryMigrationExtension::getPyObject()
 {
     THROWM(Base::NotImplementedError, "GeometryMigrationExtension does not have a Python counterpart");
 }

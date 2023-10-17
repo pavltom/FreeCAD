@@ -34,7 +34,7 @@
 
 
 using namespace App;
-namespace bp = boost::placeholders;
+namespace sp = std::placeholders;
 
 namespace App {
 
@@ -45,11 +45,11 @@ public:
       : Base::XMLReader(FileName, str), nameMap(name)
     {}
 
-    void addName(const char* s1, const char* s2)
+    void addName(const char* s1, const char* s2) override
     {
         nameMap[s1] = s2;
     }
-    const char* getName(const char* name) const
+    const char* getName(const char* name) const override
     {
         std::map<std::string, std::string>::const_iterator it = nameMap.find(name);
         if (it != nameMap.end())
@@ -57,7 +57,7 @@ public:
         else
             return name;
     }
-    bool doNameMapping() const
+    bool doNameMapping() const override
     {
         return true;
     }
@@ -66,17 +66,20 @@ protected:
 
 private:
     std::map<std::string, std::string>& nameMap;
-    typedef std::pair<std::string, std::string> PropertyTag;
+    using PropertyTag = std::pair<std::string, std::string>;
     std::stack<PropertyTag> propertyStack;
 };
 }
 
-MergeDocuments::MergeDocuments(App::Document* doc) : guiup(false), verbose(true), stream(nullptr), appdoc(doc)
+MergeDocuments::MergeDocuments(App::Document* doc)
+    : appdoc(doc)
 {
+    //NOLINTBEGIN
     connectExport = doc->signalExportObjects.connect
-        (boost::bind(&MergeDocuments::exportObject, this, bp::_1, bp::_2));
+        (std::bind(&MergeDocuments::exportObject, this, sp::_1, sp::_2));
     connectImport = doc->signalImportObjects.connect
-        (boost::bind(&MergeDocuments::importObject, this, bp::_1, bp::_2));
+        (std::bind(&MergeDocuments::importObject, this, sp::_1, sp::_2));
+    //NOLINTEND
 
     QCoreApplication* app = QCoreApplication::instance();
     if (app && app->inherits("QApplication")) {
@@ -90,7 +93,7 @@ MergeDocuments::~MergeDocuments()
     connectImport.disconnect();
 }
 
-unsigned int MergeDocuments::getMemSize (void) const
+unsigned int MergeDocuments::getMemSize () const
 {
     return 0;
 }

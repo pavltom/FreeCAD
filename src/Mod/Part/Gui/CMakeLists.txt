@@ -1,9 +1,3 @@
-if(MSVC)
-    add_definitions(-DHAVE_ACOSH -DHAVE_ATANH -DHAVE_ASINH)
-else(MSVC)
-    add_definitions(-DHAVE_LIMITS_H -DHAVE_CONFIG_H)
-endif(MSVC)
-
 include_directories(
     ${CMAKE_BINARY_DIR}
     ${CMAKE_SOURCE_DIR}/src
@@ -13,6 +7,7 @@ include_directories(
     ${COIN3D_INCLUDE_DIRS}
     ${OCC_INCLUDE_DIR}
     ${PYTHON_INCLUDE_DIRS}
+    ${XercesC_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIR}
 )
 link_directories(${OCC_LIBRARY_DIR})
@@ -28,29 +23,30 @@ if(MSVC)
     )
 endif(MSVC)
 
-if (BUILD_QT5)
-    include_directories(
-        ${Qt5Concurrent_INCLUDE_DIRS}
-    )
-    list(APPEND PartGui_LIBS
-        ${Qt5Concurrent_LIBRARIES}
-    )
-endif()
+include_directories(
+    ${QtConcurrent_INCLUDE_DIRS}
+)
+list(APPEND PartGui_LIBS
+    ${QtConcurrent_LIBRARIES}
+)
 
-if (BUILD_QT5)
-    qt5_add_resources(PartGui_QRC_SRCS Resources/Part.qrc)
-else()
-    qt4_add_resources(PartGui_QRC_SRCS Resources/Part.qrc)
-endif()
+set (Part_TR_QRC ${CMAKE_CURRENT_BINARY_DIR}/Resources/Part_translation.qrc)
+qt_find_and_add_translation(QM_SRCS "Resources/translations/*_*.ts"
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/translations)
+qt_create_resource_file(${Part_TR_QRC} ${QM_SRCS})
+qt_add_resources(PartGui_QRC_SRCS Resources/Part.qrc ${Part_TR_QRC})
 
 set(PartGui_UIC_SRCS
     CrossSections.ui
     Mirroring.ui
     DlgBooleanOperation.ui
+    DlgExportStep.ui
+    DlgExportHeaderStep.ui
     DlgExtrusion.ui
+    DlgScale.ui
+    DlgImportStep.ui
     DlgFilletEdges.ui
     DlgImportExportIges.ui
-    DlgImportExportStep.ui
     DlgPartBox.ui
     DlgPartCylinder.ui
     DlgPartImportIges.ui
@@ -73,12 +69,6 @@ set(PartGui_UIC_SRCS
     TaskAttacher.ui
 )
 
-if (BUILD_QT5)
-    qt5_wrap_ui(PartGui_UIC_HDRS ${PartGui_UIC_SRCS})
-else()
-    qt4_wrap_ui(PartGui_UIC_HDRS ${PartGui_UIC_SRCS})
-endif()
-
 SET(PartGui_SRCS
     ${PartGui_QRC_SRCS}
     ${PartGui_UIC_HDRS}
@@ -88,6 +78,7 @@ SET(PartGui_SRCS
     BoxSelection.cpp
     BoxSelection.h
     Command.cpp
+    CommandFilter.cpp
     CommandSimple.cpp
     CommandParametric.cpp
     CrossSections.cpp
@@ -99,14 +90,23 @@ SET(PartGui_SRCS
     DlgBooleanOperation.cpp
     DlgBooleanOperation.h
     DlgBooleanOperation.ui
+    DlgExportStep.cpp
+    DlgExportStep.h
+    DlgExportStep.ui
+    DlgExportHeaderStep.ui
     DlgExtrusion.cpp
     DlgExtrusion.h
     DlgExtrusion.ui
+    DlgScale.cpp
+    DlgScale.h
+    DlgScale.ui
     DlgFilletEdges.cpp
     DlgFilletEdges.h
     DlgFilletEdges.ui
+    DlgImportStep.cpp
+    DlgImportStep.h
+    DlgImportStep.ui
     DlgImportExportIges.ui
-    DlgImportExportStep.ui
     DlgPartBox.ui
     DlgPartBoxImp.cpp
     DlgPartBoxImp.h
@@ -177,6 +177,8 @@ SET(PartGui_SRCS
     ViewProviderPointParametric.h
     ViewProviderEllipseParametric.cpp
     ViewProviderEllipseParametric.h
+    ViewProviderGridExtension.cpp
+    ViewProviderGridExtension.h
     ViewProviderHelixParametric.cpp
     ViewProviderHelixParametric.h
     ViewProviderPlaneParametric.cpp
@@ -201,6 +203,8 @@ SET(PartGui_SRCS
     ViewProviderImport.h
     ViewProviderExtrusion.cpp
     ViewProviderExtrusion.h
+    ViewProviderScale.cpp
+    ViewProviderScale.h
     ViewProvider2DObject.cpp
     ViewProvider2DObject.h
     ViewProviderMirror.cpp
@@ -215,6 +219,8 @@ SET(PartGui_SRCS
     ViewProviderPrimitive.h
     Workbench.cpp
     Workbench.h
+    WorkbenchManipulator.cpp
+    WorkbenchManipulator.h
     ReferenceHighlighter.cpp
     ReferenceHighlighter.h
     SectionCutting.cpp

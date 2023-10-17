@@ -23,7 +23,12 @@
 #ifndef DRAWINGGUI_QGIPRIMPATH_H
 #define DRAWINGGUI_QGIPRIMPATH_H
 
+#include <Mod/TechDraw/TechDrawGlobal.h>
+
+#include <QBrush>
 #include <QGraphicsItem>
+#include <QPen>
+
 #include <Base/Parameter.h>
 
 QT_BEGIN_NAMESPACE
@@ -38,13 +43,13 @@ class TechDrawGuiExport QGIPrimPath : public QGraphicsPathItem
 {
 public:
     explicit QGIPrimPath();
-    ~QGIPrimPath() {}
+    ~QGIPrimPath() override = default;
 
     enum {Type = QGraphicsItem::UserType + 170};
 
     int type() const override { return Type;}
-    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = nullptr ) override;
-    virtual QPainterPath shape() const override { return path(); }
+    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget = nullptr ) override;
+    QPainterPath shape() const override { return path(); }
 
     void setHighlighted(bool state);
     virtual void setPrettyNormal();
@@ -66,20 +71,20 @@ public:
     void setFill(QBrush b);
     void resetFill();
     void setFillColor(QColor c);
-    QColor getFillColor(void) { return m_colDefFill; }
+    QColor getFillColor() { return m_colDefFill; }
     void setFillOverride(bool b) { m_fillOverride = b; }
 
 protected:
-    virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
-    virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
-    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
-    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
-    virtual QColor getNormalColor(void);
-    virtual QColor getPreColor(void);
-    virtual QColor getSelectColor(void);
-    Base::Reference<ParameterGrp> getParmGroup(void);
-    virtual Qt::PenCapStyle prefCapStyle(void);
+    virtual QColor getNormalColor();
+    virtual QColor getPreColor();
+    virtual QColor getSelectColor();
+    Base::Reference<ParameterGrp> getParmGroup();
+    virtual Qt::PenCapStyle prefCapStyle();
 
     bool isHighlighted;
 

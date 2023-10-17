@@ -23,13 +23,12 @@
 
 __title__ = "FreeCAD FEM material reinforced task panel for the document object"
 __author__ = "Bernd Hahnebach"
-__url__ = "https://www.freecadweb.org"
+__url__ = "https://www.freecad.org"
 
 ## @package task_material_reinforced
 #  \ingroup FEM
 #  \brief task panel for reinforced material object
 
-import sys
 from PySide import QtCore
 from PySide import QtGui
 
@@ -37,8 +36,7 @@ import FreeCAD
 import FreeCADGui
 
 
-if sys.version_info.major >= 3:
-    unicode = str
+unicode = str
 
 
 class _TaskPanel:
@@ -46,8 +44,7 @@ class _TaskPanel:
     The editmode TaskPanel for MaterialReinforced objects
     """
 
-    if sys.version_info.major >= 3:
-        unicode = str
+    unicode = str
 
     def __init__(self, obj):
 
@@ -125,7 +122,6 @@ class _TaskPanel:
                 self.card_path_m
             )
             index = self.parameterWidget.cb_materials_m.findData(self.card_path_m)
-            # print(index)
             # fill input fields and set the current material in the cb widget
             self.choose_material_m(index)
         else:
@@ -165,7 +161,6 @@ class _TaskPanel:
                 "We will use this material.\n"
             )
             index = self.parameterWidget.cb_materials_r.findData(self.card_path_r)
-            # print(index)
             # fill input fields and set the current material in the cb widget
             self.choose_material_r(index)
 
@@ -339,7 +334,6 @@ class _TaskPanel:
                         "The found material card will be used.\n"
                     )
                     index = self.parameterWidget.cb_materials_m.findData(self.card_path_m)
-                    # print(index)
                     # set the current material in the cb widget
                 self.choose_material_m(index)
             else:
@@ -392,7 +386,6 @@ class _TaskPanel:
                         "The found material card will be used.\n"
                     )
                     index = self.parameterWidget.cb_materials_r.findData(self.card_path_r)
-                    # print(index)
                     # set the current material in the cb widget
                 self.choose_material_r(index)
             else:
@@ -417,13 +410,13 @@ class _TaskPanel:
         card_name_list = []  # [ [card_name, card_path, icon_path], ... ]
 
         if sort_by_resources is True:
-            for a_path in sorted(self.materials.keys()):
+            for a_path in sorted(self.materials):
                 card_name_list.append([self.cards[a_path], a_path, self.icons[a_path]])
         else:
             card_names_tmp = {}
             for path, name in self.cards.items():
                 card_names_tmp[name] = path
-            for a_name in sorted(card_names_tmp.keys()):
+            for a_name in sorted(card_names_tmp):
                 a_path = card_names_tmp[a_name]
                 card_name_list.append([a_name, a_path, self.icons[a_path]])
 

@@ -31,7 +31,7 @@
 #include <QStringList>
 #include <QtOpenGL.h>
 
-#include <CXX/Extensions.hxx>
+#include <FCGlobal.h>
 
 
 namespace Gui {
@@ -50,9 +50,10 @@ public:
      */
     static SoFCOffscreenRenderer& instance();
 
+    SoFCOffscreenRenderer(const SoFCOffscreenRenderer&) = delete;
+    SoFCOffscreenRenderer& operator=(const SoFCOffscreenRenderer&) = delete;
+
 private:
-    SoFCOffscreenRenderer(const SoFCOffscreenRenderer&);
-    SoFCOffscreenRenderer& operator=(const SoFCOffscreenRenderer&);
     static SoFCOffscreenRenderer* inst;
 
 protected:
@@ -109,16 +110,16 @@ public:
     ~SoQtOffscreenRenderer();
 
     void setViewportRegion(const SbViewportRegion & region);
-    const SbViewportRegion & getViewportRegion(void) const;
+    const SbViewportRegion & getViewportRegion() const;
 
     void setBackgroundColor(const SbColor4f & color);
-    const SbColor4f & getBackgroundColor(void) const;
+    const SbColor4f & getBackgroundColor() const;
 
     void setGLRenderAction(SoGLRenderAction * action);
-    SoGLRenderAction * getGLRenderAction(void) const;
+    SoGLRenderAction * getGLRenderAction() const;
 
     void setNumPasses(const int num);
-    int getNumPasses(void) const;
+    int getNumPasses() const;
 
     void setInternalTextureFormat(GLenum internalTextureFormat);
     GLenum internalTextureFormat() const;
@@ -146,40 +147,6 @@ private:
     int numSamples;
     GLenum texFormat;
     QImage glImage;
-};
-
-class SoQtOffscreenRendererPy : public Py::PythonExtension<SoQtOffscreenRendererPy>
-{
-public:
-    static void init_type();
-
-    SoQtOffscreenRendererPy(const SbViewportRegion&);
-    ~SoQtOffscreenRendererPy();
-
-    Py::Object repr();
-
-    Py::Object setViewportRegion(const Py::Tuple&);
-    Py::Object getViewportRegion(const Py::Tuple&);
-
-    Py::Object setBackgroundColor(const Py::Tuple&);
-    Py::Object getBackgroundColor(const Py::Tuple&);
-
-    Py::Object setNumPasses(const Py::Tuple&);
-    Py::Object getNumPasses(const Py::Tuple&);
-
-    Py::Object setInternalTextureFormat(const Py::Tuple&);
-    Py::Object getInternalTextureFormat(const Py::Tuple&);
-
-    Py::Object render(const Py::Tuple&);
-
-    Py::Object writeToImage(const Py::Tuple&);
-    Py::Object getWriteImageFiletypeInfo(const Py::Tuple&);
-
-private:
-    static PyObject *PyMake(struct _typeobject *, PyObject *, PyObject *);
-
-private:
-    SoQtOffscreenRenderer renderer;
 };
 
 } // namespace Gui

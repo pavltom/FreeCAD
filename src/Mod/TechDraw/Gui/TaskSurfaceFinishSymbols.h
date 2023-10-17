@@ -1,4 +1,4 @@
-/***************************************************************************
+﻿/***************************************************************************
  *   Copyright (c) 2022 edi                                                *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
@@ -25,8 +25,12 @@
 
 #include <Gui/TaskView/TaskDialog.h>
 #include <Gui/TaskView/TaskView.h>
+#include <Mod/TechDraw/TechDrawGlobal.h>
+
 
 class QComboBox;
+class QLineEdit;
+class QGraphicsScene;
 
 namespace App {
 class DocumentObject;
@@ -48,10 +52,9 @@ class Face;
 
 namespace TechDrawGui
 {
-class QGVPage;
+class QGSPage;
 class QGIView;
 class QGIPrimPath;
-class MDIViewPage;
 class ViewProviderViewPart;
 class Ui_TaskSurfaceFinishSymbols;
 
@@ -63,10 +66,10 @@ class SvgString
 public:
 
     SvgString(int width, int height);
-    void addLine(int x1, int y1, int x2, int y2);
+    void addLine(int xStart, int yStart, int xEnd, int yEnd);
     void addCircle(int xCenter, int yCenter, int radius);
     void addText(int xText, int yText, std::string text);
-    std::string finish(void);
+    std::string finish();
 
 }; // SvgString
 
@@ -75,27 +78,16 @@ class TaskSurfaceFinishSymbols : public QWidget
     Q_OBJECT
 
 public:
-    TaskSurfaceFinishSymbols(TechDraw::DrawViewPart* view);
-    ~TaskSurfaceFinishSymbols();
+    explicit TaskSurfaceFinishSymbols(TechDraw::DrawViewPart* view);
+    ~TaskSurfaceFinishSymbols() override = default;
 
-public Q_SLOTS:
-
-public:
     virtual bool accept();
     virtual bool reject();
     void updateTask();
-    
-private Q_SLOTS:
-    void onIconChanged();
-    void onISO();
-    void onASME();
-
-protected Q_SLOTS:
 
 protected:
-    void changeEvent(QEvent *e);
-
-    void setUiEdit(void);
+    void changeEvent(QEvent *event) override;
+    void setUiEdit();
 
 private:
     enum symbolType {anyMethod=0, removeProhibit, removeRequired,
@@ -103,7 +95,8 @@ private:
     QPixmap baseSymbol(symbolType type);
     std::string completeSymbol();
     TechDraw::DrawViewPart* selectedView;
-    QGraphicsScene* symbolScene;
+    QGraphicsScene* symbolScene;     //note this is not QGSPage, but another scene only used to
+                                     //display symbols in this task's ui
     std::vector<std::string> raValues, laySymbols, roughGrades;
     QGraphicsProxyWidget *proxyRA, *proxySamLength, *proxyMinRough, *proxyMaxRough;
     QLineEdit *leMethod, *leSamLength, *leAddition;
@@ -111,6 +104,12 @@ private:
     symbolType activeIcon;
     bool isISO;
     std::unique_ptr<Ui_TaskSurfaceFinishSymbols> ui;
+
+private Q_SLOTS:
+    void onIconChanged();
+    void onISO();
+    void onASME();
+
 }; // class TaskSurfaceFinishSymbols
 
 class TaskDlgSurfaceFinishSymbols : public Gui::TaskView::TaskDialog
@@ -118,25 +117,21 @@ class TaskDlgSurfaceFinishSymbols : public Gui::TaskView::TaskDialog
     Q_OBJECT
 
 public:
-    TaskDlgSurfaceFinishSymbols(TechDraw::DrawViewPart* view);
-    ~TaskDlgSurfaceFinishSymbols();
+    explicit TaskDlgSurfaceFinishSymbols(TechDraw::DrawViewPart* view);
+    ~TaskDlgSurfaceFinishSymbols() override;
 
-public:
     /// is called the TaskView when the dialog is opened
-    virtual void open();
+    void open() override;
     /// is called by the framework if an button is clicked which has no accept or reject role
-    virtual void clicked(int);
+    void clicked(int) override;
     /// is called by the framework if the dialog is accepted (Ok)
-    virtual bool accept();
+    bool accept() override;
     /// is called by the framework if the dialog is rejected (Cancel)
-    virtual bool reject();
+    bool reject() override;
     /// is called by the framework if the user presses the help button
-    virtual void helpRequested() { return;}
-    virtual bool isAllowedAlterDocument(void) const
+    bool isAllowedAlterDocument() const override
                         { return false; }
     void update();
-
-protected:
 
 private:
     TaskSurfaceFinishSymbols* widget;

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) Luke Parry             (l.parry@warwick.ac.uk) 2013     *
+ *   Copyright (c) 2013 Luke Parry <l.parry@warwick.ac.uk>                 *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -29,16 +29,15 @@
 #include <App/Document.h>
 #include <Base/GeometryPyCXX.h>
 
-#include "Measurement.h"
-
 // inclusion of the generated files (generated out of SketchObjectSFPy.xml)
 #include "MeasurementPy.h"
 #include "MeasurementPy.cpp"
 
+
 using namespace Measure;
 
 // returns a string which represents the object e.g. when printed in python
-std::string MeasurementPy::representation(void) const
+std::string MeasurementPy::representation() const
 {
     return "<Measure::Measurement>";
 }

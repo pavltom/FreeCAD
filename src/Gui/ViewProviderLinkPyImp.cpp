@@ -36,7 +36,7 @@
 using namespace Gui;
 
 // returns a string which represents the object e.g. when printed in python
-std::string ViewProviderLinkPy::representation(void) const
+std::string ViewProviderLinkPy::representation() const
 {
     std::stringstream str;
     str << "<ViewProviderLink at " << getViewProviderLinkPtr() << ">";
@@ -57,7 +57,7 @@ void ViewProviderLinkPy::setDraggingPlacement(Py::Object arg) {
 }
 
 Py::Boolean ViewProviderLinkPy::getUseCenterballDragger() const {
-    return Py::Boolean(getViewProviderLinkPtr()->isUsingCenterballDragger());
+    return {getViewProviderLinkPtr()->isUsingCenterballDragger()};
 }
 
 void ViewProviderLinkPy::setUseCenterballDragger(Py::Boolean arg) {

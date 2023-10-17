@@ -23,22 +23,23 @@
 #ifndef TASKDIMENSION_H
 #define TASKDIMENSION_H
 
-#include <gp_Vec.hxx>
 #include <gp_Lin.hxx>
+#include <gp_Vec.hxx>
 
-#include <Inventor/fields/SoSFVec3f.h>
-#include <Inventor/fields/SoSFMatrix.h>
-#include <Inventor/fields/SoSFString.h>
-#include <Inventor/nodekits/SoSeparatorKit.h>
-#include <Inventor/fields/SoSFColor.h>
-#include <Inventor/fields/SoSFRotation.h>
-#include <Inventor/fields/SoSFFloat.h>
 #include <Inventor/engines/SoSubEngine.h>
 #include <Inventor/engines/SoEngine.h>
+#include <Inventor/fields/SoSFColor.h>
+#include <Inventor/fields/SoSFFloat.h>
+#include <Inventor/fields/SoSFMatrix.h>
+#include <Inventor/fields/SoSFRotation.h>
+#include <Inventor/fields/SoSFString.h>
+#include <Inventor/fields/SoSFVec3f.h>
+#include <Inventor/nodekits/SoSeparatorKit.h>
 
+#include <Base/Matrix.h>
 #include <Gui/TaskView/TaskDialog.h>
 #include <Gui/TaskView/TaskView.h>
-#include <Base/Matrix.h>
+
 
 class TopoDS_Shape;
 class TopoDS_Face;
@@ -125,7 +126,7 @@ class DimensionLinear : public SoSeparatorKit
 public:
   DimensionLinear();
   static void initClass();
-  virtual SbBool affectsState() const;
+  SbBool affectsState() const override;
   void setupDimension();
 
   SoSFVec3f point1;
@@ -138,7 +139,7 @@ protected:
   SoSFVec3f origin;
 
 private:
-  virtual ~DimensionLinear();
+  ~DimensionLinear() override;
 };
 
 /*kit for anglular dimensions*/
@@ -155,7 +156,7 @@ class DimensionAngular : public SoSeparatorKit
 public:
   DimensionAngular();
   static void initClass();
-  virtual SbBool affectsState() const;
+  SbBool affectsState() const override;
 
   SoSFFloat radius;//radians.
   SoSFFloat angle;//radians.
@@ -164,7 +165,7 @@ public:
   SoSFMatrix matrix;
   void setupDimension();
 private:
-  virtual ~DimensionAngular();
+  ~DimensionAngular() override;
 };
 
 /*used for generating points for arc display*/
@@ -182,9 +183,9 @@ public:
     SoEngineOutput points;
     SoEngineOutput pointCount;
 protected:
-    virtual void evaluate();
+    void evaluate() override;
 private:
-    virtual ~ArcEngine(){}
+    ~ArcEngine() override = default;
     void defaultValues(); //some non error values if something goes wrong.
 };
 
@@ -193,21 +194,21 @@ class SteppedSelection : public QWidget
 {
   Q_OBJECT
 public:
-  SteppedSelection(const uint &buttonCountIn, QWidget *parent = nullptr);
-  ~SteppedSelection();
+  explicit SteppedSelection(const uint &buttonCountIn, QWidget *parent = nullptr);
+  ~SteppedSelection() override;
   QPushButton* getButton(const uint &index);
   void setIconDone(const uint &index);
-  
+
 protected:
-  typedef std::pair<QPushButton *, QLabel *> ButtonIconPairType;
+  using ButtonIconPairType = std::pair<QPushButton *, QLabel *>;
   std::vector<ButtonIconPairType> buttons;
   QPixmap *stepActive;
   QPixmap *stepDone;
-  
+
 private Q_SLOTS:
   void selectionSlot(bool checked);
   void buildPixmaps();
-  
+
 };
 
 /*! just convenience container*/
@@ -247,15 +248,15 @@ class TaskMeasureLinear : public Gui::TaskView::TaskDialog, public Gui::Selectio
     Q_OBJECT
 public:
   TaskMeasureLinear();
-  ~TaskMeasureLinear();
+  ~TaskMeasureLinear() override;
 
-  virtual QDialogButtonBox::StandardButtons getStandardButtons() const
+  QDialogButtonBox::StandardButtons getStandardButtons() const override
       {return QDialogButtonBox::Close;}
-  virtual bool isAllowedAlterDocument(void) const {return false;}
-  virtual bool needsFullSpace() const {return false;}
+  bool isAllowedAlterDocument() const override {return false;}
+  bool needsFullSpace() const override {return false;}
 protected:
-  virtual void onSelectionChanged(const Gui::SelectionChanges& msg);
-    
+  void onSelectionChanged(const Gui::SelectionChanges& msg) override;
+
 protected Q_SLOTS:
   void selection1Slot(bool checked);
   void selection2Slot(bool checked);
@@ -280,7 +281,7 @@ private:
 };
 
 /*! @brief Convert to vector
- * 
+ *
  * Used to construct a vector from various input types
  */
 class VectorAdapter
@@ -302,17 +303,17 @@ public:
   /*!Build a vector From 2 vectors.
    *vector will be equal to @param vector2 - @param vector1.*/
   VectorAdapter(const gp_Vec &vector1, const gp_Vec &vector2);
-  
+
   /*!make sure no errors in vector construction.
    * @return true = vector is good. false = vector is NOT good.*/
   bool isValid() const {return status;}
   /*!get the calculated vector.
    * @return the vector. use isValid to ensure correct results.*/
-  operator gp_Vec() const {return vector;}
+  operator gp_Vec() const {return vector;}//explicit bombs
   /*!build occ line used for extrema calculation*/
-  operator gp_Lin() const;
+  operator gp_Lin() const;//explicit bombs
   gp_Vec getPickPoint() const {return origin;}
-  
+
 private:
   void projectOriginOntoVector(const gp_Vec &pickedPointIn);
   bool status;
@@ -326,15 +327,15 @@ class TaskMeasureAngular : public Gui::TaskView::TaskDialog, public Gui::Selecti
     Q_OBJECT
 public:
   TaskMeasureAngular();
-  ~TaskMeasureAngular();
+  ~TaskMeasureAngular() override;
 
-  virtual QDialogButtonBox::StandardButtons getStandardButtons() const
+  QDialogButtonBox::StandardButtons getStandardButtons() const override
       {return QDialogButtonBox::Close;}
-  virtual bool isAllowedAlterDocument(void) const {return false;}
-  virtual bool needsFullSpace() const {return false;}
+  bool isAllowedAlterDocument() const override {return false;}
+  bool needsFullSpace() const override {return false;}
 protected:
-  virtual void onSelectionChanged(const Gui::SelectionChanges& msg);
-    
+  void onSelectionChanged(const Gui::SelectionChanges& msg) override;
+
 protected Q_SLOTS:
   void selection1Slot(bool checked);
   void selection2Slot(bool checked);

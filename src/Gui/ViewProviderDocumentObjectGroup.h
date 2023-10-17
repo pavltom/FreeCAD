@@ -39,14 +39,14 @@ public:
     /// constructor.
     ViewProviderDocumentObjectGroup();
     /// destructor.
-    virtual ~ViewProviderDocumentObjectGroup();
+    ~ViewProviderDocumentObjectGroup() override;
 
     /// returns a list of all possible modes
-    std::vector<std::string> getDisplayModes(void) const override;
-    bool isShow(void) const override;
+    std::vector<std::string> getDisplayModes() const override;
+    bool isShow() const override;
 
     /// deliver the icon shown in the tree view
-    virtual QIcon getIcon(void) const override;
+    QIcon getIcon() const override;
 
 protected:
     void getViewProviders(std::vector<ViewProviderDocumentObject*>&) const;
@@ -55,7 +55,7 @@ private:
     std::vector<ViewProvider*> nodes;
 };
 
-typedef ViewProviderPythonFeatureT<ViewProviderDocumentObjectGroup> ViewProviderDocumentObjectGroupPython;
+using ViewProviderDocumentObjectGroupPython = ViewProviderPythonFeatureT<ViewProviderDocumentObjectGroup>;
 
 } // namespace Gui
 

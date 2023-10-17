@@ -97,7 +97,7 @@ bool Extrusion::fetchAxisLink(const App::PropertyLinkSub& axisLink, Base::Vector
     auto linked = axisLink.getValue();
 
     TopoDS_Shape axEdge;
-    if (axisLink.getSubValues().size() > 0 && axisLink.getSubValues()[0].length() > 0) {
+    if (!axisLink.getSubValues().empty() && axisLink.getSubValues()[0].length() > 0) {
         axEdge = Feature::getTopoShape(linked, axisLink.getSubValues()[0].c_str(), true /*need element*/).getShape();
     }
     else {
@@ -260,8 +260,8 @@ TopoShape Extrusion::extrudeShape(const TopoShape& source, const Extrusion::Extr
             TopoDS_Compound comp;
             BRep_Builder builder;
             builder.MakeCompound(comp);
-            for (std::list<TopoDS_Shape>::iterator it = drafts.begin(); it != drafts.end(); ++it)
-                builder.Add(comp, *it);
+            for (const auto & draft : drafts)
+                builder.Add(comp, draft);
             result = comp;
         }
     }
@@ -311,7 +311,7 @@ TopoShape Extrusion::extrudeShape(const TopoShape& source, const Extrusion::Extr
     return TopoShape(result);
 }
 
-App::DocumentObjectExecReturn* Extrusion::execute(void)
+App::DocumentObjectExecReturn* Extrusion::execute()
 {
     App::DocumentObject* link = Base.getValue();
     if (!link)
@@ -334,15 +334,19 @@ TYPESYSTEM_SOURCE(Part::FaceMakerExtrusion, Part::FaceMakerCheese)
 
 std::string FaceMakerExtrusion::getUserFriendlyName() const
 {
-    return std::string(QT_TRANSLATE_NOOP("Part_FaceMaker", "Part Extrude facemaker"));
+    return {QT_TRANSLATE_NOOP("Part_FaceMaker", "Part Extrude facemaker")};
 }
 
 std::string FaceMakerExtrusion::getBriefExplanation() const
 {
-    return std::string(QT_TRANSLATE_NOOP("Part_FaceMaker", "Supports making faces with holes, does not support nesting."));
+    return {QT_TRANSLATE_NOOP("Part_FaceMaker", "Supports making faces with holes, does not support nesting.")};
 }
 
+#if OCC_VERSION_HEX >= 0x070600
+void FaceMakerExtrusion::Build(const Message_ProgressRange&)
+#else
 void FaceMakerExtrusion::Build()
+#endif
 {
     this->NotDone();
     this->myGenerated.Clear();

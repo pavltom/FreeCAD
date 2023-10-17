@@ -83,7 +83,11 @@ const TopoDS_Face& Part::FaceMaker::Face()
     return TopoDS::Face(sh);
 }
 
+#if OCC_VERSION_HEX >= 0x070600
+void Part::FaceMaker::Build(const Message_ProgressRange&)
+#else
 void Part::FaceMaker::Build()
+#endif
 {
     this->NotDone();
     this->myShapesToReturn.clear();
@@ -168,12 +172,12 @@ TYPESYSTEM_SOURCE(Part::FaceMakerSimple, Part::FaceMakerPublic)
 
 std::string Part::FaceMakerSimple::getUserFriendlyName() const
 {
-    return std::string(QT_TRANSLATE_NOOP("Part_FaceMaker","Simple"));
+    return {QT_TRANSLATE_NOOP("Part_FaceMaker","Simple")};
 }
 
 std::string Part::FaceMakerSimple::getBriefExplanation() const
 {
-    return std::string(QT_TRANSLATE_NOOP("Part_FaceMaker","Makes separate plane face from every wire independently. No support for holes; wires can be on different planes."));
+    return {QT_TRANSLATE_NOOP("Part_FaceMaker","Makes separate plane face from every wire independently. No support for holes; wires can be on different planes.")};
 }
 
 void Part::FaceMakerSimple::Build_Essence()

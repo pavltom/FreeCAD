@@ -20,13 +20,15 @@
  *                                                                         *
  ***************************************************************************/
 
-
 #ifndef DRAWINGGUI_DLGTEMPLATEFIELD_H
 #define DRAWINGGUI_DLGTEMPLATEFIELD_H
 
+#include <Mod/TechDraw/TechDrawGlobal.h>
+
+#include <memory>
 #include <QDialog>
 #include <QString>
-#include <memory>
+
 
 namespace TechDrawGui {
 
@@ -36,19 +38,19 @@ class DlgTemplateField : public QDialog
     Q_OBJECT
 
 public:
-    DlgTemplateField( QWidget *parent = nullptr );
-    virtual ~DlgTemplateField() = default;
+    explicit DlgTemplateField( QWidget *parent = nullptr );
+    ~DlgTemplateField() override = default;
 
     void setFieldName(std::string name);
     void setFieldContent(std::string content);
     QString getFieldContent();
 
 public Q_SLOTS:
-    void accept();
-    void reject();
+    void accept() override;
+    void reject() override;
 
 protected:
-    void changeEvent(QEvent *e);
+    void changeEvent(QEvent *e) override;
 
 private:
     std::shared_ptr<Ui_dlgTemplateField> ui;

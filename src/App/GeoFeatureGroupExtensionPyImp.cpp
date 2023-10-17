@@ -31,11 +31,10 @@
 using namespace App;
 
 // returns a string which represents the object e.g. when printed in python
-std::string GeoFeatureGroupExtensionPy::representation(void) const
+std::string GeoFeatureGroupExtensionPy::representation() const
 {
-    return std::string("<GeoFeatureGroup object>");
+    return {"<GeoFeatureGroup object>"};
 }
-
 
 PyObject *GeoFeatureGroupExtensionPy::getCustomAttributes(const char* /*attr*/) const
 {

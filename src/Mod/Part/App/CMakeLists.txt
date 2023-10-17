@@ -1,36 +1,30 @@
-if(MSVC)
-    add_definitions(-DFCAppPart -DHAVE_ACOSH -DHAVE_ASINH -DHAVE_ATANH)
-else(MSVC)
-    add_definitions(-DHAVE_LIMITS_H -DHAVE_CONFIG_H)
-endif(MSVC)
-
 if(FREETYPE_FOUND)
     add_definitions(-DFCUseFreeType)
 endif(FREETYPE_FOUND)
 
 include_directories(
     ${CMAKE_BINARY_DIR}
-    ${CMAKE_BINARY_DIR}/src
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${OCC_INCLUDE_DIR}
     ${PYTHON_INCLUDE_DIRS}
+    ${XercesC_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIR}
     ${FREETYPE_INCLUDE_DIRS}
 )
 
 link_directories(${OCC_LIBRARY_DIR})
 
-set(Part_LIBS 
+set(Part_LIBS
     ${OCC_LIBRARIES}
     ${OCC_DEBUG_LIBRARIES}
     FreeCADApp
 )
 
 if(FREETYPE_FOUND)
-    set(Part_LIBS 
+    set(Part_LIBS
         ${Part_LIBS}
         ${FREETYPE_LIBRARIES}
     )
@@ -91,7 +85,6 @@ generate_from_xml(TopoShapeVertexPy)
 generate_from_xml(TopoShapeWirePy)
 generate_from_xml(BRepOffsetAPI_MakePipeShellPy)
 generate_from_xml(BRepOffsetAPI_MakeFillingPy)
-generate_from_xml(PrecisionPy)
 
 # make sure to create the directory at configure time
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/BRepFeat)
@@ -189,6 +182,8 @@ SET(Features_SRCS
     FeatureCompound.h
     FeatureExtrusion.cpp
     FeatureExtrusion.h
+    FeatureScale.cpp
+    FeatureScale.h
     FeatureFace.cpp
     FeatureFace.h
     FeatureFillet.cpp
@@ -229,6 +224,8 @@ SET(Properties_SRCS
     PropertyTopoShape.h
     PropertyGeometryList.cpp
     PropertyGeometryList.h
+    PropertyTopoShapeList.cpp
+    PropertyTopoShapeList.h
 )
 SOURCE_GROUP("Properties" FILES ${Properties_SRCS})
 
@@ -343,8 +340,6 @@ SET(Python_SRCS
     BRepOffsetAPI_MakePipeShellPyImp.cpp
     BRepOffsetAPI_MakeFillingPy.xml
     BRepOffsetAPI_MakeFillingPyImp.cpp
-    PrecisionPy.xml
-    PrecisionPyImp.cpp
     PartPyCXX.cpp
     PartPyCXX.h
 )
@@ -495,6 +490,12 @@ SET(Part_SRCS
     ${HLRBRepPy_SRCS}
     ${ShapeFixPy_SRCS}
     ${ShapeUpgradePy_SRCS}
+    IGES/ImportExportSettings.cpp
+    IGES/ImportExportSettings.h
+    OCAF/ImportExportSettings.cpp
+    OCAF/ImportExportSettings.h
+    STEP/ImportExportSettings.cpp
+    STEP/ImportExportSettings.h
     Attacher.cpp
     Attacher.h
     AppPart.cpp
@@ -521,12 +522,15 @@ SET(Part_SRCS
     ImportIges.h
     ImportStep.cpp
     ImportStep.h
+    Interface.cpp
+    Interface.h
     PreCompiled.cpp
     PreCompiled.h
     ProgressIndicator.cpp
     ProgressIndicator.h
     TopoShape.cpp
     TopoShape.h
+    TopoShapeOpCode.h
     edgecluster.cpp
     edgecluster.h
     modelRefine.cpp

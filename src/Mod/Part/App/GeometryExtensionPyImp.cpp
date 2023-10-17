@@ -30,7 +30,7 @@
 using namespace Part;
 
 // returns a string which represents the object e.g. when printed in python
-std::string GeometryExtensionPy::representation(void) const
+std::string GeometryExtensionPy::representation() const
 {
     return "<GeometryExtension object>";
 }
@@ -76,11 +76,11 @@ PyObject* GeometryExtensionPy::copy(PyObject *args)
     return cpy;
 }
 
-Py::String GeometryExtensionPy::getName(void) const
+Py::String GeometryExtensionPy::getName() const
 {
     std::string name = this->getGeometryExtensionPtr()->getName();
 
-    return Py::String(name);
+    return {name};
 }
 
 void GeometryExtensionPy::setName(Py::String arg)

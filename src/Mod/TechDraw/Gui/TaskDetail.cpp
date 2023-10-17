@@ -22,65 +22,42 @@
 
 #include "PreCompiled.h"
 
-#ifndef _PreComp_
-#include <QGraphicsScene>
-#include <QStatusBar>
-#endif // #ifndef _PreComp_
-
+#include <App/Document.h>
 #include <Base/Console.h>
 #include <Base/Tools.h>
-#include <Base/Quantity.h>
 #include <Base/UnitsApi.h>
-
-#include <App/Document.h>
-
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
 #include <Gui/Command.h>
-#include <Gui/Control.h>
 #include <Gui/Document.h>
-#include <Gui/MainWindow.h>
 #include <Gui/Selection.h>
 #include <Gui/ViewProvider.h>
-#include <Gui/WaitCursor.h>
-
 #include <Mod/TechDraw/App/DrawPage.h>
-#include <Mod/TechDraw/App/DrawUtil.h>
-#include <Mod/TechDraw/App/DrawView.h>
-#include <Mod/TechDraw/App/DrawViewPart.h>
 #include <Mod/TechDraw/App/DrawProjGroup.h>
 #include <Mod/TechDraw/App/DrawProjGroupItem.h>
 #include <Mod/TechDraw/App/DrawViewDetail.h>
+#include <Mod/TechDraw/App/DrawViewPart.h>
 
-#include <Mod/TechDraw/Gui/ui_TaskDetail.h>
-
-#include "QGSPage.h"
-#include "QGVPage.h"
-#include "QGIView.h"
-#include "QGIPrimPath.h"
-#include "QGIGhostHighlight.h"
-#include "MDIViewPage.h"
-#include "ViewProviderPage.h"
-#include "Rez.h"
-#include "QGIViewPart.h"
-
+#include "ui_TaskDetail.h"
 #include "TaskDetail.h"
+#include "QGIGhostHighlight.h"
+#include "QGSPage.h"
+#include "Rez.h"
+#include "ViewProviderPage.h"
+
 
 using namespace TechDrawGui;
 using namespace TechDraw;
 using namespace Gui;
 
-#define CREATEMODE 0
-#define EDITMODE   1
+static constexpr int CREATEMODE(0);
+static constexpr int EDITMODE(1);
 
 //creation constructor
 TaskDetail::TaskDetail(TechDraw::DrawViewPart* baseFeat):
     ui(new Ui_TaskDetail),
     blockUpdate(false),
     m_ghost(nullptr),
-    m_mdi(nullptr),
-    m_scene(nullptr),
-    m_view(nullptr),
     m_detailFeat(nullptr),
     m_baseFeat(baseFeat),
     m_basePage(nullptr),
@@ -115,38 +92,35 @@ TaskDetail::TaskDetail(TechDraw::DrawViewPart* baseFeat):
 
     Gui::Document* activeGui = Gui::Application::Instance->getDocument(m_doc);
     Gui::ViewProvider* vp = activeGui->getViewProvider(m_basePage);
-    ViewProviderPage* vpp = static_cast<ViewProviderPage*>(vp);
-    m_mdi = vpp->getMDIViewPage();
-    m_scene = m_mdi->getQGSPage();
-    m_view = m_mdi->getQGVPage();
+    m_vpp = static_cast<ViewProviderPage*>(vp);
 
     createDetail();
     setUiFromFeat();
     setWindowTitle(QObject::tr("New Detail View"));
 
-    connect(ui->pbDragger, SIGNAL(clicked(bool)),
-            this, SLOT(onDraggerClicked(bool)));
+    connect(ui->pbDragger, &QPushButton::clicked,
+            this, &TaskDetail::onDraggerClicked);
 
     // the UI file uses keyboardTracking = false so that a recomputation
     // will only be triggered when the arrow keys of the spinboxes are used
-    connect(ui->qsbX, SIGNAL(valueChanged(double)),
-            this, SLOT(onXEdit()));
-    connect(ui->qsbY, SIGNAL(valueChanged(double)),
-            this, SLOT(onYEdit()));
-    connect(ui->qsbRadius, SIGNAL(valueChanged(double)),
-            this, SLOT(onRadiusEdit()));
-    connect(ui->cbScaleType, SIGNAL(currentIndexChanged(int)),
-        this, SLOT(onScaleTypeEdit()));
-    connect(ui->qsbScale, SIGNAL(valueChanged(double)),
-        this, SLOT(onScaleEdit()));
-    connect(ui->leReference, SIGNAL(editingFinished()),
-        this, SLOT(onReferenceEdit()));
+    connect(ui->qsbX, qOverload<double>(&QuantitySpinBox::valueChanged),
+            this, &TaskDetail::onXEdit);
+    connect(ui->qsbY, qOverload<double>(&QuantitySpinBox::valueChanged),
+            this, &TaskDetail::onYEdit);
+    connect(ui->qsbRadius, qOverload<double>(&QuantitySpinBox::valueChanged),
+            this, &TaskDetail::onRadiusEdit);
+    connect(ui->cbScaleType, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, &TaskDetail::onScaleTypeEdit);
+    connect(ui->qsbScale, qOverload<double>(&QuantitySpinBox::valueChanged),
+            this, &TaskDetail::onScaleEdit);
+    connect(ui->leReference, &QLineEdit::editingFinished,
+            this, &TaskDetail::onReferenceEdit);
 
     m_ghost = new QGIGhostHighlight();
-    m_scene->addItem(m_ghost);
+    m_vpp->getQGSPage()->addItem(m_ghost);
     m_ghost->hide();
-    connect(m_ghost, SIGNAL(positionChange(QPointF)),
-            this, SLOT(onHighlightMoved(QPointF)));
+    connect(m_ghost, &QGIGhostHighlight::positionChange,
+            this, &TaskDetail::onHighlightMoved);
 }
 
 //edit constructor
@@ -154,9 +128,6 @@ TaskDetail::TaskDetail(TechDraw::DrawViewDetail* detailFeat):
     ui(new Ui_TaskDetail),
     blockUpdate(false),
     m_ghost(nullptr),
-    m_mdi(nullptr),
-    m_scene(nullptr),
-    m_view(nullptr),
     m_detailFeat(detailFeat),
     m_baseFeat(nullptr),
     m_basePage(nullptr),
@@ -201,42 +172,35 @@ TaskDetail::TaskDetail(TechDraw::DrawViewDetail* detailFeat):
 
     Gui::Document* activeGui = Gui::Application::Instance->getDocument(m_basePage->getDocument());
     Gui::ViewProvider* vp = activeGui->getViewProvider(m_basePage);
-    ViewProviderPage* vpp = static_cast<ViewProviderPage*>(vp);
-    m_mdi = vpp->getMDIViewPage();
-    m_scene = m_mdi->getQGSPage();
-    m_view = m_mdi->getQGVPage();
+    m_vpp = static_cast<ViewProviderPage*>(vp);
 
     saveDetailState();
     setUiFromFeat();
     setWindowTitle(QObject::tr("Edit Detail View"));
 
-    connect(ui->pbDragger, SIGNAL(clicked(bool)),
-            this, SLOT(onDraggerClicked(bool)));
+    connect(ui->pbDragger, &QPushButton::clicked,
+            this, &TaskDetail::onDraggerClicked);
 
     // the UI file uses keyboardTracking = false so that a recomputation
     // will only be triggered when the arrow keys of the spinboxes are used
-    connect(ui->qsbX, SIGNAL(valueChanged(double)),
-            this, SLOT(onXEdit()));
-    connect(ui->qsbY, SIGNAL(valueChanged(double)),
-            this, SLOT(onYEdit()));
-    connect(ui->qsbRadius, SIGNAL(valueChanged(double)),
-            this, SLOT(onRadiusEdit()));
-    connect(ui->cbScaleType, SIGNAL(currentIndexChanged(int)),
-        this, SLOT(onScaleTypeEdit()));
-    connect(ui->qsbScale, SIGNAL(valueChanged(double)),
-        this, SLOT(onScaleEdit()));
-    connect(ui->leReference, SIGNAL(editingFinished()),
-        this, SLOT(onReferenceEdit()));
+    connect(ui->qsbX, qOverload<double>(&QuantitySpinBox::valueChanged),
+            this, &TaskDetail::onXEdit);
+    connect(ui->qsbY, qOverload<double>(&QuantitySpinBox::valueChanged),
+            this, &TaskDetail::onYEdit);
+    connect(ui->qsbRadius, qOverload<double>(&QuantitySpinBox::valueChanged),
+            this, &TaskDetail::onRadiusEdit);
+    connect(ui->cbScaleType, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, &TaskDetail::onScaleTypeEdit);
+    connect(ui->qsbScale, qOverload<double>(&QuantitySpinBox::valueChanged),
+            this, &TaskDetail::onScaleEdit);
+    connect(ui->leReference, &QLineEdit::editingFinished,
+            this, &TaskDetail::onReferenceEdit);
 
     m_ghost = new QGIGhostHighlight();
-    m_scene->addItem(m_ghost);
+    m_vpp->getQGSPage()->addItem(m_ghost);
     m_ghost->hide();
-    connect(m_ghost, SIGNAL(positionChange(QPointF)),
-            this, SLOT(onHighlightMoved(QPointF)));
-}
-
-TaskDetail::~TaskDetail()
-{
+    connect(m_ghost, &QGIGhostHighlight::positionChange,
+            this, &TaskDetail::onHighlightMoved);
 }
 
 void TaskDetail::updateTask()
@@ -317,20 +281,20 @@ void TaskDetail::setUiFromFeat()
 }
 
 //update ui point fields after tracker finishes
-void TaskDetail::updateUi(QPointF p)
+void TaskDetail::updateUi(QPointF pos)
 {
-    ui->qsbX->setValue(p.x());
-    ui->qsbY->setValue(- p.y());
+    ui->qsbX->setValue(pos.x());
+    ui->qsbY->setValue(- pos.y());
 }
 
-void TaskDetail::enableInputFields(bool b)
+void TaskDetail::enableInputFields(bool isEnabled)
 {
-    ui->qsbX->setEnabled(b);
-    ui->qsbY->setEnabled(b);
+    ui->qsbX->setEnabled(isEnabled);
+    ui->qsbY->setEnabled(isEnabled);
     if (ui->cbScaleType->currentIndex() == 2) // only if custom scale
-        ui->qsbScale->setEnabled(b);
-    ui->qsbRadius->setEnabled(b);
-    ui->leReference->setEnabled(b);
+        ui->qsbScale->setEnabled(isEnabled);
+    ui->qsbRadius->setEnabled(isEnabled);
+    ui->leReference->setEnabled(isEnabled);
 }
 
 void TaskDetail::onXEdit()
@@ -390,9 +354,9 @@ void TaskDetail::onReferenceEdit()
     updateDetail();
 }
 
-void TaskDetail::onDraggerClicked(bool b)
+void TaskDetail::onDraggerClicked(bool clicked)
 {
-    Q_UNUSED(b);
+    Q_UNUSED(clicked);
     ui->pbDragger->setEnabled(false);
     enableInputFields(false);
     editByHighlight();
@@ -408,7 +372,7 @@ void TaskDetail::editByHighlight()
     }
 
     double scale = getBaseFeat()->getScale();
-    m_scene->clearSelection();
+    m_vpp->getQGSPage()->clearSelection();
     m_ghost->setSelected(true);
     m_ghost->setRadius(ui->qsbRadius->rawValue() * scale);
     m_ghost->setPos(getAnchorScene());
@@ -458,10 +422,10 @@ void TaskDetail::saveButtons(QPushButton* btnOK,
     m_btnCancel = btnCancel;
 }
 
-void TaskDetail::enableTaskButtons(bool b)
+void TaskDetail::enableTaskButtons(bool button)
 {
-    m_btnOK->setEnabled(b);
-    m_btnCancel->setEnabled(b);
+    m_btnOK->setEnabled(button);
+    m_btnCancel->setEnabled(button);
 }
 
 //***** Feature create & edit stuff *******************************************
@@ -470,10 +434,16 @@ void TaskDetail::createDetail()
 //    Base::Console().Message("TD::createDetail()\n");
     Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Create Detail View"));
 
-    m_detailName = m_doc->getUniqueObjectName("Detail");
+    const std::string objectName{"Detail"};
+    std::string m_detailName = m_doc->getUniqueObjectName(objectName.c_str());
+    std::string generatedSuffix {m_detailName.substr(objectName.length())};
 
-    Gui::Command::doCommand(Command::Doc,"App.activeDocument().addObject('TechDraw::DrawViewDetail','%s')",
+    Gui::Command::doCommand(Command::Doc, "App.activeDocument().addObject('TechDraw::DrawViewDetail', '%s')",
                             m_detailName.c_str());
+
+    Gui::Command::doCommand(Command::Doc, "App.activeDocument().%s.translateLabel('DrawViewDetail', 'Detail', '%s')",
+              m_detailName.c_str(), m_detailName.c_str());
+
     App::DocumentObject *docObj = m_doc->getObject(m_detailName.c_str());
     TechDraw::DrawViewDetail* dvd = dynamic_cast<TechDraw::DrawViewDetail *>(docObj);
     if (!dvd) {
@@ -483,15 +453,15 @@ void TaskDetail::createDetail()
 
     dvd->Source.setValues(getBaseFeat()->Source.getValues());
 
-    Gui::Command::doCommand(Command::Doc,"App.activeDocument().%s.BaseView = App.activeDocument().%s",
-                            m_detailName.c_str(),m_baseName.c_str());
-    Gui::Command::doCommand(Command::Doc,"App.activeDocument().%s.Direction = App.activeDocument().%s.Direction",
-                            m_detailName.c_str(),m_baseName.c_str());
-    Gui::Command::doCommand(Command::Doc,"App.activeDocument().%s.XDirection = App.activeDocument().%s.XDirection",
-                            m_detailName.c_str(),m_baseName.c_str());
-    Gui::Command::doCommand(Command::Doc,"App.activeDocument().%s.Scale = App.activeDocument().%s.Scale",
-                            m_detailName.c_str(),m_baseName.c_str());
-    Gui::Command::doCommand(Command::Doc,"App.activeDocument().%s.addView(App.activeDocument().%s)",
+    Gui::Command::doCommand(Command::Doc, "App.activeDocument().%s.BaseView = App.activeDocument().%s",
+                            m_detailName.c_str(), m_baseName.c_str());
+    Gui::Command::doCommand(Command::Doc, "App.activeDocument().%s.Direction = App.activeDocument().%s.Direction",
+                            m_detailName.c_str(), m_baseName.c_str());
+    Gui::Command::doCommand(Command::Doc, "App.activeDocument().%s.XDirection = App.activeDocument().%s.XDirection",
+                            m_detailName.c_str(), m_baseName.c_str());
+    Gui::Command::doCommand(Command::Doc, "App.activeDocument().%s.Scale = App.activeDocument().%s.Scale",
+                            m_detailName.c_str(), m_baseName.c_str());
+    Gui::Command::doCommand(Command::Doc, "App.activeDocument().%s.addView(App.activeDocument().%s)",
                             m_pageName.c_str(), m_detailName.c_str());
 
     Gui::Command::updateActive();
@@ -567,8 +537,7 @@ QPointF TaskDetail::getAnchorScene()
     Base::Vector3d xyScene = Rez::guiX(basePos);
     Base::Vector3d anchorOffsetScene = Rez::guiX(anchorPos) * scale;
     Base::Vector3d netPos = xyScene + anchorOffsetScene;
-    QPointF qAnchor(netPos.x, netPos.y);
-    return qAnchor;
+    return QPointF(netPos.x, netPos.y);
 }
 
 // protects against stale pointers
@@ -601,7 +570,7 @@ DrawViewDetail* TaskDetail::getDetailFeat()
             return static_cast<DrawViewDetail*>(detailObj);
         }
     }
-    
+
     std::string msg = "TaskDetail - detail feature " +
                         m_detailName +
                         " not found \n";
@@ -623,7 +592,7 @@ bool TaskDetail::accept()
     m_ghost->hide();
     getDetailFeat()->requestPaint();
     getBaseFeat()->requestPaint();
-    Gui::Command::doCommand(Gui::Command::Gui,"Gui.ActiveDocument.resetEdit()");
+    Gui::Command::doCommand(Gui::Command::Gui, "Gui.ActiveDocument.resetEdit()");
 
     return true;
 }
@@ -638,7 +607,7 @@ bool TaskDetail::reject()
     m_ghost->hide();
     if (m_mode == CREATEMODE) {
         if (m_created) {
-            Gui::Command::doCommand(Gui::Command::Gui,"App.activeDocument().removeObject('%s')",
+            Gui::Command::doCommand(Gui::Command::Gui, "App.activeDocument().removeObject('%s')",
                                     m_detailName.c_str());
         }
     } else {
@@ -647,8 +616,8 @@ bool TaskDetail::reject()
         getBaseFeat()->requestPaint();
     }
 
-    Gui::Command::doCommand(Gui::Command::Gui,"App.activeDocument().recompute()");
-    Gui::Command::doCommand(Gui::Command::Gui,"Gui.ActiveDocument.resetEdit()");
+    Gui::Command::doCommand(Gui::Command::Gui, "App.activeDocument().recompute()");
+    Gui::Command::doCommand(Gui::Command::Gui, "Gui.ActiveDocument.resetEdit()");
 
     return false;
 }

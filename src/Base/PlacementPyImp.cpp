@@ -24,6 +24,7 @@
 #include "PreCompiled.h"
 
 #include "GeometryPyCXX.h"
+#include <Base/PyWrapParseTupleAndKeywords.h>
 
 // inclusion of the generated files (generated out of PlacementPy.xml)
 #include "PlacementPy.h"
@@ -39,14 +40,14 @@ using namespace Base;
 // returns a string which represents the object e.g. when printed in python
 std::string PlacementPy::representation() const
 {
-    double A,B,C;
+    double yaw{}, pitch{}, roll{};
     PlacementPy::PointerType ptr = getPlacementPtr();
     std::stringstream str;
-    ptr->getRotation().getYawPitchRoll(A,B,C);
+    ptr->getRotation().getYawPitchRoll(yaw, pitch, roll);
 
     str << "Placement [Pos=(";
     str << ptr->getPosition().x << ","<< ptr->getPosition().y << "," << ptr->getPosition().z;
-    str << "), Yaw-Pitch-Roll=(" << A << "," << B << "," << C << ")]";
+    str << "), Yaw-Pitch-Roll=(" << yaw << "," << pitch << "," << roll << ")]";
 
     return str.str();
 }
@@ -60,16 +61,22 @@ PyObject *PlacementPy::PyMake(struct _typeobject *, PyObject *, PyObject *)  // 
 // constructor method
 int PlacementPy::PyInit(PyObject* args, PyObject* /*kwd*/)
 {
-    PyObject* o;
+    PyObject* o{};
     if (PyArg_ParseTuple(args, "")) {
         return 0;
     }
 
     PyErr_Clear();
     if (PyArg_ParseTuple(args, "O!", &(Base::MatrixPy::Type), &o)) {
-        Base::Matrix4D mat = static_cast<Base::MatrixPy*>(o)->value();
-        getPlacementPtr()->fromMatrix(mat);
-        return 0;
+        try {
+            Base::Matrix4D mat = static_cast<Base::MatrixPy*>(o)->value();
+            getPlacementPtr()->fromMatrix(mat);
+            return 0;
+        }
+        catch (const Base::Exception& e) {
+            PyErr_SetString(e.getPyExceptionType(), e.what());
+            return -1;
+        }
     }
 
     PyErr_Clear();
@@ -80,8 +87,8 @@ int PlacementPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     }
 
     PyErr_Clear();
-    PyObject* d;
-    double angle;
+    PyObject* d{};
+    double angle{};
     if (PyArg_ParseTuple(args, "O!O!d", &(Base::VectorPy::Type), &o,
                                         &(Base::VectorPy::Type), &d, &angle)) {
         // NOTE: The first parameter defines the translation, the second the rotation axis
@@ -102,7 +109,7 @@ int PlacementPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     }
 
     PyErr_Clear();
-    PyObject* c;
+    PyObject* c{};
     if (PyArg_ParseTuple(args, "O!O!O!", &(Base::VectorPy::Type), &o,
                                          &(Base::RotationPy::Type), &d,
                                          &(Base::VectorPy::Type), &c)) {
@@ -151,7 +158,7 @@ PyObject* PlacementPy::richCompare(PyObject *v, PyObject *w, int op)
 
 PyObject* PlacementPy::move(PyObject * args)
 {
-    PyObject *vec;
+    PyObject *vec{};
     if (!PyArg_ParseTuple(args, "O!", &(VectorPy::Type), &vec))
         return nullptr;
     getPlacementPtr()->move(static_cast<VectorPy*>(vec)->value());
@@ -163,22 +170,34 @@ PyObject* PlacementPy::translate(PyObject * args)
     return move(args);
 }
 
-PyObject* PlacementPy::rotate(PyObject *args) {
-    PyObject *obj1, *obj2;
-    double angle;
-    if (!PyArg_ParseTuple(args, "OOd", &obj1, &obj2, &angle))
+PyObject* PlacementPy::rotate(PyObject *args, PyObject *kwds)
+{
+    double angle{};
+    static const std::array<const char *, 6> kwlist { "center", "axis", "angle", "comp", nullptr };
+    Vector3d center;
+    Vector3d axis;
+    PyObject* pyComp = Py_False; // NOLINT
+
+    if (!Base::Wrapped_ParseTupleAndKeywords(args, kwds, "(ddd)(ddd)d|O!", kwlist, &center.x, &center.y, &center.z,
+                                             &axis.x, &axis.y, &axis.z, &angle, &PyBool_Type, &pyComp)) {
         return nullptr;
+    }
 
     try {
-        Py::Sequence p1(obj1), p2(obj2);
-        Vector3d center((double)Py::Float(p1[0]),
-                        (double)Py::Float(p1[1]),
-                        (double)Py::Float(p1[2]));
-        Vector3d axis((double)Py::Float(p2[0]),
-                      (double)Py::Float(p2[1]),
-                      (double)Py::Float(p2[2]));
-        (*getPlacementPtr()) *= Placement(
-                Vector3d(),Rotation(axis,toRadians<double>(angle)),center);
+        /*
+         * if comp is False, we retain the original behaviour that - contrary to the (old) documentation - generates
+         * Placements different from TopoShape.rotate() to ensure compatibility for existing code
+         */
+        bool comp = Base::asBoolean(pyComp);
+
+        if (!comp) {
+            getPlacementPtr()->multRight(Placement(Vector3d(), Rotation(axis, toRadians<double>(angle)), center));
+        }
+        else {
+            // multiply new Placement the same way TopoShape.rotate() does
+            getPlacementPtr()->multLeft(Placement(Vector3d(), Rotation(axis, toRadians<double>(angle)), center));
+        }
+
         Py_Return;
     }
     catch (const Py::Exception&) {
@@ -188,7 +207,7 @@ PyObject* PlacementPy::rotate(PyObject *args) {
 
 PyObject* PlacementPy::multiply(PyObject * args)
 {
-    PyObject *plm;
+    PyObject *plm{};
     if (!PyArg_ParseTuple(args, "O!", &(PlacementPy::Type), &plm))
         return nullptr;
     Placement mult = (*getPlacementPtr()) * (*static_cast<PlacementPy*>(plm)->getPlacementPtr());
@@ -197,7 +216,7 @@ PyObject* PlacementPy::multiply(PyObject * args)
 
 PyObject* PlacementPy::multVec(PyObject * args)
 {
-    PyObject *vec;
+    PyObject *vec{};
     if (!PyArg_ParseTuple(args, "O!", &(VectorPy::Type), &vec))
         return nullptr;
     Base::Vector3d pnt(static_cast<VectorPy*>(vec)->value());
@@ -230,7 +249,7 @@ PyObject* PlacementPy::inverse(PyObject * args)
 
 PyObject* PlacementPy::pow(PyObject* args)
 {
-    double t;
+    double t{};
     PyObject* shorten = Py_True;
     if (!PyArg_ParseTuple(args, "d|O!", &t, &(PyBool_Type), &shorten))
         return nullptr;
@@ -241,8 +260,8 @@ PyObject* PlacementPy::pow(PyObject* args)
 
 PyObject* PlacementPy::sclerp(PyObject* args)
 {
-    PyObject* pyplm2;
-    double t;
+    PyObject* pyplm2{};
+    double t{};
     PyObject* shorten = Py_True;
     if (!PyArg_ParseTuple(args, "O!d|O!", &(PlacementPy::Type), &pyplm2, &t, &(PyBool_Type), &shorten))
         return nullptr;
@@ -253,8 +272,8 @@ PyObject* PlacementPy::sclerp(PyObject* args)
 
 PyObject* PlacementPy::slerp(PyObject* args)
 {
-    PyObject* pyplm2;
-    double t;
+    PyObject* pyplm2{};
+    double t{};
     if (!PyArg_ParseTuple(args, "O!d", &(PlacementPy::Type), &pyplm2, &t))
         return nullptr;
     Base::Placement plm2 = static_cast<Base::PlacementPy*>(pyplm2)->value();
@@ -264,15 +283,30 @@ PyObject* PlacementPy::slerp(PyObject* args)
 
 PyObject* PlacementPy::isIdentity(PyObject *args)
 {
-    if (!PyArg_ParseTuple(args, ""))
+    double tol = 0.0;
+    if (!PyArg_ParseTuple(args, "|d", &tol))
         return nullptr;
-    bool none = getPlacementPtr()->isIdentity();
+    bool none = tol > 0 ? getPlacementPtr()->isIdentity(tol)
+                        : getPlacementPtr()->isIdentity();
     return Py_BuildValue("O", (none ? Py_True : Py_False));
+}
+
+PyObject* PlacementPy::isSame(PyObject *args)
+{
+    PyObject* plm{};
+    double tol = 0.0;
+    if (!PyArg_ParseTuple(args, "O!|d", &PlacementPy::Type, &plm, &tol))
+        return nullptr;
+
+    Base::Placement plm1 = * getPlacementPtr();
+    Base::Placement plm2 = * static_cast<PlacementPy*>(plm)->getPlacementPtr();
+    bool same = tol > 0.0 ? plm1.isSame(plm2, tol) : plm1.isSame(plm2);
+    return Py_BuildValue("O", (same ? Py_True : Py_False));
 }
 
 Py::Object PlacementPy::getBase() const
 {
-    return Py::Vector(getPlacementPtr()->getPosition());
+    return Py::Vector(getPlacementPtr()->getPosition()); // NOLINT
 }
 
 void PlacementPy::setBase(Py::Object arg)
@@ -316,16 +350,22 @@ void PlacementPy::setMatrix(Py::Object arg)
     Py::Matrix mat;
     if (!mat.accepts(arg.ptr()))
         throw Py::TypeError("Expect type Matrix");
-    mat = arg;
-    getPlacementPtr()->fromMatrix(mat);
+    try {
+        mat = arg;
+        getPlacementPtr()->fromMatrix(mat);
+    }
+    catch (const Base::ValueError& e) {
+        throw Py::ValueError(e.what());
+    }
 }
 
 PyObject *PlacementPy::getCustomAttributes(const char* attr) const
 {
     // for backward compatibility
     if (strcmp(attr, "isNull") == 0) {
-        PyObject *w, *res;
+        PyObject *w{}, *res{};
         w = PyUnicode_InternFromString("isIdentity");
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
         res = PyObject_GenericGetAttr(const_cast<PlacementPy *>(this), w);
         Py_XDECREF(w);
         return res;
@@ -375,9 +415,8 @@ PyObject * PlacementPy::number_power_handler (PyObject* self, PyObject* other, P
     Py::Tuple tup(1);
     tup[0] = pw;
 
-    double pw_v;
+    double pw_v{};
     if (!PyArg_ParseTuple(tup.ptr(), "d", &pw_v)){
-        //PyErr_SetString(PyExc_NotImplementedError, "Wrong exponent type (expect float).");
         return nullptr;
     }
     if (!PyObject_TypeCheck(self, &(PlacementPy::Type))

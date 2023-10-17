@@ -42,10 +42,7 @@ ViewProviderExtension::ViewProviderExtension()
     initExtensionType(Gui::ViewProviderExtension::getExtensionClassTypeId());
 }
 
-ViewProviderExtension::~ViewProviderExtension()
-{
-
-}
+ViewProviderExtension::~ViewProviderExtension() = default;
 
 const ViewProviderDocumentObject* ViewProviderExtension::getExtendedViewProvider() const{
 
@@ -63,7 +60,7 @@ void ViewProviderExtension::extensionUpdateData(const App::Property*) {
 
 }
 
-PyObject* ViewProviderExtension::getExtensionPyObject(void) {
+PyObject* ViewProviderExtension::getExtensionPyObject() {
 
     if (ExtensionPythonObject.is(Py::_None())){
         // ref counter is set to 1

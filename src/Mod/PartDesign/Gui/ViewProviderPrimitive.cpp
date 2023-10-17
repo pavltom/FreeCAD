@@ -41,14 +41,9 @@ using namespace PartDesignGui;
 
 PROPERTY_SOURCE(PartDesignGui::ViewProviderPrimitive,PartDesignGui::ViewProvider)
 
-ViewProviderPrimitive::ViewProviderPrimitive()
-{
-}
+ViewProviderPrimitive::ViewProviderPrimitive() = default;
 
-ViewProviderPrimitive::~ViewProviderPrimitive()
-{
-
-}
+ViewProviderPrimitive::~ViewProviderPrimitive() = default;
 
 void ViewProviderPrimitive::attach(App::DocumentObject* obj) {
     ViewProviderAddSub::attach(obj);
@@ -117,7 +112,7 @@ void ViewProviderPrimitive::updateData(const App::Property* p) {
     PartDesignGui::ViewProviderAddSub::updateData(p);
 }
 
-QIcon ViewProviderPrimitive::getIcon(void) const {
+QIcon ViewProviderPrimitive::getIcon() const {
 
     QString str = QString::fromLatin1("PartDesign_");
     auto* prim = static_cast<PartDesign::FeaturePrimitive*>(getObject());

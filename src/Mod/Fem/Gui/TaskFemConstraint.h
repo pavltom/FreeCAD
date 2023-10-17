@@ -37,17 +37,23 @@ class QAction;
 class QListWidget;
 class QListWidgetItem;
 
-namespace FemGui {
+namespace FemGui
+{
 
-class TaskFemConstraint : public Gui::TaskView::TaskBox, public Gui::SelectionObserver
+class TaskFemConstraint: public Gui::TaskView::TaskBox, public Gui::SelectionObserver
 {
     Q_OBJECT
 
 public:
-    TaskFemConstraint(ViewProviderFemConstraint *ConstraintView,QWidget *parent = nullptr,const char* pixmapname = "");
-    virtual ~TaskFemConstraint() {}
+    explicit TaskFemConstraint(ViewProviderFemConstraint* ConstraintView,
+                               QWidget* parent = nullptr,
+                               const char* pixmapname = "");
+    ~TaskFemConstraint() override = default;
 
-    virtual const std::string getReferences(void) const {return std::string();}
+    virtual const std::string getReferences() const
+    {
+        return std::string();
+    }
     const std::string getReferences(const std::vector<std::string>& items) const;
     const std::string getScale() const;
 
@@ -60,59 +66,75 @@ protected Q_SLOTS:
     void onButtonWizCancel();
 
 protected:
-    virtual void changeEvent(QEvent *e) { TaskBox::changeEvent(e); }
+    void changeEvent(QEvent* e) override
+    {
+        TaskBox::changeEvent(e);
+    }
     const QString makeRefText(const std::string& objName, const std::string& subName) const;
     const QString makeRefText(const App::DocumentObject* obj, const std::string& subName) const;
-    virtual void keyPressEvent(QKeyEvent * ke);
+    void keyPressEvent(QKeyEvent* ke) override;
     void createDeleteAction(QListWidget* parentList);
-    bool KeyEvent(QEvent *e);
-    virtual void onSelectionChanged(const Gui::SelectionChanges&) {}
+    bool KeyEvent(QEvent* e);
+    void onSelectionChanged(const Gui::SelectionChanges&) override
+    {}
 
 protected:
     QWidget* proxy;
     QAction* deleteAction;
     Gui::WeakPtrT<ViewProviderFemConstraint> ConstraintView;
-    enum {seldir, selref, selloc, selnone} selectionMode;
+    enum
+    {
+        seldir,
+        selref,
+        selloc,
+        selnone
+    } selectionMode;
 
 private:
-    // This seems to be the only way to access the widgets again in order to remove them from the dialog
+    // This seems to be the only way to access the widgets again in order to remove them from the
+    // dialog
     QDialogButtonBox* buttonBox;
     QPushButton* okButton;
     QPushButton* cancelButton;
 };
 
 /// simulation dialog for the TaskView
-class TaskDlgFemConstraint : public Gui::TaskView::TaskDialog
+class TaskDlgFemConstraint: public Gui::TaskView::TaskDialog
 {
     Q_OBJECT
 
 public:
-
     /// is called the TaskView when the dialog is opened
-    void open();
+    void open() override;
     /*
     /// is called by the framework if an button is clicked which has no accept or reject role
     virtual void clicked(int) {}
     /// is called by the framework if the dialog is accepted (Ok)
     */
-    virtual bool accept();
+    bool accept() override;
     /// is called by the framework if the dialog is rejected (Cancel)
-    virtual bool reject();
-    virtual bool isAllowedAlterDocument(void) const
-    { return false; }
+    bool reject() override;
+    bool isAllowedAlterDocument() const override
+    {
+        return false;
+    }
 
     /// returns for Close and Help button
-    virtual QDialogButtonBox::StandardButtons getStandardButtons(void) const
-    { return QDialogButtonBox::Ok|QDialogButtonBox::Cancel; }
+    QDialogButtonBox::StandardButtons getStandardButtons() const override
+    {
+        return QDialogButtonBox::Ok | QDialogButtonBox::Cancel;
+    }
 
     ViewProviderFemConstraint* getConstraintView() const
-    { return ConstraintView; }
+    {
+        return ConstraintView;
+    }
 
 protected:
-    ViewProviderFemConstraint *ConstraintView;
-    TaskFemConstraint  *parameter;
+    ViewProviderFemConstraint* ConstraintView;
+    TaskFemConstraint* parameter;
 };
 
-} //namespace FemGui
+}  // namespace FemGui
 
-#endif // GUI_TASKVIEW_TaskFemConstraint_H
+#endif  // GUI_TASKVIEW_TaskFemConstraint_H

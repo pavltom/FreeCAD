@@ -36,15 +36,15 @@ class PartDesignGuiExport ViewProviderShapeBinder : public PartGui::ViewProvider
 public:
     /// Constructor
     ViewProviderShapeBinder();
-    virtual ~ViewProviderShapeBinder();
+    ~ViewProviderShapeBinder() override;
 
     void setupContextMenu(QMenu*, QObject*, const char*) override;
     void highlightReferences(bool on);
-    
+
 protected:
-    virtual bool setEdit(int ModNum) override;
-    virtual void unsetEdit(int ModNum) override;
-    
+    bool setEdit(int ModNum) override;
+    void unsetEdit(int ModNum) override;
+
 private:
     std::vector<App::Color> originalLineColors;
     std::vector<App::Color> originalFaceColors;
@@ -63,19 +63,19 @@ public:
 
     bool canDropObjects() const override {return true;}
     bool canDragAndDropObject(App::DocumentObject*) const override {return false;}
-    bool canDropObjectEx(App::DocumentObject *obj, App::DocumentObject *owner, 
+    bool canDropObjectEx(App::DocumentObject *obj, App::DocumentObject *owner,
             const char *subname, const std::vector<std::string> &elements) const override;
-    std::string dropObjectEx(App::DocumentObject*, App::DocumentObject*, const char *, 
+    std::string dropObjectEx(App::DocumentObject*, App::DocumentObject*, const char *,
             const std::vector<std::string> &) override;
-    std::vector<App::DocumentObject*> claimChildren(void) const override;
+    std::vector<App::DocumentObject*> claimChildren() const override;
 
-    virtual bool doubleClicked() override;
-    virtual void setupContextMenu(QMenu* menu, QObject* receiver, const char* member) override;
-    virtual bool setEdit(int ModNum) override;
-    virtual void attach(App::DocumentObject *obj) override;
-    virtual void onChanged(const App::Property *prop) override;
+    bool doubleClicked() override;
+    void setupContextMenu(QMenu* menu, QObject* receiver, const char* member) override;
+    bool setEdit(int ModNum) override;
+    void attach(App::DocumentObject *obj) override;
+    void onChanged(const App::Property *prop) override;
 
-    virtual bool allowTreeOrderSwap(const App::DocumentObject *, const App::DocumentObject *) const { return false; }
+    virtual bool allowTreeOrderSwap(const App::DocumentObject *, const App::DocumentObject *) const override { return false; }
 
 private:
     enum {
@@ -85,7 +85,7 @@ private:
     void updatePlacement(bool transaction);
 };
 
-typedef Gui::ViewProviderPythonFeatureT<ViewProviderSubShapeBinder> ViewProviderSubShapeBinderPython;
+using ViewProviderSubShapeBinderPython = Gui::ViewProviderPythonFeatureT<ViewProviderSubShapeBinder>;
 
 } // namespace PartDesignGui
 

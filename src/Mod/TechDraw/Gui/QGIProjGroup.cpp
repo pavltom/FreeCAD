@@ -22,28 +22,20 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-# include <QAction>
-# include <QContextMenuEvent>
 # include <QGraphicsScene>
 # include <QGraphicsSceneMouseEvent>
 # include <QList>
-# include <QMenu>
-# include <QMessageBox>
-# include <QMouseEvent>
-# include <QPainter>
 #endif
 
 #include <App/Document.h>
 #include <Base/Console.h>
 #include <Gui/Selection.h>
-#include <Gui/Command.h>
-
-#include <Mod/TechDraw/App/DrawProjGroupItem.h>
 #include <Mod/TechDraw/App/DrawProjGroup.h>
+#include <Mod/TechDraw/App/DrawProjGroupItem.h>
 
-#include "Rez.h"
-#include "DrawGuiUtil.h"
 #include "QGIProjGroup.h"
+#include "Rez.h"
+
 
 using namespace TechDrawGui;
 
@@ -58,7 +50,7 @@ QGIProjGroup::QGIProjGroup()
 //    setFrameState(false);
 }
 
-TechDraw::DrawProjGroup * QGIProjGroup::getDrawView(void) const
+TechDraw::DrawProjGroup * QGIProjGroup::getDrawView() const
 {
     App::DocumentObject *obj = getViewObject();
     return dynamic_cast<TechDraw::DrawProjGroup *>(obj);
@@ -169,7 +161,7 @@ void QGIProjGroup::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
             }
         } else if(scene() && qAnchor) {
             // End of Drag
-            getViewObject()->setPosition(Rez::appX(x()),Rez::appX(getY()));
+            getViewObject()->setPosition(Rez::appX(x()), Rez::appX(getY()));
         }
     }
     QGIViewCollection::mouseReleaseEvent(event);
@@ -196,16 +188,11 @@ QGIView * QGIProjGroup::getAnchorQItem() const
     return nullptr;
 }
 
-void QGIProjGroup::updateView(bool update)
-{
-    return QGIViewCollection::updateView(update);
-}
-
 //QGIPG does not rotate. Only individual views rotate
-void QGIProjGroup::rotateView(void)
+void QGIProjGroup::rotateView()
 {
     Base::Console().Warning("QGIPG: Projection Groups do not rotate. Change ignored\n");
-}    
+}
 
 void QGIProjGroup::drawBorder()
 {

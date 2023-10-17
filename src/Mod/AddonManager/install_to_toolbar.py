@@ -1,35 +1,41 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
 # ***************************************************************************
 # *                                                                         *
-# *   Copyright (c) 2022 FreeCAD Project Association                        *
+# *   Copyright (c) 2022-2023 FreeCAD Project Association                   *
 # *                                                                         *
-# *   This program is free software; you can redistribute it and/or         *
-# *   modify it under the terms of the GNU Lesser General Public            *
-# *   License as published by the Free Software Foundation; either          *
-# *   version 2.1 of the License, or (at your option) any later version.    *
+# *   This file is part of FreeCAD.                                         *
 # *                                                                         *
-# *   This program is distributed in the hope that it will be useful,       *
-# *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-# *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU     *
+# *   FreeCAD is free software: you can redistribute it and/or modify it    *
+# *   under the terms of the GNU Lesser General Public License as           *
+# *   published by the Free Software Foundation, either version 2.1 of the  *
+# *   License, or (at your option) any later version.                       *
+# *                                                                         *
+# *   FreeCAD is distributed in the hope that it will be useful, but        *
+# *   WITHOUT ANY WARRANTY; without even the implied warranty of            *
+# *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      *
 # *   Lesser General Public License for more details.                       *
 # *                                                                         *
 # *   You should have received a copy of the GNU Lesser General Public      *
-# *   License along with this library; if not, write to the Free Software   *
-# *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
-#  *  02110-1301  USA                                                       *
+# *   License along with FreeCAD. If not, see                               *
+# *   <https://www.gnu.org/licenses/>.                                      *
 # *                                                                         *
 # ***************************************************************************
 
-import FreeCAD
-import FreeCADGui
-from PySide2 import QtCore, QtWidgets
-import Addon
+""" A collection of functions to handle installing a macro icon to the toolbar. """
 
 import os
+
+import FreeCAD
+import FreeCADGui
+from PySide import QtCore, QtWidgets
+import Addon
 
 translate = FreeCAD.Qt.translate
 
 
 def ask_to_install_toolbar_button(repo: Addon) -> None:
+    """Presents a dialog to the user asking if they want to install a toolbar button for
+    a particular macro, and walks through that process if they agree to do so."""
     pref = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
     do_not_show_dialog = pref.GetBool("dontShowAddMacroButtonDialog", False)
     button_exists = check_for_button(repo)
@@ -38,9 +44,7 @@ def ask_to_install_toolbar_button(repo: Addon) -> None:
             os.path.join(os.path.dirname(__file__), "add_toolbar_button_dialog.ui")
         )
         add_toolbar_button_dialog.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint, True)
-        add_toolbar_button_dialog.buttonYes.clicked.connect(
-            lambda: install_toolbar_button(repo)
-        )
+        add_toolbar_button_dialog.buttonYes.clicked.connect(lambda: install_toolbar_button(repo))
         add_toolbar_button_dialog.buttonNever.clicked.connect(
             lambda: pref.SetBool("dontShowAddMacroButtonDialog", True)
         )
@@ -48,12 +52,11 @@ def ask_to_install_toolbar_button(repo: Addon) -> None:
 
 
 def check_for_button(repo: Addon) -> bool:
+    """Returns True if a button already exists for this macro, or False if not."""
     command = FreeCADGui.Command.findCustomCommand(repo.macro.filename)
     if not command:
         return False
-    custom_toolbars = FreeCAD.ParamGet(
-        "User parameter:BaseApp/Workbench/Global/Toolbar"
-    )
+    custom_toolbars = FreeCAD.ParamGet("User parameter:BaseApp/Workbench/Global/Toolbar")
     toolbar_groups = custom_toolbars.GetGroups()
     for group in toolbar_groups:
         toolbar = custom_toolbars.GetGroup(group)
@@ -62,9 +65,10 @@ def check_for_button(repo: Addon) -> bool:
     return False
 
 
-def ask_for_toolbar(
-    repo: Addon, custom_toolbars
-) -> object:  # Returns the pref group for the new toolbar
+def ask_for_toolbar(repo: Addon, custom_toolbars) -> object:
+    """Determine what toolbar to add the icon to. The first time it is called it prompts the
+    user to select or create a toolbar. After that, the prompt is optional and can be configured
+    via a preference. Returns the pref group for the new toolbar."""
     pref = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
 
     # In this one spot, default True: if this is the first time we got to
@@ -80,9 +84,7 @@ def ask_for_toolbar(
         select_toolbar_dialog.comboBox.clear()
 
         for group in custom_toolbars:
-            ref = FreeCAD.ParamGet(
-                "User parameter:BaseApp/Workbench/Global/Toolbar/" + group
-            )
+            ref = FreeCAD.ParamGet("User parameter:BaseApp/Workbench/Global/Toolbar/" + group)
             name = ref.GetString("Name", "")
             if name:
                 select_toolbar_dialog.comboBox.addItem(name)
@@ -102,30 +104,26 @@ def ask_for_toolbar(
                 pref.SetBool("alwaysAskForToolbar", True)
             if selection == new_menubar_option_text:
                 return create_new_custom_toolbar()
-            else:
-                return get_toolbar_with_name(selection)
-        else:
-            return None
-    else:
-        custom_toolbar_name = pref.GetString(
-            "CustomToolbarName", "Auto-Created Macro Toolbar"
-        )
-        toolbar = get_toolbar_with_name(custom_toolbar_name)
-        if not toolbar:
-            # They told us not to ask, but then the toolbar got deleted... ask anyway!
-            ask = pref.RemBool("alwaysAskForToolbar")
-            return ask_for_toolbar(repo, custom_toolbars)
-        else:
-            return toolbar
+            return get_toolbar_with_name(selection)
+        return None
+
+    # If none of the above code returned...
+    custom_toolbar_name = pref.GetString("CustomToolbarName", "Auto-Created Macro Toolbar")
+    toolbar = get_toolbar_with_name(custom_toolbar_name)
+    if not toolbar:
+        # They told us not to ask, but then the toolbar got deleted... ask anyway!
+        ask = pref.RemBool("alwaysAskForToolbar")
+        return ask_for_toolbar(repo, custom_toolbars)
+    return toolbar
 
 
 def get_toolbar_with_name(name: str) -> object:
+    """Try to find a toolbar with a given name. Returns the preference group for the toolbar
+    if found, or None if it does not exist."""
     top_group = FreeCAD.ParamGet("User parameter:BaseApp/Workbench/Global/Toolbar")
     custom_toolbars = top_group.GetGroups()
     for toolbar in custom_toolbars:
-        group = FreeCAD.ParamGet(
-            "User parameter:BaseApp/Workbench/Global/Toolbar/" + toolbar
-        )
+        group = FreeCAD.ParamGet("User parameter:BaseApp/Workbench/Global/Toolbar/" + toolbar)
         group_name = group.GetString("Name", "")
         if group_name == name:
             return group
@@ -133,6 +131,7 @@ def get_toolbar_with_name(name: str) -> object:
 
 
 def create_new_custom_toolbar() -> object:
+    """Create a new custom toolbar and returns its preference group."""
 
     # We need two names: the name of the auto-created toolbar, as it will be displayed to the
     # user in various menus, and the underlying name of the toolbar group. Both must be
@@ -140,15 +139,14 @@ def create_new_custom_toolbar() -> object:
 
     # First, the displayed name
     custom_toolbar_name = "Auto-Created Macro Toolbar"
-    pref = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
     top_group = FreeCAD.ParamGet("User parameter:BaseApp/Workbench/Global/Toolbar")
     custom_toolbars = top_group.GetGroups()
-    name_taken = check_for_toolbar(custom_toolbars, custom_toolbar_name)
+    name_taken = check_for_toolbar(custom_toolbar_name)
     if name_taken:
         i = 2  # Don't use (1), start at (2)
         while True:
             test_name = custom_toolbar_name + f" ({i})"
-            if not check_for_toolbar(custom_toolbars, test_name):
+            if not check_for_toolbar(test_name):
                 custom_toolbar_name = test_name
             i = i + 1
 
@@ -168,19 +166,16 @@ def create_new_custom_toolbar() -> object:
     return custom_toolbar
 
 
-def check_for_toolbar(custom_toolbars, toolbar_name: str) -> bool:
-    tb = get_toolbar_with_name(toolbar_name)
-    if tb:
-        return True
-    else:
-        return False
+def check_for_toolbar(toolbar_name: str) -> bool:
+    """Returns True if the toolbar exists, otherwise False"""
+    return get_toolbar_with_name(toolbar_name) is not None
 
 
 def install_toolbar_button(repo: Addon) -> None:
+    """If the user has requested a toolbar button be installed, this function is called
+    to continue the process and request any additional required information."""
     pref = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
-    custom_toolbar_name = pref.GetString(
-        "CustomToolbarName", "Auto-Created Macro Toolbar"
-    )
+    custom_toolbar_name = pref.GetString("CustomToolbarName", "Auto-Created Macro Toolbar")
 
     # Default to false here: if the variable hasn't been set, we don't assume
     # that we have to ask, because the simplest is to just create a new toolbar
@@ -219,12 +214,11 @@ def install_toolbar_button(repo: Addon) -> None:
     if custom_toolbar:
         install_macro_to_toolbar(repo, custom_toolbar)
     else:
-        FreeCAD.Console.PrintMessage(
-            f"In the end, no custom toolbar was set, bailing out\n"
-        )
+        FreeCAD.Console.PrintMessage("In the end, no custom toolbar was set, bailing out\n")
 
 
 def install_macro_to_toolbar(repo: Addon, toolbar: object) -> None:
+    """Adds an icon for the given macro to the given toolbar."""
     menuText = repo.display_name
     tooltipText = f"<b>{repo.display_name}</b>"
     if repo.macro.comment:
@@ -247,10 +241,8 @@ def install_macro_to_toolbar(repo: Addon, toolbar: object) -> None:
             pixmapText = os.path.normpath(os.path.join(macro_repo_dir, repo.macro.icon))
     elif repo.macro.xpm:
         macro_repo_dir = FreeCAD.getUserMacroDir(True)
-        icon_file = os.path.normpath(
-            os.path.join(macro_repo_dir, repo.macro.name + "_icon.xpm")
-        )
-        with open(icon_file, "w") as f:
+        icon_file = os.path.normpath(os.path.join(macro_repo_dir, repo.macro.name + "_icon.xpm"))
+        with open(icon_file, "w", encoding="utf-8") as f:
             f.write(repo.macro.xpm)
         pixmapText = icon_file
     else:
@@ -280,9 +272,7 @@ def remove_custom_toolbar_button(repo: Addon) -> None:
     command = FreeCADGui.Command.findCustomCommand(repo.macro.filename)
     if not command:
         return
-    custom_toolbars = FreeCAD.ParamGet(
-        "User parameter:BaseApp/Workbench/Global/Toolbar"
-    )
+    custom_toolbars = FreeCAD.ParamGet("User parameter:BaseApp/Workbench/Global/Toolbar")
     toolbar_groups = custom_toolbars.GetGroups()
     for group in toolbar_groups:
         toolbar = custom_toolbars.GetGroup(group)

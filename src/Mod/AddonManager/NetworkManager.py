@@ -1,28 +1,27 @@
-# -*- coding: utf-8 -*-
-
+# SPDX-License-Identifier: LGPL-2.1-or-later
 # ***************************************************************************
 # *                                                                         *
-# *   Copyright (c) 2022 FreeCAD Project Association                        *
+# *   Copyright (c) 2022-2023 FreeCAD Project Association                   *
 # *                                                                         *
-# *   This program is free software; you can redistribute it and/or modify  *
-# *   it under the terms of the GNU Lesser General Public License (LGPL)    *
-# *   as published by the Free Software Foundation; either version 2 of     *
-# *   the License, or (at your option) any later version.                   *
-# *   for detail see the LICENSE text file.                                 *
+# *   This file is part of FreeCAD.                                         *
 # *                                                                         *
-# *   This program is distributed in the hope that it will be useful,       *
-# *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-# *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-# *   GNU Library General Public License for more details.                  *
+# *   FreeCAD is free software: you can redistribute it and/or modify it    *
+# *   under the terms of the GNU Lesser General Public License as           *
+# *   published by the Free Software Foundation, either version 2.1 of the  *
+# *   License, or (at your option) any later version.                       *
 # *                                                                         *
-# *   You should have received a copy of the GNU Library General Public     *
-# *   License along with this program; if not, write to the Free Software   *
-# *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
-# *   USA                                                                   *
+# *   FreeCAD is distributed in the hope that it will be useful, but        *
+# *   WITHOUT ANY WARRANTY; without even the implied warranty of            *
+# *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      *
+# *   Lesser General Public License for more details.                       *
+# *                                                                         *
+# *   You should have received a copy of the GNU Lesser General Public      *
+# *   License along with FreeCAD. If not, see                               *
+# *   <https://www.gnu.org/licenses/>.                                      *
 # *                                                                         *
 # ***************************************************************************
 
-
+"""
 #############################################################################
 #
 # ABOUT NETWORK MANAGER
@@ -52,7 +51,15 @@
 # accesses: the blocking_get() function blocks until the network transmission
 # is complete, directly returning a QByteArray object with the received data.
 # Do not run on the main GUI thread!
+"""
 
+import threading
+import os
+import queue
+import itertools
+import tempfile
+import sys
+from typing import Dict, List, Optional
 
 try:
     import FreeCAD
@@ -62,18 +69,15 @@ try:
 
     HAVE_FREECAD = True
     translate = FreeCAD.Qt.translate
-except Exception:
+except ImportError:
     # For standalone testing support working without the FreeCAD import
     HAVE_FREECAD = False
 
-import threading
-from PySide2 import QtCore
+from PySide import QtCore
 
-import os
-import queue
-import itertools
-import tempfile
-from typing import Dict, List, Optional
+if FreeCAD.GuiUp:
+    from PySide import QtWidgets
+
 
 # This is the global instance of the NetworkManager that outside code
 # should access
@@ -81,29 +85,27 @@ AM_NETWORK_MANAGER = None
 
 HAVE_QTNETWORK = True
 try:
-    from PySide2 import QtNetwork
-except Exception:
+    from PySide import QtNetwork
+except ImportError:
     if HAVE_FREECAD:
         FreeCAD.Console.PrintError(
             translate(
                 "AddonsInstaller",
-                "Could not import QtNetwork -- it does not appear to be installed on your system. Please install the package 'python3-pyside2.qtnetwork' on your system and if possible contact your FreeCAD package maintainer to alert them to the missing dependency. The Addon Manager will not be available.",
+                'Could not import QtNetwork -- it does not appear to be installed on your system. Your provider may have a package for this dependency (often called "python3-pyside2.qtnetwork")',
             )
             + "\n"
         )
     else:
-        print(
-            "Could not import QtNetwork, unable to test this file. Try installing the python3-pyside2.qtnetwork package."
-        )
-        exit(1)
+        print("Could not import QtNetwork, unable to test this file.")
+        sys.exit(1)
     HAVE_QTNETWORK = False
 
 if HAVE_QTNETWORK:
 
     class QueueItem:
-        def __init__(
-            self, index: int, request: QtNetwork.QNetworkRequest, track_progress: bool
-        ):
+        """A container for information about an item in the network queue."""
+
+        def __init__(self, index: int, request: QtNetwork.QNetworkRequest, track_progress: bool):
             self.index = index
             self.request = request
             self.original_url = request.url()
@@ -122,9 +124,7 @@ if HAVE_QTNETWORK:
 
         # Connect to progress_made and progress_complete for large amounts of data, which get buffered into a temp file
         # That temp file should be deleted when your code is done with it
-        progress_made = QtCore.Signal(
-            int, int, int
-        )  # Index, bytes read, total bytes (may be None)
+        progress_made = QtCore.Signal(int, int, int)  # Index, bytes read, total bytes (may be None)
 
         progress_complete = QtCore.Signal(
             int, int, os.PathLike
@@ -148,84 +148,47 @@ if HAVE_QTNETWORK:
             self.synchronous_result_data: Dict[int, QtCore.QByteArray] = {}
 
             # Make sure we exit nicely on quit
-            QtCore.QCoreApplication.instance().aboutToQuit.connect(self.__aboutToQuit)
+            if QtCore.QCoreApplication.instance() is not None:
+                QtCore.QCoreApplication.instance().aboutToQuit.connect(self.__aboutToQuit)
 
             # Create the QNAM on this thread:
             self.QNAM = QtNetwork.QNetworkAccessManager()
             self.QNAM.proxyAuthenticationRequired.connect(self.__authenticate_proxy)
             self.QNAM.authenticationRequired.connect(self.__authenticate_resource)
 
-            qnam_cache = QtCore.QStandardPaths.writableLocation(
-                QtCore.QStandardPaths.CacheLocation
-            )
+            qnam_cache = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.CacheLocation)
             os.makedirs(qnam_cache, exist_ok=True)
             self.diskCache = QtNetwork.QNetworkDiskCache()
             self.diskCache.setCacheDirectory(qnam_cache)
             self.QNAM.setCache(self.diskCache)
 
             self.monitored_connections: List[int] = []
+            self._setup_proxy()
+
+            # A helper connection for our blocking interface
+            self.completed.connect(self.__synchronous_process_completion)
+
+            # Set up our worker connection
+            self.__request_queued.connect(self.__setup_network_request)
+
+        def _setup_proxy(self):
+            """Set up the proxy based on user preferences or prompts on command line"""
 
             # Set up the proxy, if necesssary:
-            noProxyCheck = True
-            systemProxyCheck = False
-            userProxyCheck = False
-            proxy_string = ""
             if HAVE_FREECAD:
-                pref = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
-                noProxyCheck = pref.GetBool("NoProxyCheck", noProxyCheck)
-                systemProxyCheck = pref.GetBool("SystemProxyCheck", systemProxyCheck)
-                userProxyCheck = pref.GetBool("UserProxyCheck", userProxyCheck)
-                proxy_string = pref.GetString("ProxyUrl", "")
-
-                # Add some error checking to the proxy setup, since for historical reasons they
-                # are independent booleans, rather than an enumeration:
-                count = [noProxyCheck, systemProxyCheck, userProxyCheck].count(True)
-                if count != 1:
-                    FreeCAD.Console.PrintWarning(
-                        translate(
-                            "AddonsInstaller",
-                            "Parameter error: mutually exclusive proxy options set. Resetting to default.",
-                        )
-                        + "\n"
-                    )
-                    noProxyCheck = True
-                    systemProxyCheck = False
-                    userProxyCheck = False
-                    pref.SetBool("NoProxyCheck", noProxyCheck)
-                    pref.SetBool("SystemProxyCheck", systemProxyCheck)
-                    pref.SetBool("UserProxyCheck", userProxyCheck)
-
-                if userProxyCheck and not proxy_string:
-                    FreeCAD.Console.PrintWarning(
-                        translate(
-                            "AddonsInstaller",
-                            "Parameter error: user proxy indicated, but no proxy provided. Resetting to default.",
-                        )
-                        + "\n"
-                    )
-                    noProxyCheck = True
-                    userProxyCheck = False
-                    pref.SetBool("NoProxyCheck", noProxyCheck)
-                    pref.SetBool("UserProxyCheck", userProxyCheck)
-
+                (
+                    noProxyCheck,
+                    systemProxyCheck,
+                    userProxyCheck,
+                    proxy_string,
+                ) = self._setup_proxy_freecad()
             else:
-                print("Please select a proxy type:")
-                print("1) No proxy")
-                print("2) Use system proxy settings")
-                print("3) Custom proxy settings")
-                result = input("Choice: ")
-                if result == "1":
-                    pass
-                elif result == "2":
-                    noProxyCheck = False
-                    systemProxyCheck = True
-                elif result == "3":
-                    noProxyCheck = False
-                    userProxyCheck = True
-                    proxy_string = input("Enter your proxy server (host:port): ")
-                else:
-                    print(f"Got {result}, expected 1, 2, or 3.")
-                    app.quit()
+                (
+                    noProxyCheck,
+                    systemProxyCheck,
+                    userProxyCheck,
+                    proxy_string,
+                ) = self._setup_proxy_standalone()
 
             if noProxyCheck:
                 pass
@@ -235,28 +198,98 @@ if HAVE_QTNETWORK:
                 )
                 proxy = QtNetwork.QNetworkProxyFactory.systemProxyForQuery(query)
                 if proxy and proxy[0]:
-                    self.QNAM.setProxy(
-                        proxy[0]
-                    )  # This may still be QNetworkProxy.NoProxy
+                    self.QNAM.setProxy(proxy[0])  # This may still be QNetworkProxy.NoProxy
             elif userProxyCheck:
                 host, _, port_string = proxy_string.rpartition(":")
-                port = 0 if not port_string else int(port_string)
+                try:
+                    port = 0 if not port_string else int(port_string)
+                except ValueError:
+                    FreeCAD.Console.PrintError(
+                        translate(
+                            "AddonsInstaller",
+                            "Failed to convert the specified proxy port '{}' to a port number",
+                        ).format(port_string)
+                        + "\n"
+                    )
+                    port = 0
                 # For now assume an HttpProxy, but eventually this should be a parameter
-                proxy = QtNetwork.QNetworkProxy(
-                    QtNetwork.QNetworkProxy.HttpProxy, host, port
-                )
+                proxy = QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.HttpProxy, host, port)
                 self.QNAM.setProxy(proxy)
 
-            # A helper connection for our blocking interface
-            self.completed.connect(self.__synchronous_process_completion)
+        def _setup_proxy_freecad(self):
+            """If we are running within FreeCAD, this uses the config data to set up the proxy"""
+            noProxyCheck = True
+            systemProxyCheck = False
+            userProxyCheck = False
+            proxy_string = ""
+            pref = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
+            noProxyCheck = pref.GetBool("NoProxyCheck", noProxyCheck)
+            systemProxyCheck = pref.GetBool("SystemProxyCheck", systemProxyCheck)
+            userProxyCheck = pref.GetBool("UserProxyCheck", userProxyCheck)
+            proxy_string = pref.GetString("ProxyUrl", "")
 
-            # Set up our worker connection
-            self.__request_queued.connect(self.__setup_network_request)
+            # Add some error checking to the proxy setup, since for historical reasons they
+            # are independent booleans, rather than an enumeration:
+            option_count = [noProxyCheck, systemProxyCheck, userProxyCheck].count(True)
+            if option_count != 1:
+                FreeCAD.Console.PrintWarning(
+                    translate(
+                        "AddonsInstaller",
+                        "Parameter error: mutually exclusive proxy options set. Resetting to default.",
+                    )
+                    + "\n"
+                )
+                noProxyCheck = True
+                systemProxyCheck = False
+                userProxyCheck = False
+                pref.SetBool("NoProxyCheck", noProxyCheck)
+                pref.SetBool("SystemProxyCheck", systemProxyCheck)
+                pref.SetBool("UserProxyCheck", userProxyCheck)
+
+            if userProxyCheck and not proxy_string:
+                FreeCAD.Console.PrintWarning(
+                    translate(
+                        "AddonsInstaller",
+                        "Parameter error: user proxy indicated, but no proxy provided. Resetting to default.",
+                    )
+                    + "\n"
+                )
+                noProxyCheck = True
+                userProxyCheck = False
+                pref.SetBool("NoProxyCheck", noProxyCheck)
+                pref.SetBool("UserProxyCheck", userProxyCheck)
+            return noProxyCheck, systemProxyCheck, userProxyCheck, proxy_string
+
+        def _setup_proxy_standalone(self):
+            """If we are NOT running inside FreeCAD, prompt the user for proxy information"""
+            noProxyCheck = True
+            systemProxyCheck = False
+            userProxyCheck = False
+            proxy_string = ""
+            print("Please select a proxy type:")
+            print("1) No proxy")
+            print("2) Use system proxy settings")
+            print("3) Custom proxy settings")
+            result = input("Choice: ")
+            if result == "1":
+                pass
+            elif result == "2":
+                noProxyCheck = False
+                systemProxyCheck = True
+            elif result == "3":
+                noProxyCheck = False
+                userProxyCheck = True
+                proxy_string = input("Enter your proxy server (host:port): ")
+            else:
+                print(f"Got {result}, expected 1, 2, or 3.")
+                app.quit()
+            return noProxyCheck, systemProxyCheck, userProxyCheck, proxy_string
 
         def __aboutToQuit(self):
-            pass
+            """Called when the application is about to quit. Not currently used."""
 
         def __setup_network_request(self):
+            """Get the next request off the queue and launch it."""
             try:
                 item = self.queue.get_nowait()
                 if item:
@@ -269,9 +302,8 @@ if HAVE_QTNETWORK:
             except queue.Empty:
                 pass
 
-        def __launch_request(
-            self, index: int, request: QtNetwork.QNetworkRequest
-        ) -> None:
+        def __launch_request(self, index: int, request: QtNetwork.QNetworkRequest) -> None:
+            """Given a network request, ask the QNetworkAccessManager to begin processing it."""
             reply = self.QNAM.get(request)
             self.replies[index] = reply
 
@@ -292,9 +324,7 @@ if HAVE_QTNETWORK:
             current_index = next(self.counting_iterator)  # A thread-safe counter
             # Use a queue because we can only put things on the QNAM from the main event loop thread
             self.queue.put(
-                QueueItem(
-                    current_index, self.__create_get_request(url), track_progress=False
-                )
+                QueueItem(current_index, self.__create_get_request(url), track_progress=False)
             )
             self.__request_queued.emit()
             return current_index
@@ -310,9 +340,7 @@ if HAVE_QTNETWORK:
             current_index = next(self.counting_iterator)  # A thread-safe counter
             # Use a queue because we can only put things on the QNAM from the main event loop thread
             self.queue.put(
-                QueueItem(
-                    current_index, self.__create_get_request(url), track_progress=True
-                )
+                QueueItem(current_index, self.__create_get_request(url), track_progress=True)
             )
             self.__request_queued.emit()
             return current_index
@@ -325,9 +353,7 @@ if HAVE_QTNETWORK:
                 self.synchronous_complete[current_index] = False
 
             self.queue.put(
-                QueueItem(
-                    current_index, self.__create_get_request(url), track_progress=False
-                )
+                QueueItem(current_index, self.__create_get_request(url), track_progress=False)
             )
             self.__request_queued.emit()
             while True:
@@ -342,12 +368,12 @@ if HAVE_QTNETWORK:
                 self.synchronous_complete.pop(current_index)
                 if current_index in self.synchronous_result_data:
                     return self.synchronous_result_data.pop(current_index)
-                else:
-                    return None
+                return None
 
         def __synchronous_process_completion(
             self, index: int, code: int, data: QtCore.QByteArray
         ) -> None:
+            """Check the return status of a completed process, and handle its returned data (if any)."""
             with self.synchronous_lock:
                 if index in self.synchronous_complete:
                     if code == 200:
@@ -363,14 +389,13 @@ if HAVE_QTNETWORK:
                     self.synchronous_complete[index] = True
 
         def __create_get_request(self, url: str) -> QtNetwork.QNetworkRequest:
+            """Construct a network request to a given URL"""
             request = QtNetwork.QNetworkRequest(QtCore.QUrl(url))
             request.setAttribute(
                 QtNetwork.QNetworkRequest.RedirectPolicyAttribute,
                 QtNetwork.QNetworkRequest.UserVerifiedRedirectPolicy,
             )
-            request.setAttribute(
-                QtNetwork.QNetworkRequest.CacheSaveControlAttribute, True
-            )
+            request.setAttribute(QtNetwork.QNetworkRequest.CacheSaveControlAttribute, True)
             request.setAttribute(
                 QtNetwork.QNetworkRequest.CacheLoadControlAttribute,
                 QtNetwork.QNetworkRequest.PreferNetwork,
@@ -390,6 +415,7 @@ if HAVE_QTNETWORK:
                     break
 
         def abort(self, index: int):
+            """Abort a specific request"""
             if index in self.replies and self.replies[index].isRunning():
                 self.replies[index].abort()
             elif index < self.__last_started_index:
@@ -401,15 +427,15 @@ if HAVE_QTNETWORK:
             reply: QtNetwork.QNetworkProxy,
             authenticator: QtNetwork.QAuthenticator,
         ):
+            """If proxy authentication is required, attempt to authenticate. If the GUI is running this displays
+            a window asking for credentials. If the GUI is not running, it prompts on the command line."""
             if HAVE_FREECAD and FreeCAD.GuiUp:
                 proxy_authentication = FreeCADGui.PySideUic.loadUi(
                     os.path.join(os.path.dirname(__file__), "proxy_authentication.ui")
                 )
                 proxy_authentication.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint, True)
                 # Show the right labels, etc.
-                proxy_authentication.labelProxyAddress.setText(
-                    f"{reply.hostName()}:{reply.port()}"
-                )
+                proxy_authentication.labelProxyAddress.setText(f"{reply.hostName()}:{reply.port()}")
                 if authenticator.realm():
                     proxy_authentication.labelProxyRealm.setText(authenticator.realm())
                 else:
@@ -418,9 +444,7 @@ if HAVE_QTNETWORK:
                 result = proxy_authentication.exec()
                 if result == QtWidgets.QDialogButtonBox.Ok:
                     authenticator.setUser(proxy_authentication.lineEditUsername.text())
-                    authenticator.setPassword(
-                        proxy_authentication.lineEditPassword.text()
-                    )
+                    authenticator.setPassword(proxy_authentication.lineEditPassword.text())
             else:
                 username = input("Proxy username: ")
                 import getpass
@@ -434,9 +458,10 @@ if HAVE_QTNETWORK:
             _reply: QtNetwork.QNetworkReply,
             _authenticator: QtNetwork.QAuthenticator,
         ):
-            pass
+            """Unused."""
 
         def __follow_redirect(self, url):
+            """Used with the QNetworkAccessManager to follow redirects."""
             sender = self.sender()
             if sender:
                 for index, reply in self.replies.items():
@@ -448,10 +473,10 @@ if HAVE_QTNETWORK:
                 self.__launch_request(current_index, self.__create_get_request(url))
 
         def __on_ssl_error(self, reply: str, errors: List[str]):
+            """Called when an SSL error occurs: prints the error information."""
             if HAVE_FREECAD:
                 FreeCAD.Console.PrintWarning(
-                    translate("AddonsInstaller", "Error with encrypted connection")
-                    + "\n:"
+                    translate("AddonsInstaller", "Error with encrypted connection") + "\n:"
                 )
                 FreeCAD.Console.PrintWarning(reply)
                 for error in errors:
@@ -462,6 +487,7 @@ if HAVE_QTNETWORK:
                     print(error)
 
         def __download_progress(self, bytesReceived: int, bytesTotal: int) -> None:
+            """Monitors download progress and emits a progress_made signal"""
             sender = self.sender()
             if not sender:
                 return
@@ -471,6 +497,7 @@ if HAVE_QTNETWORK:
                     return
 
         def __ready_to_read(self) -> None:
+            """Called when data is available, this reads that data."""
             sender = self.sender()
             if not sender:
                 return
@@ -481,6 +508,7 @@ if HAVE_QTNETWORK:
                     return
 
         def __data_incoming(self, index: int, reply: QtNetwork.QNetworkReply) -> None:
+            """Read incoming data and attach it to a data object"""
             if not index in self.replies:
                 # We already finished this reply, this is a vestigial signal
                 return
@@ -492,26 +520,21 @@ if HAVE_QTNETWORK:
                 f = self.file_buffers[index]
             try:
                 f.write(buffer.data())
-            except Exception as e:
+            except OSError as e:
                 if HAVE_FREECAD:
-                    FreeCAD.Console.PrintError(
-                        f"Network Manager internal error: {str(e)}"
-                    )
+                    FreeCAD.Console.PrintError(f"Network Manager internal error: {str(e)}")
                 else:
                     print(f"Network Manager internal error: {str(e)}")
 
         def __reply_finished(self) -> None:
+            """Called when a reply has been completed: this makes sure the data has been read and
+            any notifications have been called."""
             reply = self.sender()
             if not reply:
-                print(
-                    "Network Manager Error: __reply_finished not called by a Qt signal"
-                )
+                print("Network Manager Error: __reply_finished not called by a Qt signal")
                 return
 
-            if (
-                reply.error()
-                == QtNetwork.QNetworkReply.NetworkError.OperationCanceledError
-            ):
+            if reply.error() == QtNetwork.QNetworkReply.NetworkError.OperationCanceledError:
                 # Silently do nothing
                 return
 
@@ -524,9 +547,7 @@ if HAVE_QTNETWORK:
                 print(f"Lost net request for {reply.url()}")
                 return
 
-            response_code = reply.attribute(
-                QtNetwork.QNetworkRequest.HttpStatusCodeAttribute
-            )
+            response_code = reply.attribute(QtNetwork.QNetworkRequest.HttpStatusCodeAttribute)
             self.queue.task_done()
             if reply.error() == QtNetwork.QNetworkReply.NetworkError.NoError:
                 if index in self.monitored_connections:
@@ -554,9 +575,7 @@ else:  # HAVE_QTNETWORK is false:
         completed = QtCore.Signal(
             int, int, bytes
         )  # Emitted as soon as the request is made, with a connection failed error
-        progress_made = QtCore.Signal(
-            int, int, int
-        )  # Never emitted, no progress is made here
+        progress_made = QtCore.Signal(int, int, int)  # Never emitted, no progress is made here
         progress_complete = QtCore.Signal(
             int, int, os.PathLike
         )  # Emitted as soon as the request is made, with a connection failed error
@@ -567,28 +586,32 @@ else:  # HAVE_QTNETWORK is false:
             self.unmonitored_queue = queue.Queue()
 
         def submit_unmonitored_request(self, _) -> int:
+            """Returns a fake index that can be used for testing -- nothing is actually queued"""
             current_index = next(itertools.count())
             self.unmonitored_queue.put(current_index)
             return current_index
 
         def submit_monitored_request(self, _) -> int:
+            """Returns a fake index that can be used for testing -- nothing is actually queued"""
             current_index = next(itertools.count())
             self.monitored_queue.put(current_index)
             return current_index
 
         def blocking_get(self, _: str) -> QtCore.QByteArray:
+            """No operation - returns None immediately"""
             return None
 
         def abort_all(
             self,
         ):
-            pass  # Nothing to do
+            """There is nothing to abort in this case"""
 
         def abort(self, _):
-            pass  # Nothing to do
+            """There is nothing to abort in this case"""
 
 
 def InitializeNetworkManager():
+    """Called once at the beginning of program execution to create the appropriate manager object"""
     global AM_NETWORK_MANAGER
     if AM_NETWORK_MANAGER is None:
         AM_NETWORK_MANAGER = NetworkManager()
@@ -611,11 +634,10 @@ if __name__ == "__main__":
     ]
 
     def handle_completion(index: int, code: int, data):
+        """Attached to the completion signal, prints diagnostic information about the network access"""
         global count
         if code == 200:
-            print(
-                f"For request {index+1}, response was {data.size()} bytes.", flush=True
-            )
+            print(f"For request {index+1}, response was {data.size()} bytes.", flush=True)
         else:
             print(
                 f"For request {index+1}, request failed with HTTP result code {code}",
@@ -624,14 +646,14 @@ if __name__ == "__main__":
 
         count += 1
         if count >= len(urls):
-            print(f"Shutting down...", flush=True)
+            print("Shutting down...", flush=True)
             AM_NETWORK_MANAGER.requestInterruption()
             AM_NETWORK_MANAGER.wait(5000)
             app.quit()
 
     AM_NETWORK_MANAGER.completed.connect(handle_completion)
-    for url in urls:
-        AM_NETWORK_MANAGER.submit_unmonitored_get(url)
+    for test_url in urls:
+        AM_NETWORK_MANAGER.submit_unmonitored_get(test_url)
 
     app.exec_()
 

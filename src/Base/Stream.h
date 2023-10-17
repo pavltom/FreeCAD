@@ -38,7 +38,7 @@
 class QByteArray;
 class QIODevice;
 class QBuffer;
-typedef struct _object PyObject;
+using PyObject = struct _object;
 
 namespace Base {
 
@@ -49,14 +49,19 @@ public:
 
     ByteOrder byteOrder() const;
     void setByteOrder(ByteOrder);
+    virtual ~Stream();
 
 protected:
     Stream();
     Stream(const Stream&) = default;
+    Stream(Stream&&) = default;
     Stream& operator=(const Stream&) = default;
-    virtual ~Stream();
+    Stream& operator=(Stream&&) = default;
 
-    bool _swap;
+    bool isSwapped() const { return _swap; };
+
+private:
+    bool _swap{false};
 };
 
 /**
@@ -67,7 +72,7 @@ class BaseExport OutputStream : public Stream
 {
 public:
     OutputStream(std::ostream &rout);
-    ~OutputStream();
+    ~OutputStream() override;
 
     OutputStream& operator << (bool b);
     OutputStream& operator << (int8_t ch);
@@ -81,9 +86,10 @@ public:
     OutputStream& operator << (float f);
     OutputStream& operator << (double d);
 
-private:
-    OutputStream (const OutputStream&);
-    void operator = (const OutputStream&);
+    OutputStream (const OutputStream&) = delete;
+    OutputStream (OutputStream&&) = delete;
+    void operator = (const OutputStream&) = delete;
+    void operator = (OutputStream&&) = delete;
 
 private:
     std::ostream& _out;
@@ -97,7 +103,7 @@ class BaseExport InputStream : public Stream
 {
 public:
     InputStream(std::istream &rin);
-    ~InputStream();
+    ~InputStream() override;
 
     InputStream& operator >> (bool& b);
     InputStream& operator >> (int8_t& ch);
@@ -117,9 +123,10 @@ public:
         return !_in.eof();
     }
 
-private:
-    InputStream (const InputStream&);
-    void operator = (const InputStream&);
+    InputStream (const InputStream&) = delete;
+    InputStream (InputStream&&) = delete;
+    void operator = (const InputStream&) = delete;
+    void operator = (InputStream&&) = delete;
 
 private:
     std::istream& _in;
@@ -136,22 +143,24 @@ class BaseExport ByteArrayOStreambuf : public std::streambuf
 {
 public:
     explicit ByteArrayOStreambuf(QByteArray& ba);
-    ~ByteArrayOStreambuf();
+    ~ByteArrayOStreambuf() override;
 
 protected:
-    virtual int_type overflow(std::streambuf::int_type v);
-    virtual std::streamsize xsputn (const char* s, std::streamsize num);
-    virtual pos_type seekoff(std::streambuf::off_type off,
+    int_type overflow(std::streambuf::int_type v) override;
+    std::streamsize xsputn (const char* s, std::streamsize num) override;
+    pos_type seekoff(std::streambuf::off_type off,
         std::ios_base::seekdir way,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
-    virtual pos_type seekpos(std::streambuf::pos_type sp,
+            std::ios::in | std::ios::out) override;
+    pos_type seekpos(std::streambuf::pos_type sp,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
+            std::ios::in | std::ios::out) override;
 
-private:
-    ByteArrayOStreambuf(const ByteArrayOStreambuf&);
-    ByteArrayOStreambuf& operator=(const ByteArrayOStreambuf&);
+public:
+    ByteArrayOStreambuf(const ByteArrayOStreambuf&) = delete;
+    ByteArrayOStreambuf(ByteArrayOStreambuf&&) = delete;
+    ByteArrayOStreambuf& operator=(const ByteArrayOStreambuf&) = delete;
+    ByteArrayOStreambuf& operator=(ByteArrayOStreambuf&&) = delete;
 
 private:
     QBuffer* _buffer;
@@ -166,23 +175,25 @@ class BaseExport ByteArrayIStreambuf : public std::streambuf
 {
 public:
     explicit ByteArrayIStreambuf(const QByteArray& buf);
-    ~ByteArrayIStreambuf();
+    ~ByteArrayIStreambuf() override;
 
 protected:
-    virtual int_type uflow();
-    virtual int_type underflow();
-    virtual int_type pbackfail(int_type ch);
-    virtual std::streamsize showmanyc();
-    virtual pos_type seekoff(std::streambuf::off_type off,
+    int_type uflow() override;
+    int_type underflow() override;
+    int_type pbackfail(int_type ch) override;
+    std::streamsize showmanyc() override;
+    pos_type seekoff(std::streambuf::off_type off,
         std::ios_base::seekdir way,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
-    virtual pos_type seekpos(std::streambuf::pos_type pos,
+            std::ios::in | std::ios::out) override;
+    pos_type seekpos(std::streambuf::pos_type pos,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
-private:
-    ByteArrayIStreambuf(const ByteArrayIStreambuf&);
-    ByteArrayIStreambuf& operator=(const ByteArrayIStreambuf&);
+            std::ios::in | std::ios::out) override;
+public:
+    ByteArrayIStreambuf(const ByteArrayIStreambuf&) = delete;
+    ByteArrayIStreambuf(ByteArrayIStreambuf&&) = delete;
+    ByteArrayIStreambuf& operator=(const ByteArrayIStreambuf&) = delete;
+    ByteArrayIStreambuf& operator=(ByteArrayIStreambuf&&) = delete;
 
 private:
     const QByteArray& _buffer;
@@ -198,23 +209,25 @@ class BaseExport IODeviceOStreambuf : public std::streambuf
 {
 public:
     IODeviceOStreambuf(QIODevice* dev);
-    ~IODeviceOStreambuf();
+    ~IODeviceOStreambuf() override;
 
 protected:
-    virtual int_type overflow(std::streambuf::int_type v);
-    virtual std::streamsize xsputn (const char* s, std::streamsize num);
-    virtual pos_type seekoff(std::streambuf::off_type off,
+    int_type overflow(std::streambuf::int_type v) override;
+    std::streamsize xsputn (const char* s, std::streamsize num) override;
+    pos_type seekoff(std::streambuf::off_type off,
         std::ios_base::seekdir way,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
-    virtual pos_type seekpos(std::streambuf::pos_type sp,
+            std::ios::in | std::ios::out) override;
+    pos_type seekpos(std::streambuf::pos_type sp,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
-private:
-    IODeviceOStreambuf(const IODeviceOStreambuf&);
-    IODeviceOStreambuf& operator=(const IODeviceOStreambuf&);
+            std::ios::in | std::ios::out) override;
+public:
+    IODeviceOStreambuf(const IODeviceOStreambuf&) = delete;
+    IODeviceOStreambuf(IODeviceOStreambuf&&) = delete;
+    IODeviceOStreambuf& operator=(const IODeviceOStreambuf&) = delete;
+    IODeviceOStreambuf& operator=(IODeviceOStreambuf&&) = delete;
 
-protected:
+private:
     QIODevice* device;
 };
 
@@ -227,22 +240,24 @@ class BaseExport IODeviceIStreambuf : public std::streambuf
 {
 public:
     IODeviceIStreambuf(QIODevice* dev);
-    ~IODeviceIStreambuf();
+    ~IODeviceIStreambuf() override;
 
 protected:
-    virtual int_type underflow();
-    virtual pos_type seekoff(std::streambuf::off_type off,
+    int_type underflow() override;
+    pos_type seekoff(std::streambuf::off_type off,
         std::ios_base::seekdir way,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
-    virtual pos_type seekpos(std::streambuf::pos_type sp,
+            std::ios::in | std::ios::out) override;
+    pos_type seekpos(std::streambuf::pos_type sp,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
-private:
-    IODeviceIStreambuf(const IODeviceIStreambuf&);
-    IODeviceIStreambuf& operator=(const IODeviceIStreambuf&);
+            std::ios::in | std::ios::out) override;
+public:
+    IODeviceIStreambuf(const IODeviceIStreambuf&) = delete;
+    IODeviceIStreambuf(IODeviceIStreambuf&&) = delete;
+    IODeviceIStreambuf& operator=(const IODeviceIStreambuf&) = delete;
+    IODeviceIStreambuf& operator=(IODeviceIStreambuf&&) = delete;
 
-protected:
+private:
     QIODevice* device;
     /* data buffer:
      * - at most, pbSize characters in putback area plus
@@ -250,16 +265,16 @@ protected:
      */
     static const int pbSize = 4;        // size of putback area
     static const int bufSize = 1024;    // size of the data buffer
-    char buffer[bufSize+pbSize];        // data buffer
+    char buffer[bufSize+pbSize]{};      // data buffer
 };
 
 class BaseExport PyStreambuf : public std::streambuf
 {
-    typedef std::streambuf::int_type int_type;
-    typedef std::streambuf::pos_type pos_type;
-    typedef std::streambuf::off_type off_type;
-    typedef std::ios::seekdir        seekdir;
-    typedef std::ios::openmode       openmode;
+    using int_type = std::streambuf::int_type;
+    using pos_type = std::streambuf::pos_type;
+    using off_type = std::streambuf::off_type;
+    using seekdir  = std::ios::seekdir;
+    using openmode = std::ios::openmode;
 
 public:
     enum Type {
@@ -269,30 +284,32 @@ public:
     };
 
     PyStreambuf(PyObject* o, std::size_t buf_size = 256, std::size_t put_back = 8);
-    virtual ~PyStreambuf();
+    ~PyStreambuf() override;
     void setType(Type t) {
         type = t;
     }
 
 protected:
-    int_type underflow();
-    int_type overflow(int_type c = EOF);
-    std::streamsize xsputn (const char* s, std::streamsize num);
-    int sync();
-    pos_type seekoff(off_type offset, seekdir dir, openmode);
-    pos_type seekpos(pos_type offset, openmode mode);
+    int_type underflow() override;
+    int_type overflow(int_type c = EOF) override;
+    std::streamsize xsputn (const char* s, std::streamsize num) override;
+    int sync() override;
+    pos_type seekoff(off_type offset, seekdir dir, openmode) override;
+    pos_type seekpos(pos_type offset, openmode mode) override;
 
 private:
     bool flushBuffer();
     bool writeStr(const char* s, std::streamsize num);
 
-private:
-    PyStreambuf(const PyStreambuf&);
-    PyStreambuf& operator=(const PyStreambuf&);
+public:
+    PyStreambuf(const PyStreambuf&) = delete;
+    PyStreambuf(PyStreambuf&&) = delete;
+    PyStreambuf& operator=(const PyStreambuf&) = delete;
+    PyStreambuf& operator=(PyStreambuf&&) = delete;
 
 private:
     PyObject* inp;
-    Type type;
+    Type type{Unknown};
     const std::size_t put_back;
     std::vector<char> buffer;
 };
@@ -301,24 +318,26 @@ class BaseExport Streambuf : public std::streambuf
 {
 public:
     explicit Streambuf(const std::string& data);
-    ~Streambuf();
+    ~Streambuf() override;
 
 protected:
-    virtual int_type uflow();
-    virtual int_type underflow();
-    virtual int_type pbackfail(int_type ch);
-    virtual std::streamsize showmanyc();
-    virtual pos_type seekoff(std::streambuf::off_type off,
+    int_type uflow() override;
+    int_type underflow() override;
+    int_type pbackfail(int_type ch) override;
+    std::streamsize showmanyc() override;
+    pos_type seekoff(std::streambuf::off_type off,
         std::ios_base::seekdir way,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
-    virtual pos_type seekpos(std::streambuf::pos_type pos,
+            std::ios::in | std::ios::out) override;
+    pos_type seekpos(std::streambuf::pos_type pos,
         std::ios_base::openmode which =
-            std::ios::in | std::ios::out);
+            std::ios::in | std::ios::out) override;
 
-private:
-    Streambuf(const Streambuf&);
-    Streambuf& operator=(const Streambuf&);
+public:
+    Streambuf(const Streambuf&) = delete;
+    Streambuf(Streambuf&&) = delete;
+    Streambuf& operator=(const Streambuf&) = delete;
+    Streambuf& operator=(Streambuf&&) = delete;
 
 private:
     std::string::const_iterator _beg;
@@ -339,18 +358,28 @@ class FileInfo;
 class ofstream : public std::ofstream
 {
 public:
+    ofstream() = default;
+    ofstream(const ofstream&) = delete;
+    ofstream(ofstream&&) = delete;
     ofstream(const FileInfo& fi, ios_base::openmode mode =
                                  std::ios::out | std::ios::trunc)
 #ifdef _MSC_VER
-    : std::ofstream(fi.toStdWString().c_str(), mode)
+    : std::ofstream(fi.toStdWString().c_str(), mode) {}
 #else
-    : std::ofstream(fi.filePath().c_str(), mode)
+    : std::ofstream(fi.filePath().c_str(), mode) {}
 #endif
-    {
+    ~ofstream() override = default;
+    void open(const FileInfo& fi, ios_base::openmode mode =
+                                  std::ios::out | std::ios::trunc) {
+#ifdef _MSC_VER
+        std::ofstream::open(fi.toStdWString().c_str(), mode);
+#else
+        std::ofstream::open(fi.filePath().c_str(), mode);
+#endif
     }
-    virtual ~ofstream()
-    {
-    }
+
+    ofstream& operator = (const ofstream&) = delete;
+    ofstream& operator = (ofstream&&) = delete;
 };
 
 /**
@@ -362,18 +391,28 @@ public:
 class ifstream : public std::ifstream
 {
 public:
+    ifstream() = default;
+    ifstream(const ifstream&) = delete;
+    ifstream(ifstream&&) = delete;
     ifstream(const FileInfo& fi, ios_base::openmode mode =
                                  std::ios::in)
 #ifdef _MSC_VER
-    : std::ifstream(fi.toStdWString().c_str(), mode)
+    : std::ifstream(fi.toStdWString().c_str(), mode) {}
 #else
-    : std::ifstream(fi.filePath().c_str(), mode)
+    : std::ifstream(fi.filePath().c_str(), mode) {}
 #endif
-    {
+    ~ifstream() override = default;
+    void open(const FileInfo& fi, ios_base::openmode mode =
+                                  std::ios::in) {
+#ifdef _MSC_VER
+        std::ifstream::open(fi.toStdWString().c_str(), mode);
+#else
+        std::ifstream::open(fi.filePath().c_str(), mode);
+#endif
     }
-    virtual ~ifstream()
-    {
-    }
+
+    ifstream& operator = (const ifstream&) = delete;
+    ifstream& operator = (ifstream&&) = delete;
 };
 
 } // namespace Base

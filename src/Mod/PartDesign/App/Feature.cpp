@@ -34,6 +34,7 @@
 
 #include "App/DocumentObject.h"
 #include <App/FeaturePythonPyImp.h>
+#include <App/ElementNamingUtils.h>
 #include "App/OriginFeature.h"
 #include <Base/Console.h>
 
@@ -76,7 +77,7 @@ TopoDS_Shape Feature::getSolid(const TopoDS_Shape& shape)
         return xp.Current();
     }
 
-    return TopoDS_Shape();
+    return {};
 }
 
 int Feature::countSolids(const TopoDS_Shape& shape, TopAbs_ShapeEnum type)
@@ -226,23 +227,61 @@ Body* Feature::getFeatureBody() const {
     for (auto in : list) {
         if(in->isDerivedFrom(Body::getClassTypeId()) && //is Body?
            static_cast<Body*>(in)->hasObject(this)) {    //is part of this Body?
-               
+
                return static_cast<Body*>(in);
         }
     }
-    
+
     return nullptr;
 }
+
+App::DocumentObject *Feature::getSubObject(const char *subname, 
+        PyObject **pyObj, Base::Matrix4D *pmat, bool transform, int depth) const
+{
+    if (subname && subname != Data::findElementName(subname)) {
+        const char * dot = strchr(subname,'.');
+        if (dot) {
+            auto body = PartDesign::Body::findBodyOf(this);
+            if (body) {
+                auto feat = body->Group.find(std::string(subname, dot));
+                if (feat) {
+                    Base::Matrix4D _mat;
+                    if (!transform) {
+                        // Normally the parent object is supposed to transform
+                        // the sub-object using its own placement. So, if no
+                        // transform is requested, (i.e. no parent
+                        // transformation), we just need to NOT apply the
+                        // transformation.
+                        //
+                        // But PartDesign features (including sketch) are
+                        // supposed to be contained inside a body. It makes
+                        // little sense to transform its sub-object. So if 'no
+                        // transform' is requested, we need to actively apply
+                        // an inverse transform.
+                        _mat = Placement.getValue().inverse().toMatrix();
+                        if (pmat)
+                            *pmat *= _mat; 
+                        else
+                            pmat = &_mat;
+                    }
+                    return feat->getSubObject(dot+1, pyObj, pmat, true, depth+1);
+                }
+            }
+        }
+    }
+    return Part::Feature::getSubObject(subname, pyObj, pmat, transform, depth);
+}
+
 
 }//namespace PartDesign
 
 namespace App {
 /// @cond DOXERR
 PROPERTY_SOURCE_TEMPLATE(PartDesign::FeaturePython, PartDesign::Feature)
-template<> const char* PartDesign::FeaturePython::getViewProviderName(void) const {
+template<> const char* PartDesign::FeaturePython::getViewProviderName() const {
     return "PartDesignGui::ViewProviderPython";
 }
-template<> PyObject* PartDesign::FeaturePython::getPyObject(void) {
+template<> PyObject* PartDesign::FeaturePython::getPyObject() {
     if (PythonObject.is(Py::_None())) {
         // ref counter is set to 1
         PythonObject = Py::Object(new FeaturePythonPyT<PartDesign::FeaturePy>(this),true);

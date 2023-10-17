@@ -36,11 +36,12 @@ class BaseExport Axis
 {
 public:
     /// default constructor
-    Axis();
-    Axis(const Axis&);
+    Axis() = default;
+    Axis(const Axis&) = default;
+    Axis(Axis&&) = default;
     Axis(const Vector3d& Orig, const Vector3d& Dir);
     /// Destruction
-    ~Axis () {}
+    ~Axis () = default;
 
     const Vector3d& getBase() const {return _base;}
     const Vector3d& getDirection() const {return _dir;}
@@ -57,10 +58,11 @@ public:
     Axis operator *(const Placement &p) const;
     bool operator ==(const Axis&) const;
     bool operator !=(const Axis&) const;
-    Axis& operator =(const Axis&);
+    Axis& operator =(const Axis&) = default;
+    Axis& operator =(Axis&&) = default;
     //@}
 
-protected:
+private:
     Vector3d _base;
     Vector3d _dir;
 };

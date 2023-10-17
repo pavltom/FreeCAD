@@ -373,7 +373,7 @@ std::vector<App::DocumentObject*> Body::removeObject(App::DocumentObject* featur
 }
 
 
-App::DocumentObjectExecReturn *Body::execute(void)
+App::DocumentObjectExecReturn *Body::execute()
 {
     /*
     Base::Console().Error("Body '%s':\n", getNameInDocument());
@@ -398,14 +398,14 @@ App::DocumentObjectExecReturn *Body::execute(void)
     Part::TopoShape tipShape;
     if ( tip ) {
         if ( !tip->getTypeId().isDerivedFrom ( PartDesign::Feature::getClassTypeId() ) ) {
-            return new App::DocumentObjectExecReturn ( "Linked object is not a PartDesign feature" );
+            return new App::DocumentObjectExecReturn (QT_TRANSLATE_NOOP("Exception", "Linked object is not a PartDesign feature" ));
         }
 
         // get the shape of the tip
         tipShape = static_cast<Part::Feature *>(tip)->Shape.getShape();
 
         if ( tipShape.getShape().IsNull () ) {
-            return new App::DocumentObjectExecReturn ( "Tip shape is empty" );
+            return new App::DocumentObjectExecReturn (QT_TRANSLATE_NOOP("Exception", "Tip shape is empty" ));
         }
 
         // We should hide here the transformation of the baseFeature
@@ -476,7 +476,7 @@ void Body::unsetupObject () {
     Part::BodyBase::unsetupObject ();
 }
 
-PyObject *Body::getPyObject(void)
+PyObject *Body::getPyObject()
 {
     if (PythonObject.is(Py::_None())){
         // ref counter is set to 1
@@ -541,8 +541,8 @@ void Body::onDocumentRestored()
 bool Body::isSolid()
 {
     std::vector<App::DocumentObject *> features = getFullModel();
-    for (auto it = features.begin(); it!=features.end(); ++it){
-        if (isSolidFeature((*it)))
+    for (auto feature : features){
+        if (isSolidFeature(feature))
             return true;
     }
     return false;

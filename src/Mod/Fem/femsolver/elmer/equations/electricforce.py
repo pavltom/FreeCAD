@@ -23,7 +23,7 @@
 
 __title__ = "FreeCAD FEM solver Elmer equation object Electricforce"
 __author__ = "Wilfried Hortschitz"
-__url__ = "https://www.freecadweb.org"
+__url__ = "https://www.freecad.org"
 
 ## \addtogroup FEM
 #  @{
@@ -31,6 +31,8 @@ __url__ = "https://www.freecadweb.org"
 from femtools import femutils
 from ... import equationbase
 from . import linear
+
+SOLVER_EXEC_METHODS = ["After Timestep", "Always"]
 
 
 def create(doc, name="Electricforce"):
@@ -44,6 +46,22 @@ class Proxy(linear.Proxy, equationbase.ElectricforceProxy):
 
     def __init__(self, obj):
         super(Proxy, self).__init__(obj)
+
+        obj.addProperty(
+            "App::PropertyEnumeration",
+            "ExecSolver",
+            "Electric Force",
+            (
+                "That solver is only executed after solution converged\n"
+                "To execute always, change to 'Always'"
+            )
+        )
+
+        obj.ExecSolver = SOLVER_EXEC_METHODS
+        obj.ExecSolver = "After Timestep"
+        # Electrostatic has priority 10 and Electricforce needs
+        # the potential field calculated by Electrostatic
+        # therefore set priority to 5
         obj.Priority = 5
 
 

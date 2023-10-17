@@ -37,7 +37,7 @@
 
 
 using namespace Gui;
-namespace bp = boost::placeholders;
+namespace sp = std::placeholders;
 
 namespace Gui {
 
@@ -48,11 +48,11 @@ public:
       : Base::XMLReader(FileName, str), nameMap(name)
     {}
 
-    void addName(const char* s1, const char* s2)
+    void addName(const char* s1, const char* s2) override
     {
         nameMap[s1] = s2;
     }
-    const char* getName(const char* name) const
+    const char* getName(const char* name) const override
     {
         std::map<std::string, std::string>::const_iterator it = nameMap.find(name);
         if (it != nameMap.end())
@@ -60,7 +60,7 @@ public:
         else
             return name;
     }
-    bool doNameMapping() const
+    bool doNameMapping() const override
     {
         return true;
     }
@@ -69,18 +69,20 @@ protected:
 
 private:
     std::map<std::string, std::string>& nameMap;
-    typedef std::pair<std::string, std::string> PropertyTag;
+    using PropertyTag = std::pair<std::string, std::string>;
     std::stack<PropertyTag> propertyStack;
 };
 }
 
-MergeDocuments::MergeDocuments(App::Document* doc) : stream(nullptr), appdoc(doc)
+MergeDocuments::MergeDocuments(App::Document* doc) : appdoc(doc)
 {
+    //NOLINTBEGIN
     connectExport = doc->signalExportObjects.connect
-        (boost::bind(&MergeDocuments::exportObject, this, bp::_1, bp::_2));
+        (std::bind(&MergeDocuments::exportObject, this, sp::_1, sp::_2));
     connectImport = doc->signalImportObjects.connect
-        (boost::bind(&MergeDocuments::importObject, this, bp::_1, bp::_2));
+        (std::bind(&MergeDocuments::importObject, this, sp::_1, sp::_2));
     document = Gui::Application::Instance->getDocument(doc);
+    //NOLINTEND
 }
 
 MergeDocuments::~MergeDocuments()
@@ -89,7 +91,7 @@ MergeDocuments::~MergeDocuments()
     connectImport.disconnect();
 }
 
-unsigned int MergeDocuments::getMemSize (void) const
+unsigned int MergeDocuments::getMemSize () const
 {
     return 0;
 }
@@ -111,8 +113,8 @@ MergeDocuments::importObjects(std::istream& input)
 void MergeDocuments::importObject(const std::vector<App::DocumentObject*>& o, Base::XMLReader & r)
 {
     objects = o;
-    for (std::vector<App::DocumentObject*>::iterator it = objects.begin(); it != objects.end(); ++it) {
-        Gui::ViewProvider* vp = document->getViewProvider(*it);
+    for (auto it : objects) {
+        Gui::ViewProvider* vp = document->getViewProvider(it);
         if (vp) vp->hide();
     }
     Restore(r);

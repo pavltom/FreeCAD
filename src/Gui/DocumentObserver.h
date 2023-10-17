@@ -46,9 +46,9 @@ public:
     /*! Constructor */
     DocumentT();
     /*! Constructor */
-    DocumentT(Document*);
+    explicit DocumentT(Document*);
     /*! Constructor */
-    DocumentT(const std::string&);
+    explicit DocumentT(const std::string&);
     /*! Constructor */
     DocumentT(const DocumentT&);
     /*! Destructor */
@@ -90,7 +90,7 @@ public:
     /*! Constructor */
     ViewProviderT(ViewProviderT &&);
     /*! Constructor */
-    ViewProviderT(const ViewProviderDocumentObject*);
+    explicit ViewProviderT(const ViewProviderDocumentObject*);
     /*! Destructor */
     ~ViewProviderT();
     /*! Assignment operator */
@@ -134,7 +134,7 @@ private:
 class GuiExport DocumentWeakPtrT
 {
 public:
-    DocumentWeakPtrT(Gui::Document*) noexcept;
+    explicit DocumentWeakPtrT(Gui::Document*) noexcept;
     ~DocumentWeakPtrT();
 
     /*!
@@ -158,11 +158,11 @@ public:
      */
     Gui::Document* operator->() const noexcept;
 
-private:
     // disable
-    DocumentWeakPtrT(const DocumentWeakPtrT&);
-    DocumentWeakPtrT& operator=(const DocumentWeakPtrT&);
+    DocumentWeakPtrT(const DocumentWeakPtrT&) = delete;
+    DocumentWeakPtrT& operator=(const DocumentWeakPtrT&) = delete;
 
+private:
     class Private;
     std::unique_ptr<Private> d;
 };
@@ -173,7 +173,7 @@ private:
 class GuiExport ViewProviderWeakPtrT
 {
 public:
-    ViewProviderWeakPtrT(ViewProviderDocumentObject*);
+    explicit ViewProviderWeakPtrT(ViewProviderDocumentObject*);
     ~ViewProviderWeakPtrT();
 
     /*!
@@ -220,9 +220,11 @@ public:
 
 private:
     ViewProviderDocumentObject* _get() const noexcept;
+
+public:
     // disable
-    ViewProviderWeakPtrT(const ViewProviderWeakPtrT&);
-    ViewProviderWeakPtrT& operator=(const ViewProviderWeakPtrT&);
+    ViewProviderWeakPtrT(const ViewProviderWeakPtrT&) = delete;
+    ViewProviderWeakPtrT& operator=(const ViewProviderWeakPtrT&) = delete;
 
 private:
     class Private;
@@ -236,10 +238,9 @@ template <class T>
 class WeakPtrT
 {
 public:
-    WeakPtrT(T* t) : ptr(t) {
+    explicit WeakPtrT(T* t) : ptr(t) {
     }
-    ~WeakPtrT() {
-    }
+    ~WeakPtrT() = default;
 
     /*!
      * \brief reset
@@ -297,10 +298,9 @@ public:
         return ptr.get<T>();
     }
 
-private:
     // disable
-    WeakPtrT(const WeakPtrT&);
-    WeakPtrT& operator=(const WeakPtrT&);
+    WeakPtrT(const WeakPtrT&) = delete;
+    WeakPtrT& operator=(const WeakPtrT&) = delete;
 
 private:
     ViewProviderWeakPtrT ptr;
@@ -319,7 +319,7 @@ class GuiExport DocumentObserver
 public:
     /// Constructor
     DocumentObserver();
-    DocumentObserver(Document*);
+    explicit DocumentObserver(Document*);
     virtual ~DocumentObserver();
 
     /** Attaches to another document, the old document
@@ -355,7 +355,7 @@ private:
     virtual void slotDeleteDocument(const Document& Doc);
 
 private:
-    typedef boost::signals2::scoped_connection Connection;
+    using Connection = boost::signals2::scoped_connection;
     Connection connectDocumentCreatedObject;
     Connection connectDocumentDeletedObject;
     Connection connectDocumentChangedObject;

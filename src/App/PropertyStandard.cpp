@@ -67,10 +67,7 @@ PropertyInteger::PropertyInteger()
 }
 
 
-PropertyInteger::~PropertyInteger()
-{
-
-}
+PropertyInteger::~PropertyInteger() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -163,15 +160,9 @@ TYPESYSTEM_SOURCE(App::PropertyPath , App::Property)
 //**************************************************************************
 // Construction/Destruction
 
-PropertyPath::PropertyPath()
-{
+PropertyPath::PropertyPath() = default;
 
-}
-
-PropertyPath::~PropertyPath()
-{
-
-}
+PropertyPath::~PropertyPath() = default;
 
 
 //**************************************************************************
@@ -201,7 +192,7 @@ void PropertyPath::setValue(const char * Path)
     hasSetValue();
 }
 
-const boost::filesystem::path &PropertyPath::getValue(void) const
+const boost::filesystem::path &PropertyPath::getValue() const
 {
     return _cValue;
 }
@@ -291,10 +282,7 @@ PropertyEnumeration::PropertyEnumeration(const App::Enumeration &e)
     _enum = e;
 }
 
-PropertyEnumeration::~PropertyEnumeration()
-{
-
-}
+PropertyEnumeration::~PropertyEnumeration() = default;
 
 void PropertyEnumeration::setEnums(const char **plEnums)
 {
@@ -400,8 +388,8 @@ void PropertyEnumeration::Save(Base::Writer &writer) const
         std::vector<std::string> items = getEnumVector();
         writer.Stream() << writer.ind() << "<CustomEnumList count=\"" <<  items.size() <<"\">" << endl;
         writer.incInd();
-        for(std::vector<std::string>::iterator it = items.begin(); it != items.end(); ++it) {
-            std::string val = encodeAttribute(*it);
+        for(auto & item : items) {
+            std::string val = encodeAttribute(item);
             writer.Stream() << writer.ind() << "<Enum value=\"" <<  val <<"\"/>" << endl;
         }
         writer.decInd();
@@ -612,12 +600,7 @@ TYPESYSTEM_SOURCE(App::PropertyIntegerConstraint, App::PropertyInteger)
 // Construction/Destruction
 
 
-PropertyIntegerConstraint::PropertyIntegerConstraint()
-  : _ConstStruct(nullptr)
-{
-
-}
-
+PropertyIntegerConstraint::PropertyIntegerConstraint() = default;
 
 PropertyIntegerConstraint::~PropertyIntegerConstraint()
 {
@@ -729,9 +712,7 @@ PropertyPercent::PropertyPercent()
     _ConstStruct = &percent;
 }
 
-PropertyPercent::~PropertyPercent()
-{
-}
+PropertyPercent::~PropertyPercent() = default;
 
 //**************************************************************************
 //**************************************************************************
@@ -744,15 +725,9 @@ TYPESYSTEM_SOURCE(App::PropertyIntegerList , App::PropertyLists)
 // Construction/Destruction
 
 
-PropertyIntegerList::PropertyIntegerList()
-{
+PropertyIntegerList::PropertyIntegerList() = default;
 
-}
-
-PropertyIntegerList::~PropertyIntegerList()
-{
-
-}
+PropertyIntegerList::~PropertyIntegerList() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -833,15 +808,9 @@ TYPESYSTEM_SOURCE(App::PropertyIntegerSet , App::Property)
 // Construction/Destruction
 
 
-PropertyIntegerSet::PropertyIntegerSet()
-{
+PropertyIntegerSet::PropertyIntegerSet() = default;
 
-}
-
-PropertyIntegerSet::~PropertyIntegerSet()
-{
-
-}
+PropertyIntegerSet::~PropertyIntegerSet() = default;
 
 
 //**************************************************************************
@@ -865,8 +834,8 @@ void PropertyIntegerSet::setValues(const std::set<long>& values)
 PyObject *PropertyIntegerSet::getPyObject()
 {
     PyObject* set = PySet_New(nullptr);
-    for(std::set<long>::const_iterator it=_lValueSet.begin();it!=_lValueSet.end();++it)
-        PySet_Add(set,PyLong_FromLong(*it));
+    for(long it : _lValueSet)
+        PySet_Add(set,PyLong_FromLong(it));
     return set;
 }
 
@@ -903,8 +872,8 @@ void PropertyIntegerSet::Save (Base::Writer &writer) const
 {
     writer.Stream() << writer.ind() << "<IntegerSet count=\"" <<  _lValueSet.size() <<"\">" << endl;
     writer.incInd();
-    for(std::set<long>::const_iterator it=_lValueSet.begin();it!=_lValueSet.end();++it)
-        writer.Stream() << writer.ind() << "<I v=\"" <<  *it <<"\"/>" << endl; ;
+    for(long it : _lValueSet)
+        writer.Stream() << writer.ind() << "<I v=\"" <<  it <<"\"/>" << endl; ;
     writer.decInd();
     writer.Stream() << writer.ind() << "</IntegerSet>" << endl ;
 }
@@ -965,10 +934,7 @@ PropertyFloat::PropertyFloat()
     _dValue = 0.0;
 }
 
-PropertyFloat::~PropertyFloat()
-{
-
-}
+PropertyFloat::~PropertyFloat() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -1073,11 +1039,7 @@ TYPESYSTEM_SOURCE(App::PropertyFloatConstraint, App::PropertyFloat)
 // Construction/Destruction
 
 
-PropertyFloatConstraint::PropertyFloatConstraint()
-  : _ConstStruct(nullptr)
-{
-
-}
+PropertyFloatConstraint::PropertyFloatConstraint() = default;
 
 PropertyFloatConstraint::~PropertyFloatConstraint()
 {
@@ -1204,10 +1166,7 @@ PropertyPrecision::PropertyPrecision()
     setConstraints(&PrecisionStandard);
 }
 
-PropertyPrecision::~PropertyPrecision()
-{
-
-}
+PropertyPrecision::~PropertyPrecision() = default;
 
 
 //**************************************************************************
@@ -1220,15 +1179,9 @@ TYPESYSTEM_SOURCE(App::PropertyFloatList , App::PropertyLists)
 // Construction/Destruction
 
 
-PropertyFloatList::PropertyFloatList()
-{
+PropertyFloatList::PropertyFloatList() = default;
 
-}
-
-PropertyFloatList::~PropertyFloatList()
-{
-
-}
+PropertyFloatList::~PropertyFloatList() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -1286,13 +1239,13 @@ void PropertyFloatList::SaveDocFile (Base::Writer &writer) const
     uint32_t uCt = (uint32_t)getSize();
     str << uCt;
     if (!isSinglePrecision()) {
-        for (std::vector<double>::const_iterator it = _lValueList.begin(); it != _lValueList.end(); ++it) {
-            str << *it;
+        for (double it : _lValueList) {
+            str << it;
         }
     }
     else {
-        for (std::vector<double>::const_iterator it = _lValueList.begin(); it != _lValueList.end(); ++it) {
-            float v = (float)*it;
+        for (double it : _lValueList) {
+            float v = static_cast<float>(it);
             str << v;
         }
     }
@@ -1305,15 +1258,15 @@ void PropertyFloatList::RestoreDocFile(Base::Reader &reader)
     str >> uCt;
     std::vector<double> values(uCt);
     if (!isSinglePrecision()) {
-        for (std::vector<double>::iterator it = values.begin(); it != values.end(); ++it) {
-            str >> *it;
+        for (double & it : values) {
+            str >> it;
         }
     }
     else {
-        for (std::vector<double>::iterator it = values.begin(); it != values.end(); ++it) {
+        for (double & it : values) {
             float val;
             str >> val;
-            (*it) = val;
+            it = val;
         }
     }
     setValues(values);
@@ -1343,15 +1296,9 @@ unsigned int PropertyFloatList::getMemSize () const
 
 TYPESYSTEM_SOURCE(App::PropertyString , App::Property)
 
-PropertyString::PropertyString()
-{
+PropertyString::PropertyString() = default;
 
-}
-
-PropertyString::~PropertyString()
-{
-
-}
+PropertyString::~PropertyString() = default;
 
 void PropertyString::setValue(const char* newLabel)
 {
@@ -1451,7 +1398,7 @@ void PropertyString::setValue(const char* newLabel)
             propChanges = PropertyLinkBase::updateLabelReferences(obj,newLabel);
         }
 
-        if(propChanges.size() && !GetApplication().getActiveTransaction()) {
+        if(!propChanges.empty() && !GetApplication().getActiveTransaction()) {
             commit = true;
             std::ostringstream str;
             str << "Change " << obj->getNameInDocument() << ".Label";
@@ -1599,15 +1546,9 @@ const boost::any PropertyString::getPathValue(const ObjectIdentifier &path) cons
 
 TYPESYSTEM_SOURCE(App::PropertyUUID , App::Property)
 
-PropertyUUID::PropertyUUID()
-{
+PropertyUUID::PropertyUUID() = default;
 
-}
-
-PropertyUUID::~PropertyUUID()
-{
-
-}
+PropertyUUID::~PropertyUUID() = default;
 
 void PropertyUUID::setValue(const Base::Uuid &id)
 {
@@ -1709,15 +1650,9 @@ unsigned int PropertyUUID::getMemSize () const
 
 TYPESYSTEM_SOURCE(App::PropertyFont , App::PropertyString)
 
-PropertyFont::PropertyFont()
-{
+PropertyFont::PropertyFont() = default;
 
-}
-
-PropertyFont::~PropertyFont()
-{
-
-}
+PropertyFont::~PropertyFont() = default;
 
 //**************************************************************************
 // PropertyStringList
@@ -1725,15 +1660,9 @@ PropertyFont::~PropertyFont()
 
 TYPESYSTEM_SOURCE(App::PropertyStringList , App::PropertyLists)
 
-PropertyStringList::PropertyStringList()
-{
+PropertyStringList::PropertyStringList() = default;
 
-}
-
-PropertyStringList::~PropertyStringList()
-{
-
-}
+PropertyStringList::~PropertyStringList() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -1836,15 +1765,9 @@ void PropertyStringList::Paste(const Property &from)
 
 TYPESYSTEM_SOURCE(App::PropertyMap , App::Property)
 
-PropertyMap::PropertyMap()
-{
+PropertyMap::PropertyMap() = default;
 
-}
-
-PropertyMap::~PropertyMap()
-{
-
-}
+PropertyMap::~PropertyMap() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -1948,9 +1871,9 @@ void PropertyMap::setPyObject(PyObject *value)
 unsigned int PropertyMap::getMemSize () const
 {
     size_t size=0;
-    for (std::map<std::string,std::string>::const_iterator it = _lValueList.begin();it!= _lValueList.end(); ++it) {
-        size += it->second.size();
-        size += it->first.size();
+    for (const auto & it : _lValueList) {
+        size += it.second.size();
+        size += it.first.size();
     }
     return size;
 }
@@ -1959,9 +1882,9 @@ void PropertyMap::Save (Base::Writer &writer) const
 {
     writer.Stream() << writer.ind() << "<Map count=\"" <<  getSize() <<"\">" << endl;
     writer.incInd();
-    for (std::map<std::string,std::string>::const_iterator it = _lValueList.begin();it!= _lValueList.end(); ++it) {
-        writer.Stream() << writer.ind() << "<Item key=\"" <<  encodeAttribute(it->first)
-                                        << "\" value=\"" <<  encodeAttribute(it->second) <<"\"/>" << endl;
+    for (const auto & it : _lValueList) {
+        writer.Stream() << writer.ind() << "<Item key=\"" <<  encodeAttribute(it.first)
+                                        << "\" value=\"" <<  encodeAttribute(it.second) <<"\"/>" << endl;
     }
 
     writer.decInd();
@@ -2019,10 +1942,7 @@ PropertyBool::PropertyBool()
     _lValue = false;
 }
 
-PropertyBool::~PropertyBool()
-{
-
-}
+PropertyBool::~PropertyBool() = default;
 
 //**************************************************************************
 // Setter/getter for the property
@@ -2128,15 +2048,9 @@ TYPESYSTEM_SOURCE(App::PropertyBoolList , App::PropertyLists)
 // Construction/Destruction
 
 
-PropertyBoolList::PropertyBoolList()
-{
+PropertyBoolList::PropertyBoolList() = default;
 
-}
-
-PropertyBoolList::~PropertyBoolList()
-{
-
-}
+PropertyBoolList::~PropertyBoolList() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -2226,15 +2140,9 @@ TYPESYSTEM_SOURCE(App::PropertyColor , App::Property)
 //**************************************************************************
 // Construction/Destruction
 
-PropertyColor::PropertyColor()
-{
+PropertyColor::PropertyColor() = default;
 
-}
-
-PropertyColor::~PropertyColor()
-{
-
-}
+PropertyColor::~PropertyColor() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -2284,52 +2192,58 @@ PyObject *PropertyColor::getPyObject()
 void PropertyColor::setPyObject(PyObject *value)
 {
     App::Color cCol;
-    if (PyTuple_Check(value) && PyTuple_Size(value) == 3) {
+    if (PyTuple_Check(value) && (PyTuple_Size(value) == 3 || PyTuple_Size(value) == 4) ) {
         PyObject* item;
         item = PyTuple_GetItem(value,0);
-        if (PyFloat_Check(item))
+        if (PyFloat_Check(item)) {
             cCol.r = (float)PyFloat_AsDouble(item);
-        else
-            throw Base::TypeError("Type in tuple must be float");
-        item = PyTuple_GetItem(value,1);
-        if (PyFloat_Check(item))
-            cCol.g = (float)PyFloat_AsDouble(item);
-        else
-            throw Base::TypeError("Type in tuple must be float");
-        item = PyTuple_GetItem(value,2);
-        if (PyFloat_Check(item))
-            cCol.b = (float)PyFloat_AsDouble(item);
-        else
-            throw Base::TypeError("Type in tuple must be float");
-    }
-    else if (PyTuple_Check(value) && PyTuple_Size(value) == 4) {
-        PyObject* item;
-        item = PyTuple_GetItem(value,0);
-        if (PyFloat_Check(item))
-            cCol.r = (float)PyFloat_AsDouble(item);
-        else
-            throw Base::TypeError("Type in tuple must be float");
-        item = PyTuple_GetItem(value,1);
-        if (PyFloat_Check(item))
-            cCol.g = (float)PyFloat_AsDouble(item);
-        else
-            throw Base::TypeError("Type in tuple must be float");
-        item = PyTuple_GetItem(value,2);
-        if (PyFloat_Check(item))
-            cCol.b = (float)PyFloat_AsDouble(item);
-        else
-            throw Base::TypeError("Type in tuple must be float");
-        item = PyTuple_GetItem(value,3);
-        if (PyFloat_Check(item))
-            cCol.a = (float)PyFloat_AsDouble(item);
-        else
-            throw Base::TypeError("Type in tuple must be float");
+            item = PyTuple_GetItem(value,1);
+            if (PyFloat_Check(item))
+                cCol.g = (float)PyFloat_AsDouble(item);
+            else
+                throw Base::TypeError("Type in tuple must be consistent (float)");
+            item = PyTuple_GetItem(value,2);
+            if (PyFloat_Check(item))
+                cCol.b = (float)PyFloat_AsDouble(item);
+            else
+                throw Base::TypeError("Type in tuple must be consistent (float)");
+            if (PyTuple_Size(value) == 4) {
+                item = PyTuple_GetItem(value,3);
+                if (PyFloat_Check(item))
+                    cCol.a = (float)PyFloat_AsDouble(item);
+                else
+                    throw Base::TypeError("Type in tuple must be consistent (float)");
+            }
+        }
+        else if (PyLong_Check(item)) {
+            cCol.r = PyLong_AsLong(item)/255.0;
+            item = PyTuple_GetItem(value,1);
+            if (PyLong_Check(item))
+                cCol.g = PyLong_AsLong(item)/255.0;
+            else
+                throw Base::TypeError("Type in tuple must be consistent (integer)");
+            item = PyTuple_GetItem(value,2);
+            if (PyLong_Check(item))
+                cCol.b = PyLong_AsLong(item)/255.0;
+            else
+                throw Base::TypeError("Type in tuple must be consistent (integer)");
+            if (PyTuple_Size(value) == 4) {
+                item = PyTuple_GetItem(value,3);
+                if (PyLong_Check(item))
+                    cCol.a = PyLong_AsLong(item)/255.0;
+                else
+                    throw Base::TypeError("Type in tuple must be consistent (integer)");
+            }
+        }
+        else {
+            throw Base::TypeError("Type in tuple must be float or integer");
+        }
     }
     else if (PyLong_Check(value)) {
         cCol.setPackedValue(PyLong_AsUnsignedLong(value));
     }
     else {
-        std::string error = std::string("type must be int or tuple of float, not ");
+        std::string error = std::string("type must be integer or tuple of float or tuple integer, not ");
         error += value->ob_type->tp_name;
         throw Base::TypeError(error);
     }
@@ -2375,15 +2289,9 @@ TYPESYSTEM_SOURCE(App::PropertyColorList , App::PropertyLists)
 //**************************************************************************
 // Construction/Destruction
 
-PropertyColorList::PropertyColorList()
-{
+PropertyColorList::PropertyColorList() = default;
 
-}
-
-PropertyColorList::~PropertyColorList()
-{
-
-}
+PropertyColorList::~PropertyColorList() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -2442,8 +2350,8 @@ void PropertyColorList::SaveDocFile (Base::Writer &writer) const
     Base::OutputStream str(writer.Stream());
     uint32_t uCt = (uint32_t)getSize();
     str << uCt;
-    for (std::vector<App::Color>::const_iterator it = _lValueList.begin(); it != _lValueList.end(); ++it) {
-        str << it->getPackedValue();
+    for (auto it : _lValueList) {
+        str << it.getPackedValue();
     }
 }
 
@@ -2454,9 +2362,9 @@ void PropertyColorList::RestoreDocFile(Base::Reader &reader)
     str >> uCt;
     std::vector<Color> values(uCt);
     uint32_t value; // must be 32 bit long
-    for (std::vector<App::Color>::iterator it = values.begin(); it != values.end(); ++it) {
+    for (auto & it : values) {
         str >> value;
-        it->setPackedValue(value);
+        it.setPackedValue(value);
     }
     setValues(values);
 }
@@ -2485,15 +2393,9 @@ unsigned int PropertyColorList::getMemSize () const
 
 TYPESYSTEM_SOURCE(App::PropertyMaterial , App::Property)
 
-PropertyMaterial::PropertyMaterial()
-{
+PropertyMaterial::PropertyMaterial() = default;
 
-}
-
-PropertyMaterial::~PropertyMaterial()
-{
-
-}
+PropertyMaterial::~PropertyMaterial() = default;
 
 void PropertyMaterial::setValue(const Material &mat)
 {
@@ -2623,15 +2525,9 @@ TYPESYSTEM_SOURCE(App::PropertyMaterialList, App::PropertyLists)
 //**************************************************************************
 // Construction/Destruction
 
-PropertyMaterialList::PropertyMaterialList()
-{
+PropertyMaterialList::PropertyMaterialList() = default;
 
-}
-
-PropertyMaterialList::~PropertyMaterialList()
-{
-
-}
+PropertyMaterialList::~PropertyMaterialList() = default;
 
 //**************************************************************************
 // Base class implementer
@@ -2683,13 +2579,13 @@ void PropertyMaterialList::SaveDocFile(Base::Writer &writer) const
     Base::OutputStream str(writer.Stream());
     uint32_t uCt = (uint32_t)getSize();
     str << uCt;
-    for (std::vector<App::Material>::const_iterator it = _lValueList.begin(); it != _lValueList.end(); ++it) {
-        str << it->ambientColor.getPackedValue();
-        str << it->diffuseColor.getPackedValue();
-        str << it->specularColor.getPackedValue();
-        str << it->emissiveColor.getPackedValue();
-        str << it->shininess;
-        str << it->transparency;
+    for (const auto & it : _lValueList) {
+        str << it.ambientColor.getPackedValue();
+        str << it.diffuseColor.getPackedValue();
+        str << it.specularColor.getPackedValue();
+        str << it.emissiveColor.getPackedValue();
+        str << it.shininess;
+        str << it.transparency;
     }
 }
 
@@ -2701,19 +2597,19 @@ void PropertyMaterialList::RestoreDocFile(Base::Reader &reader)
     std::vector<Material> values(uCt);
     uint32_t value; // must be 32 bit long
     float valueF;
-    for (std::vector<App::Material>::iterator it = values.begin(); it != values.end(); ++it) {
+    for (auto & it : values) {
         str >> value;
-        it->ambientColor.setPackedValue(value);
+        it.ambientColor.setPackedValue(value);
         str >> value;
-        it->diffuseColor.setPackedValue(value);
+        it.diffuseColor.setPackedValue(value);
         str >> value;
-        it->specularColor.setPackedValue(value);
+        it.specularColor.setPackedValue(value);
         str >> value;
-        it->emissiveColor.setPackedValue(value);
+        it.emissiveColor.setPackedValue(value);
         str >> valueF;
-        it->shininess = valueF;
+        it.shininess = valueF;
         str >> valueF;
-        it->transparency = valueF;
+        it.transparency = valueF;
     }
     setValues(values);
 }
@@ -2748,7 +2644,7 @@ unsigned int PropertyMaterialList::getMemSize() const
 
 TYPESYSTEM_SOURCE(App::PropertyPersistentObject , App::PropertyString)
 
-PyObject *PropertyPersistentObject::getPyObject(void){
+PyObject *PropertyPersistentObject::getPyObject(){
     if(_pObject)
         return _pObject->getPyObject();
     return inherited::getPyObject();
@@ -2774,7 +2670,7 @@ void PropertyPersistentObject::Restore(Base::XMLReader &reader){
     reader.readEndElement(ELEMENT_PERSISTENT_OBJ);
 }
 
-Property *PropertyPersistentObject::Copy(void) const{
+Property *PropertyPersistentObject::Copy() const{
     auto *p= new PropertyPersistentObject();
     p->_cValue = _cValue;
     p->_pObject = _pObject;

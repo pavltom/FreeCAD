@@ -36,11 +36,9 @@ ViewProviderExtrusion::ViewProviderExtrusion()
     sPixmap = "Part_Extrude.svg";
 }
 
-ViewProviderExtrusion::~ViewProviderExtrusion()
-{
-}
+ViewProviderExtrusion::~ViewProviderExtrusion() = default;
 
-std::vector<App::DocumentObject*> ViewProviderExtrusion::claimChildren(void)const
+std::vector<App::DocumentObject*> ViewProviderExtrusion::claimChildren()const
 {
     std::vector<App::DocumentObject*> temp;
     temp.push_back(static_cast<Part::Extrusion*>(getObject())->Base.getValue());

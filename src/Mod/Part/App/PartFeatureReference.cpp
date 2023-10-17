@@ -37,21 +37,19 @@ using namespace Part;
 
 PROPERTY_SOURCE(Part::FeatureReference, App::GeoFeature)
 
-FeatureReference::FeatureReference(void) 
+FeatureReference::FeatureReference()
 {
     ADD_PROPERTY(Reference, (nullptr));
 }
 
-FeatureReference::~FeatureReference()
-{
-}
+FeatureReference::~FeatureReference() = default;
 
-short FeatureReference::mustExecute(void) const
+short FeatureReference::mustExecute() const
 {
     return GeoFeature::mustExecute();
 }
 
-App::DocumentObjectExecReturn *FeatureReference::execute(void)
+App::DocumentObjectExecReturn *FeatureReference::execute()
 {
     return App::DocumentObject::StdReturn;
 }

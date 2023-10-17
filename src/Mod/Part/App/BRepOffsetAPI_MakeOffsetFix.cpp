@@ -47,18 +47,14 @@
 
 using namespace Part;
 
-BRepOffsetAPI_MakeOffsetFix::BRepOffsetAPI_MakeOffsetFix()
-{
-}
+BRepOffsetAPI_MakeOffsetFix::BRepOffsetAPI_MakeOffsetFix() = default;
 
 BRepOffsetAPI_MakeOffsetFix::BRepOffsetAPI_MakeOffsetFix(const GeomAbs_JoinType Join, const Standard_Boolean IsOpenResult)
 {
     mkOffset.Init(Join, IsOpenResult);
 }
 
-BRepOffsetAPI_MakeOffsetFix::~BRepOffsetAPI_MakeOffsetFix()
-{
-}
+BRepOffsetAPI_MakeOffsetFix::~BRepOffsetAPI_MakeOffsetFix() = default;
 
 void BRepOffsetAPI_MakeOffsetFix::AddWire(const TopoDS_Wire& Spine)
 {
@@ -103,7 +99,11 @@ void BRepOffsetAPI_MakeOffsetFix::Perform (const Standard_Real Offset, const Sta
     mkOffset.Perform(Offset, Alt);
 }
 
+#if OCC_VERSION_HEX >= 0x070600
+void BRepOffsetAPI_MakeOffsetFix::Build(const Message_ProgressRange&)
+#else
 void BRepOffsetAPI_MakeOffsetFix::Build()
+#endif
 {
     mkOffset.Build();
 }
@@ -252,7 +252,7 @@ TopoDS_Shape BRepOffsetAPI_MakeOffsetFix::Replace(GeomAbs_CurveType type, const 
             xp.Next();
         }
 
-        return comp;
+        return TopoDS_Compound(std::move(comp));
     }
     else if (S.ShapeType() == TopAbs_WIRE) {
         return ReplaceEdges(type, TopoDS::Wire(S));

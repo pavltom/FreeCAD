@@ -56,8 +56,8 @@ class PropertyView : public QWidget, public Gui::SelectionObserver
     Q_OBJECT
 
 public:
-    PropertyView(QWidget *parent=nullptr);
-    virtual ~PropertyView();
+    explicit PropertyView(QWidget *parent=nullptr);
+    ~PropertyView() override;
 
     Gui::PropertyEditor::PropertyEditor* propertyEditorView;
     Gui::PropertyEditor::PropertyEditor* propertyEditorData;
@@ -94,7 +94,7 @@ private:
 private:
     struct PropInfo;
     struct PropFind;
-    typedef boost::signals2::connection Connection;
+    using Connection = boost::signals2::connection;
     Connection connectPropData;
     Connection connectPropView;
     Connection connectPropAppend;
@@ -109,6 +109,7 @@ private:
     Connection connectChangedDocument;
     QTabWidget* tabs;
     QTimer* timer;
+    bool updating = false;
 };
 
 namespace DockWnd {
@@ -120,8 +121,8 @@ class PropertyDockView : public Gui::DockWindow
     Q_OBJECT
 
 public:
-    PropertyDockView(Gui::Document*  pcDocument, QWidget *parent=nullptr);
-    virtual ~PropertyDockView();
+    explicit PropertyDockView(Gui::Document*  pcDocument, QWidget *parent=nullptr);
+    ~PropertyDockView() override;
 };
 
 } // namespace DockWnd

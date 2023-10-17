@@ -79,10 +79,7 @@ ViewProviderShapeBinder::ViewProviderShapeBinder()
     LineWidth.setValue(1);
 }
 
-ViewProviderShapeBinder::~ViewProviderShapeBinder()
-{
-
-}
+ViewProviderShapeBinder::~ViewProviderShapeBinder() = default;
 
 bool ViewProviderShapeBinder::setEdit(int ModNum) {
     // TODO Share code with other view providers (2015-09-11, Fat-Zer)
@@ -272,7 +269,7 @@ std::string ViewProviderSubShapeBinder::dropObjectEx(App::DocumentObject* obj, A
 {
     auto self = dynamic_cast<PartDesign::SubShapeBinder*>(getObject());
     if (!self)
-        return std::string();
+        return {};
     std::map<App::DocumentObject*, std::vector<std::string> > values;
     if (!subname) subname = "";
     std::string sub(subname);
@@ -280,7 +277,7 @@ std::string ViewProviderSubShapeBinder::dropObjectEx(App::DocumentObject* obj, A
         values[owner ? owner : obj] = elements;
     else {
         std::vector<std::string> subs;
-        if (elements.size()) {
+        if (!elements.empty()) {
             subs.reserve(elements.size());
             for (auto& element : elements)
                 subs.push_back(sub + element);
@@ -293,7 +290,7 @@ std::string ViewProviderSubShapeBinder::dropObjectEx(App::DocumentObject* obj, A
     self->setLinks(std::move(values), QApplication::keyboardModifiers() == Qt::ControlModifier);
     if (self->Relative.getValue())
         updatePlacement(false);
-    return std::string();
+    return {};
 }
 
 
@@ -330,7 +327,7 @@ bool ViewProviderSubShapeBinder::setEdit(int ModNum) {
             if (!obj || !obj->getNameInDocument())
                 continue;
             const auto& subs = link.getSubValues();
-            if (subs.size())
+            if (!subs.empty())
                 Gui::Selection().addSelections(obj->getDocument()->getName(),
                     obj->getNameInDocument(), subs);
             else
@@ -355,7 +352,7 @@ void ViewProviderSubShapeBinder::updatePlacement(bool transaction) {
     bool relative = self->Relative.getValue();
     App::DocumentObject* parent = nullptr;
     std::string parentSub;
-    if (relative && self->getParents().size()) {
+    if (relative && !self->getParents().empty()) {
         const auto& sel = Gui::Selection().getSelection("", Gui::ResolveMode::NoResolve);
         if (sel.size() != 1 || !sel[0].pObject ||
             sel[0].pObject->getSubObject(sel[0].SubName) != self)
@@ -402,7 +399,7 @@ void ViewProviderSubShapeBinder::updatePlacement(bool transaction) {
     App::GetApplication().closeActiveTransaction(true);
 }
 
-std::vector<App::DocumentObject*> ViewProviderSubShapeBinder::claimChildren(void) const {
+std::vector<App::DocumentObject*> ViewProviderSubShapeBinder::claimChildren() const {
     std::vector<App::DocumentObject*> ret;
     auto self = Base::freecad_dynamic_cast<PartDesign::SubShapeBinder>(getObject());
     if (self && self->ClaimChildren.getValue() && self->Support.getValue()) {

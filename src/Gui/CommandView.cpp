@@ -36,6 +36,7 @@
 # include <QFileInfo>
 # include <QFont>
 # include <QFontMetrics>
+# include <QImageReader>
 # include <QMessageBox>
 # include <QPainter>
 # include <QPointer>
@@ -62,18 +63,21 @@
 #include "DlgSettingsImageImp.h"
 #include "Document.h"
 #include "FileDialog.h"
+#include "ImageView.h"
 #include "Macro.h"
 #include "MainWindow.h"
 #include "NavigationStyle.h"
+#include "OverlayParams.h"
+#include "OverlayManager.h"
 #include "SceneInspector.h"
 #include "Selection.h"
 #include "SelectionObject.h"
 #include "SoAxisCrossKit.h"
 #include "SoFCOffscreenRenderer.h"
-#include "SoFCUnifiedSelection.h"
 #include "TextureMapping.h"
 #include "Tools.h"
 #include "Tree.h"
+#include "TreeParams.h"
 #include "Utilities.h"
 #include "View3DInventor.h"
 #include "View3DInventorViewer.h"
@@ -84,7 +88,38 @@
 
 using namespace Gui;
 using Gui::Dialog::DlgSettingsImageImp;
-namespace bp = boost::placeholders;
+namespace sp = std::placeholders;
+
+namespace {
+// A helper class to open a transaction when changing properties of view providers.
+// It uses the same parameter key as the PropertyView to control the behaviour.
+class TransactionView {
+    Gui::Document* document;
+
+public:
+    static bool getDefault() {
+        auto hGrp = App::GetApplication().GetParameterGroupByPath(
+                "User parameter:BaseApp/Preferences/PropertyView");
+        return hGrp->GetBool("AutoTransactionView", false);
+    }
+    TransactionView(Gui::Document* doc, const char* name, bool enable = getDefault())
+        : document(doc)
+    {
+        if (document && enable) {
+            document->openCommand(name);
+        }
+        else {
+            document = nullptr;
+        }
+    }
+
+    ~TransactionView() {
+        if (document) {
+            document->commitCommand();
+        }
+    }
+};
+}
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -106,7 +141,7 @@ StdOrthographicCamera::StdOrthographicCamera()
 void StdOrthographicCamera::activated(int iMsg)
 {
     if (iMsg == 1) {
-        View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+        auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
         SoCamera* cam = view->getViewer()->getSoRenderManager()->getCamera();
         if (!cam || cam->getTypeId() != SoOrthographicCamera::getClassTypeId())
 
@@ -114,9 +149,9 @@ void StdOrthographicCamera::activated(int iMsg)
     }
 }
 
-bool StdOrthographicCamera::isActive(void)
+bool StdOrthographicCamera::isActive()
 {
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
     if (view) {
         // update the action group if needed
         bool check = _pcAction->isChecked();
@@ -131,7 +166,7 @@ bool StdOrthographicCamera::isActive(void)
     return false;
 }
 
-Action * StdOrthographicCamera::createAction(void)
+Action * StdOrthographicCamera::createAction()
 {
     Action *pcAction = Command::createAction();
     pcAction->setCheckable(true);
@@ -156,7 +191,7 @@ StdPerspectiveCamera::StdPerspectiveCamera()
 void StdPerspectiveCamera::activated(int iMsg)
 {
     if (iMsg == 1) {
-        View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+        auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
         SoCamera* cam = view->getViewer()->getSoRenderManager()->getCamera();
         if (!cam || cam->getTypeId() != SoPerspectiveCamera::getClassTypeId())
 
@@ -164,9 +199,9 @@ void StdPerspectiveCamera::activated(int iMsg)
     }
 }
 
-bool StdPerspectiveCamera::isActive(void)
+bool StdPerspectiveCamera::isActive()
 {
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
     if (view) {
         // update the action group if needed
         bool check = _pcAction->isChecked();
@@ -182,7 +217,7 @@ bool StdPerspectiveCamera::isActive(void)
     return false;
 }
 
-Action * StdPerspectiveCamera::createAction(void)
+Action * StdPerspectiveCamera::createAction()
 {
     Action *pcAction = Command::createAction();
     pcAction->setCheckable(true);
@@ -215,7 +250,7 @@ void StdCmdViewSaveCamera::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
 
-    Gui::View3DInventor* view = qobject_cast<Gui::View3DInventor*>(Gui::getMainWindow()->activeWindow());
+    auto view = qobject_cast<Gui::View3DInventor*>(Gui::getMainWindow()->activeWindow());
     if (view) {
         view->getViewer()->saveHomePosition();
     }
@@ -241,7 +276,7 @@ void StdCmdViewRestoreCamera::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
 
-    Gui::View3DInventor* view = qobject_cast<Gui::View3DInventor*>(Gui::getMainWindow()->activeWindow());
+    auto view = qobject_cast<Gui::View3DInventor*>(Gui::getMainWindow()->activeWindow());
     if (view) {
         view->getViewer()->resetToHomePosition();
     }
@@ -254,39 +289,35 @@ class StdCmdFreezeViews : public Gui::Command
 {
 public:
     StdCmdFreezeViews();
-    virtual ~StdCmdFreezeViews(){}
-    const char* className() const
+    ~StdCmdFreezeViews() override = default;
+    const char* className() const override
     { return "StdCmdFreezeViews"; }
 
+    void setShortcut (const QString &) override;
+    QString getShortcut() const override;
+
 protected:
-    virtual void activated(int iMsg);
-    virtual bool isActive(void);
-    virtual Action * createAction(void);
-    virtual void languageChange();
+    void activated(int iMsg) override;
+    bool isActive() override;
+    Action * createAction() override;
+    void languageChange() override;
 
 private:
     void onSaveViews();
     void onRestoreViews();
 
 private:
-    const int maxViews;
-    int savedViews;
-    int offset;
-    QAction* saveView;
-    QAction* freezeView;
-    QAction* clearView;
-    QAction* separator;
+    const int maxViews{50};
+    int savedViews{0};
+    int offset{0};
+    QAction* saveView{nullptr};
+    QAction* freezeView{nullptr};
+    QAction* clearView{nullptr};
+    QAction* separator{nullptr};
 };
 
 StdCmdFreezeViews::StdCmdFreezeViews()
   : Command("Std_FreezeViews")
-  , maxViews(50)
-  , savedViews(0)
-  , offset(0)
-  , saveView(nullptr)
-  , freezeView(nullptr)
-  , clearView(nullptr)
-  , separator(nullptr)
 {
     sGroup        = "Standard-View";
     sMenuText     = QT_TR_NOOP("Freeze display");
@@ -297,9 +328,9 @@ StdCmdFreezeViews::StdCmdFreezeViews()
     eType         = Alter3DView;
 }
 
-Action * StdCmdFreezeViews::createAction(void)
+Action * StdCmdFreezeViews::createAction()
 {
-    ActionGroup* pcAction = new ActionGroup(this, getMainWindow());
+    auto pcAction = new ActionGroup(this, getMainWindow());
     pcAction->setDropDownMenu(true);
     applyCommandData(this->className(), pcAction);
 
@@ -325,9 +356,22 @@ Action * StdCmdFreezeViews::createAction(void)
     return pcAction;
 }
 
+void StdCmdFreezeViews::setShortcut(const QString &shortcut)
+{
+    if (freezeView)
+        freezeView->setShortcut(shortcut);
+}
+
+QString StdCmdFreezeViews::getShortcut() const
+{
+    if (freezeView)
+        return freezeView->shortcut().toString();
+    return Command::getShortcut();
+}
+
 void StdCmdFreezeViews::activated(int iMsg)
 {
-    ActionGroup* pcAction = qobject_cast<ActionGroup*>(_pcAction);
+    auto pcAction = qobject_cast<ActionGroup*>(_pcAction);
 
     if (iMsg == 0) {
         onSaveViews();
@@ -382,7 +426,7 @@ void StdCmdFreezeViews::onSaveViews()
     if (file.open(QFile::WriteOnly))
     {
         QTextStream str(&file);
-        ActionGroup* pcAction = qobject_cast<ActionGroup*>(_pcAction);
+        auto pcAction = qobject_cast<ActionGroup*>(_pcAction);
         QList<QAction*> acts = pcAction->actions();
         str << "<?xml version='1.0' encoding='utf-8'?>\n"
             << "<FrozenViews SchemaVersion=\"1\">\n";
@@ -415,11 +459,11 @@ void StdCmdFreezeViews::onRestoreViews()
 {
     // Should we clear the already saved views
     if (savedViews > 0) {
-        int ret = QMessageBox::question(getMainWindow(), QObject::tr("Restore views"),
+        auto ret = QMessageBox::question(getMainWindow(), QObject::tr("Restore views"),
             QObject::tr("Importing the restored views would clear the already stored views.\n"
-                        "Do you want to continue?"), QMessageBox::Yes|QMessageBox::Default,
-                                                     QMessageBox::No|QMessageBox::Escape);
-        if (ret!=QMessageBox::Yes)
+                        "Do you want to continue?"), QMessageBox::Yes | QMessageBox::No,
+                                                     QMessageBox::Yes);
+        if (ret != QMessageBox::Yes)
             return;
     }
 
@@ -474,7 +518,7 @@ void StdCmdFreezeViews::onRestoreViews()
         // use this rather than the attribute 'Count' because it could be
         // changed from outside
         int ct = cameras.count();
-        ActionGroup* pcAction = qobject_cast<ActionGroup*>(_pcAction);
+        auto pcAction = qobject_cast<ActionGroup*>(_pcAction);
         QList<QAction*> acts = pcAction->actions();
 
         int numRestoredViews = std::min<int>(ct, acts.size()-offset);
@@ -499,9 +543,9 @@ void StdCmdFreezeViews::onRestoreViews()
     }
 }
 
-bool StdCmdFreezeViews::isActive(void)
+bool StdCmdFreezeViews::isActive()
 {
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
     if (view) {
         saveView->setEnabled(savedViews > 0);
         freezeView->setEnabled(savedViews < maxViews);
@@ -522,7 +566,7 @@ void StdCmdFreezeViews::languageChange()
 
     if (!_pcAction)
         return;
-    ActionGroup* pcAction = qobject_cast<ActionGroup*>(_pcAction);
+    auto pcAction = qobject_cast<ActionGroup*>(_pcAction);
     QList<QAction*> acts = pcAction->actions();
     acts[0]->setText(QObject::tr("Save views..."));
     acts[1]->setText(QObject::tr("Load views..."));
@@ -556,9 +600,9 @@ StdCmdToggleClipPlane::StdCmdToggleClipPlane()
     eType         = Alter3DView;
 }
 
-Action * StdCmdToggleClipPlane::createAction(void)
+Action * StdCmdToggleClipPlane::createAction()
 {
-    Action *pcAction = (Action*)Command::createAction();
+    Action *pcAction = Command::createAction();
     return pcAction;
 }
 
@@ -567,16 +611,16 @@ void StdCmdToggleClipPlane::activated(int iMsg)
     Q_UNUSED(iMsg);
     static QPointer<Gui::Dialog::Clipping> clipping = nullptr;
     if (!clipping) {
-        View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+        auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
         if (view) {
             clipping = Gui::Dialog::Clipping::makeDockWidget(view);
         }
     }
 }
 
-bool StdCmdToggleClipPlane::isActive(void)
+bool StdCmdToggleClipPlane::isActive()
 {
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
     return view ? true : false;
 }
 
@@ -587,14 +631,14 @@ class StdCmdDrawStyle : public Gui::Command
 {
 public:
     StdCmdDrawStyle();
-    virtual ~StdCmdDrawStyle(){}
-    virtual void languageChange();
-    virtual const char* className() const {return "StdCmdDrawStyle";}
+    ~StdCmdDrawStyle() override = default;
+    void languageChange() override;
+    const char* className() const override {return "StdCmdDrawStyle";}
     void updateIcon(const Gui::MDIView* view);
 protected:
-    virtual void activated(int iMsg);
-    virtual bool isActive(void);
-    virtual Gui::Action * createAction(void);
+    void activated(int iMsg) override;
+    bool isActive() override;
+    Gui::Action * createAction() override;
 };
 
 StdCmdDrawStyle::StdCmdDrawStyle()
@@ -608,12 +652,14 @@ StdCmdDrawStyle::StdCmdDrawStyle()
     sPixmap       = "DrawStyleAsIs";
     eType         = Alter3DView;
 
-    this->getGuiApplication()->signalActivateView.connect(boost::bind(&StdCmdDrawStyle::updateIcon, this, bp::_1));
+    this->getGuiApplication()->signalActivateView.connect([this](auto view) {
+        this->updateIcon(view);
+    });
 }
 
-Gui::Action * StdCmdDrawStyle::createAction(void)
+Gui::Action * StdCmdDrawStyle::createAction()
 {
-    Gui::ActionGroup* pcAction = new Gui::ActionGroup(this, Gui::getMainWindow());
+    auto pcAction = new Gui::ActionGroup(this, Gui::getMainWindow());
     pcAction->setDropDownMenu(true);
     pcAction->setIsMode(true);
     applyCommandData(this->className(), pcAction);
@@ -675,7 +721,7 @@ void StdCmdDrawStyle::languageChange()
 
     if (!_pcAction)
         return;
-    Gui::ActionGroup* pcAction = qobject_cast<Gui::ActionGroup*>(_pcAction);
+    auto pcAction = qobject_cast<Gui::ActionGroup*>(_pcAction);
     QList<QAction*> a = pcAction->actions();
 
     a[0]->setText(QCoreApplication::translate(
@@ -716,14 +762,14 @@ void StdCmdDrawStyle::languageChange()
 
 void StdCmdDrawStyle::updateIcon(const MDIView *view)
 {
-    const Gui::View3DInventor *view3d = dynamic_cast<const Gui::View3DInventor *>(view);
+    const auto view3d = dynamic_cast<const Gui::View3DInventor *>(view);
     if (!view3d)
         return;
     Gui::View3DInventorViewer *viewer = view3d->getViewer();
     if (!viewer)
         return;
     std::string mode(viewer->getOverrideMode());
-    Gui::ActionGroup *actionGroup = dynamic_cast<Gui::ActionGroup *>(_pcAction);
+    auto actionGroup = dynamic_cast<Gui::ActionGroup *>(_pcAction);
     if (!actionGroup)
         return;
 
@@ -768,7 +814,7 @@ void StdCmdDrawStyle::activated(int iMsg)
     bool oneChangedSignal(false);
     for (viewIt = views.begin(); viewIt != views.end(); ++viewIt)
     {
-        View3DInventor* view = qobject_cast<View3DInventor*>(*viewIt);
+        auto view = qobject_cast<View3DInventor*>(*viewIt);
         if (view)
         {
             View3DInventorViewer* viewer;
@@ -805,7 +851,7 @@ void StdCmdDrawStyle::activated(int iMsg)
     }
 }
 
-bool StdCmdDrawStyle::isActive(void)
+bool StdCmdDrawStyle::isActive()
 {
     return Gui::Application::Instance->activeDocument();
 }
@@ -832,10 +878,11 @@ StdCmdToggleVisibility::StdCmdToggleVisibility()
 void StdCmdToggleVisibility::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
+    TransactionView transaction(getActiveGuiDocument(), QT_TRANSLATE_NOOP("Command", "Toggle visibility"));
     Selection().setVisible(SelectionSingleton::VisToggle);
 }
 
-bool StdCmdToggleVisibility::isActive(void)
+bool StdCmdToggleVisibility::isActive()
 {
     return (Gui::Selection().size() != 0);
 }
@@ -862,27 +909,32 @@ void StdCmdToggleSelectability::activated(int iMsg)
     Q_UNUSED(iMsg);
     // go through all documents
     const std::vector<App::Document*> docs = App::GetApplication().getDocuments();
-    for (std::vector<App::Document*>::const_iterator it = docs.begin(); it != docs.end(); ++it) {
-        Document *pcDoc = Application::Instance->getDocument(*it);
+    for (const auto & doc : docs) {
+        Document *pcDoc = Application::Instance->getDocument(doc);
         std::vector<App::DocumentObject*> sel = Selection().getObjectsOfType
-            (App::DocumentObject::getClassTypeId(), (*it)->getName());
+            (App::DocumentObject::getClassTypeId(), doc->getName());
 
+        if (sel.empty()) {
+            continue;
+        }
 
-        for (std::vector<App::DocumentObject*>::const_iterator ft=sel.begin();ft!=sel.end();++ft) {
-            ViewProvider *pr = pcDoc->getViewProviderByName((*ft)->getNameInDocument());
+        TransactionView transaction(pcDoc, QT_TRANSLATE_NOOP("Command", "Toggle selectability"));
+
+        for (const auto & ft : sel) {
+            ViewProvider *pr = pcDoc->getViewProviderByName(ft->getNameInDocument());
             if (pr && pr->isDerivedFrom(ViewProviderGeometryObject::getClassTypeId())){
                 if (static_cast<ViewProviderGeometryObject*>(pr)->Selectable.getValue())
                     doCommand(Gui,"Gui.getDocument(\"%s\").getObject(\"%s\").Selectable=False"
-                                 , (*it)->getName(), (*ft)->getNameInDocument());
+                                 , doc->getName(), ft->getNameInDocument());
                 else
                     doCommand(Gui,"Gui.getDocument(\"%s\").getObject(\"%s\").Selectable=True"
-                                 , (*it)->getName(), (*ft)->getNameInDocument());
+                                 , doc->getName(), ft->getNameInDocument());
             }
         }
     }
 }
 
-bool StdCmdToggleSelectability::isActive(void)
+bool StdCmdToggleSelectability::isActive()
 {
     return (Gui::Selection().size() != 0);
 }
@@ -910,7 +962,7 @@ void StdCmdShowSelection::activated(int iMsg)
     Selection().setVisible(SelectionSingleton::VisShow);
 }
 
-bool StdCmdShowSelection::isActive(void)
+bool StdCmdShowSelection::isActive()
 {
     return (Gui::Selection().size() != 0);
 }
@@ -938,7 +990,7 @@ void StdCmdHideSelection::activated(int iMsg)
     Selection().setVisible(SelectionSingleton::VisHide);
 }
 
-bool StdCmdHideSelection::isActive(void)
+bool StdCmdHideSelection::isActive()
 {
     return (Gui::Selection().size() != 0);
 }
@@ -971,16 +1023,16 @@ void StdCmdSelectVisibleObjects::activated(int iMsg)
 
     std::vector<App::DocumentObject*> visible;
     visible.reserve(obj.size());
-    for (std::vector<App::DocumentObject*>::const_iterator it=obj.begin();it!=obj.end();++it) {
-        if (doc->isShow((*it)->getNameInDocument()))
-            visible.push_back(*it);
+    for (const auto & it : obj) {
+        if (doc->isShow(it->getNameInDocument()))
+            visible.push_back(it);
     }
 
     SelectionSingleton& rSel = Selection();
     rSel.setSelection(app->getName(), visible);
 }
 
-bool StdCmdSelectVisibleObjects::isActive(void)
+bool StdCmdSelectVisibleObjects::isActive()
 {
     return App::GetApplication().getActiveDocument();
 }
@@ -1011,17 +1063,17 @@ void StdCmdToggleObjects::activated(int iMsg)
     const std::vector<App::DocumentObject*> obj = app->getObjectsOfType
         (App::DocumentObject::getClassTypeId());
 
-    for (std::vector<App::DocumentObject*>::const_iterator it=obj.begin();it!=obj.end();++it) {
-        if (doc->isShow((*it)->getNameInDocument()))
+    for (const auto & it : obj) {
+        if (doc->isShow(it->getNameInDocument()))
             doCommand(Gui,"Gui.getDocument(\"%s\").getObject(\"%s\").Visibility=False"
-                         , app->getName(), (*it)->getNameInDocument());
+                         , app->getName(), it->getNameInDocument());
         else
             doCommand(Gui,"Gui.getDocument(\"%s\").getObject(\"%s\").Visibility=True"
-                         , app->getName(), (*it)->getNameInDocument());
+                         , app->getName(), it->getNameInDocument());
     }
 }
 
-bool StdCmdToggleObjects::isActive(void)
+bool StdCmdToggleObjects::isActive()
 {
     return App::GetApplication().getActiveDocument();
 }
@@ -1052,13 +1104,13 @@ void StdCmdShowObjects::activated(int iMsg)
     const std::vector<App::DocumentObject*> obj = app->getObjectsOfType
         (App::DocumentObject::getClassTypeId());
 
-    for (std::vector<App::DocumentObject*>::const_iterator it=obj.begin();it!=obj.end();++it) {
+    for (const auto & it : obj) {
         doCommand(Gui,"Gui.getDocument(\"%s\").getObject(\"%s\").Visibility=True"
-                     , app->getName(), (*it)->getNameInDocument());
+                     , app->getName(), it->getNameInDocument());
     }
 }
 
-bool StdCmdShowObjects::isActive(void)
+bool StdCmdShowObjects::isActive()
 {
     return App::GetApplication().getActiveDocument();
 }
@@ -1089,13 +1141,13 @@ void StdCmdHideObjects::activated(int iMsg)
     const std::vector<App::DocumentObject*> obj = app->getObjectsOfType
         (App::DocumentObject::getClassTypeId());
 
-    for (std::vector<App::DocumentObject*>::const_iterator it=obj.begin();it!=obj.end();++it) {
+    for (const auto & it : obj) {
         doCommand(Gui,"Gui.getDocument(\"%s\").getObject(\"%s\").Visibility=False"
-                     , app->getName(), (*it)->getNameInDocument());
+                     , app->getName(), it->getNameInDocument());
     }
 }
 
-bool StdCmdHideObjects::isActive(void)
+bool StdCmdHideObjects::isActive()
 {
     return App::GetApplication().getActiveDocument();
 }
@@ -1124,7 +1176,7 @@ void StdCmdSetAppearance::activated(int iMsg)
     Gui::Control().showDialog(new Gui::Dialog::TaskDisplayProperties());
 }
 
-bool StdCmdSetAppearance::isActive(void)
+bool StdCmdSetAppearance::isActive()
 {
     return (Gui::Control().activeDialog() == nullptr) &&
            (Gui::Selection().size() != 0);
@@ -1302,6 +1354,7 @@ void StdCmdViewTop::activated(int iMsg)
     doCommand(Command::Gui,"Gui.activeDocument().activeView().viewTop()");
 }
 
+
 //===========================================================================
 // Std_ViewIsometric
 //===========================================================================
@@ -1447,7 +1500,7 @@ void StdCmdViewFitAll::activated(int iMsg)
     doCommand(Command::Gui,"Gui.SendMsgToActiveView(\"ViewFit\")");
 }
 
-bool StdCmdViewFitAll::isActive(void)
+bool StdCmdViewFitAll::isActive()
 {
     //return isViewOfType(Gui::View3DInventor::getClassTypeId());
     return getGuiApplication()->sendHasMsgToActiveView("ViewFit");
@@ -1477,7 +1530,7 @@ void StdCmdViewFitSelection::activated(int iMsg)
     doCommand(Command::Gui,"Gui.SendMsgToActiveView(\"ViewSelection\")");
 }
 
-bool StdCmdViewFitSelection::isActive(void)
+bool StdCmdViewFitSelection::isActive()
 {
   return getGuiApplication()->sendHasMsgToActiveView("ViewSelection");
 }
@@ -1505,7 +1558,7 @@ void StdViewDock::activated(int iMsg)
     Q_UNUSED(iMsg);
 }
 
-bool StdViewDock::isActive(void)
+bool StdViewDock::isActive()
 {
     MDIView* view = getMainWindow()->activeWindow();
     return (qobject_cast<View3DInventor*>(view) ? true : false);
@@ -1534,7 +1587,7 @@ void StdViewUndock::activated(int iMsg)
     Q_UNUSED(iMsg);
 }
 
-bool StdViewUndock::isActive(void)
+bool StdViewUndock::isActive()
 {
     MDIView* view = getMainWindow()->activeWindow();
     return (qobject_cast<View3DInventor*>(view) ? true : false);
@@ -1596,7 +1649,7 @@ void StdViewFullscreen::activated(int iMsg)
     Q_UNUSED(iMsg);
 }
 
-bool StdViewFullscreen::isActive(void)
+bool StdViewFullscreen::isActive()
 {
     MDIView* view = getMainWindow()->activeWindow();
     return (qobject_cast<View3DInventor*>(view) ? true : false);
@@ -1623,9 +1676,9 @@ StdViewDockUndockFullscreen::StdViewDockUndockFullscreen()
     rcCmdMgr.addCommand(new StdViewFullscreen());
 }
 
-Action * StdViewDockUndockFullscreen::createAction(void)
+Action * StdViewDockUndockFullscreen::createAction()
 {
-    ActionGroup* pcAction = new ActionGroup(this, getMainWindow());
+    auto pcAction = new ActionGroup(this, getMainWindow());
     pcAction->setDropDownMenu(true);
     pcAction->setText(QCoreApplication::translate(
         this->className(), getMenuText()));
@@ -1693,12 +1746,12 @@ void StdViewDockUndockFullscreen::activated(int iMsg)
     }
 }
 
-bool StdViewDockUndockFullscreen::isActive(void)
+bool StdViewDockUndockFullscreen::isActive()
 {
     MDIView* view = getMainWindow()->activeWindow();
     if (qobject_cast<View3DInventor*>(view)) {
         // update the action group if needed
-        ActionGroup* pActGrp = qobject_cast<ActionGroup*>(_pcAction);
+        auto pActGrp = qobject_cast<ActionGroup*>(_pcAction);
         if (pActGrp) {
             int index = pActGrp->checkedAction();
             int mode = (int)(view->currentViewMode());
@@ -1737,7 +1790,7 @@ void StdCmdViewVR::activated(int iMsg)
    doCommand(Command::Gui,"Gui.SendMsgToActiveView(\"ViewVR\")");
 }
 
-bool StdCmdViewVR::isActive(void)
+bool StdCmdViewVR::isActive()
 {
    return getGuiApplication()->sendHasMsgToActiveView("ViewVR");
 }
@@ -1753,18 +1806,18 @@ StdViewScreenShot::StdViewScreenShot()
   : Command("Std_ViewScreenShot")
 {
     sGroup      = "Standard-View";
-    sMenuText   = QT_TR_NOOP("Save picture...");
+    sMenuText   = QT_TR_NOOP("Save image...");
     sToolTipText= QT_TR_NOOP("Creates a screenshot of the active view");
     sWhatsThis  = "Std_ViewScreenShot";
     sStatusTip  = QT_TR_NOOP("Creates a screenshot of the active view");
     sPixmap     = "camera-photo";
-    eType         = Alter3DView;
+    eType       = Alter3DView;
 }
 
 void StdViewScreenShot::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
     if (view) {
         QStringList formats;
         SbViewportRegion vp(view->getViewer()->getSoRenderManager()->getViewportRegion());
@@ -1794,13 +1847,13 @@ void StdViewScreenShot::activated(int iMsg)
         FileOptionsDialog fd(getMainWindow(), Qt::WindowFlags());
         fd.setFileMode(QFileDialog::AnyFile);
         fd.setAcceptMode(QFileDialog::AcceptSave);
-        fd.setWindowTitle(QObject::tr("Save picture"));
+        fd.setWindowTitle(QObject::tr("Save image"));
         fd.setNameFilters(filter);
         if (!selFilter.isEmpty())
             fd.selectNameFilter(selFilter);
 
         // create the image options widget
-        DlgSettingsImageImp* opt = new DlgSettingsImageImp(&fd);
+        auto opt = new DlgSettingsImageImp(&fd);
         SbVec2s sz = vp.getWindowSize();
         opt->setImageSize((int)sz[0], (int)sz[1]);
         opt->setBackgroundType(backtype);
@@ -1809,8 +1862,8 @@ void StdViewScreenShot::activated(int iMsg)
         fd.setOptionsWidget(FileOptionsDialog::ExtensionRight, opt);
         fd.setOption(QFileDialog::DontConfirmOverwrite, false);
         opt->onSelectedFilter(fd.selectedNameFilter());
-        QObject::connect(&fd, SIGNAL(filterSelected(const QString&)),
-                         opt, SLOT(onSelectedFilter(const QString&)));
+        QObject::connect(&fd, &FileOptionsDialog::filterSelected,
+                         opt, &DlgSettingsImageImp::onSelectedFilter);
 
         if (fd.exec() == QDialog::Accepted) {
             selFilter = fd.selectedNameFilter();
@@ -1910,11 +1963,56 @@ void StdViewScreenShot::activated(int iMsg)
     }
 }
 
-bool StdViewScreenShot::isActive(void)
+bool StdViewScreenShot::isActive()
 {
     return isViewOfType(Gui::View3DInventor::getClassTypeId());
 }
 
+//===========================================================================
+// Std_ViewLoadImage
+//===========================================================================
+DEF_STD_CMD(StdViewLoadImage)
+
+StdViewLoadImage::StdViewLoadImage()
+  : Command("Std_ViewLoadImage")
+{
+    sGroup      = "Standard-View";
+    sMenuText   = QT_TR_NOOP("Load image...");
+    sToolTipText= QT_TR_NOOP("Loads an image");
+    sWhatsThis  = "Std_ViewLoadImage";
+    sStatusTip  = QT_TR_NOOP("Loads an image");
+    sPixmap     = "image-open";
+    eType       = 0;
+}
+
+void StdViewLoadImage::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+
+    // add all supported QImage formats
+    QStringList mimeTypeFilters;
+    QList<QByteArray> supportedMimeTypes = QImageReader::supportedMimeTypes();
+    for (const auto& mimeTypeName : supportedMimeTypes) {
+        mimeTypeFilters.append(QString::fromLatin1(mimeTypeName));
+    }
+
+    // Reading an image
+    QFileDialog dialog(Gui::getMainWindow());
+    dialog.setWindowTitle(QObject::tr("Choose an image file to open"));
+    dialog.setMimeTypeFilters(mimeTypeFilters);
+    dialog.selectMimeTypeFilter(QString::fromLatin1("image/png"));
+    dialog.setDefaultSuffix(QString::fromLatin1("png"));
+    dialog.setAcceptMode(QFileDialog::AcceptOpen);
+    dialog.setOption(QFileDialog::DontUseNativeDialog);
+
+    if (dialog.exec()) {
+        QString fileName = dialog.selectedFiles().constFirst();
+        ImageView* view = new ImageView(Gui::getMainWindow());
+        view->loadFile(fileName);
+        view->resize(400, 300);
+        Gui::getMainWindow()->addWindow(view);
+    }
+}
 
 //===========================================================================
 // Std_ViewCreate
@@ -1940,7 +2038,7 @@ void StdCmdViewCreate::activated(int iMsg)
     getActiveGuiDocument()->getActiveView()->viewAll();
 }
 
-bool StdCmdViewCreate::isActive(void)
+bool StdCmdViewCreate::isActive()
 {
     return (getActiveGuiDocument() != nullptr);
 }
@@ -1975,7 +2073,7 @@ void StdCmdToggleNavigation::activated(int iMsg)
     }
 }
 
-bool StdCmdToggleNavigation::isActive(void)
+bool StdCmdToggleNavigation::isActive()
 {
     //#0001087: Inventor Navigation continues with released Mouse Button
     //This happens because 'Esc' is also used to close the task dialog.
@@ -2004,8 +2102,8 @@ StdCmdAxisCross::StdCmdAxisCross()
 {
         sGroup        = "Standard-View";
         sMenuText     = QT_TR_NOOP("Toggle axis cross");
-        sToolTipText  = QT_TR_NOOP("Toggle axis cross");
-        sStatusTip    = QT_TR_NOOP("Toggle axis cross");
+        sToolTipText  = QT_TR_NOOP("Turns on or off the axis cross at the origin");
+        sStatusTip    = QT_TR_NOOP("Turns on or off the axis cross at the origin");
         sWhatsThis    = "Std_AxisCross";
         sPixmap       = "Std_AxisCross";
         sAccel        = "A,C";
@@ -2014,7 +2112,7 @@ StdCmdAxisCross::StdCmdAxisCross()
 void StdCmdAxisCross::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    Gui::View3DInventor* view = qobject_cast<View3DInventor*>(Gui::getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(Gui::getMainWindow()->activeWindow());
     if (view) {
         if (!view->getViewer()->hasAxisCross())
             doCommand(Command::Gui,"Gui.ActiveDocument.ActiveView.setAxisCross(True)");
@@ -2023,9 +2121,9 @@ void StdCmdAxisCross::activated(int iMsg)
     }
 }
 
-bool StdCmdAxisCross::isActive(void)
+bool StdCmdAxisCross::isActive()
 {
-    Gui::View3DInventor* view = qobject_cast<View3DInventor*>(Gui::getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(Gui::getMainWindow()->activeWindow());
     if (view && view->getViewer()->hasAxisCross()) {
         if (!_pcAction->isChecked())
             _pcAction->setChecked(true);
@@ -2063,7 +2161,7 @@ void StdCmdViewExample1::activated(int iMsg)
     doCommand(Command::Gui,"Gui.SendMsgToActiveView(\"Example1\")");
 }
 
-bool StdCmdViewExample1::isActive(void)
+bool StdCmdViewExample1::isActive()
 {
     return getGuiApplication()->sendHasMsgToActiveView("Example1");
 }
@@ -2091,7 +2189,7 @@ void StdCmdViewExample2::activated(int iMsg)
     doCommand(Command::Gui,"Gui.SendMsgToActiveView(\"Example2\")");
 }
 
-bool StdCmdViewExample2::isActive(void)
+bool StdCmdViewExample2::isActive()
 {
     return getGuiApplication()->sendHasMsgToActiveView("Example2");
 }
@@ -2119,7 +2217,7 @@ void StdCmdViewExample3::activated(int iMsg)
     doCommand(Command::Gui,"Gui.SendMsgToActiveView(\"Example3\")");
 }
 
-bool StdCmdViewExample3::isActive(void)
+bool StdCmdViewExample3::isActive()
 {
     return getGuiApplication()->sendHasMsgToActiveView("Example3");
 }
@@ -2148,7 +2246,7 @@ void StdCmdViewIvStereoOff::activated(int iMsg)
     doCommand(Command::Gui,"Gui.activeDocument().activeView().setStereoType(\"Mono\")");
 }
 
-bool StdCmdViewIvStereoOff::isActive(void)
+bool StdCmdViewIvStereoOff::isActive()
 {
     return getGuiApplication()->sendHasMsgToActiveView("SetStereoOff");
 }
@@ -2177,7 +2275,7 @@ void StdCmdViewIvStereoRedGreen::activated(int iMsg)
     doCommand(Command::Gui,"Gui.activeDocument().activeView().setStereoType(\"Anaglyph\")");
 }
 
-bool StdCmdViewIvStereoRedGreen::isActive(void)
+bool StdCmdViewIvStereoRedGreen::isActive()
 {
     return getGuiApplication()->sendHasMsgToActiveView("SetStereoRedGreen");
 }
@@ -2205,7 +2303,7 @@ void StdCmdViewIvStereoQuadBuff::activated(int iMsg)
     doCommand(Command::Gui,"Gui.activeDocument().activeView().setStereoType(\"QuadBuffer\")");
 }
 
-bool StdCmdViewIvStereoQuadBuff::isActive(void)
+bool StdCmdViewIvStereoQuadBuff::isActive()
 {
     return getGuiApplication()->sendHasMsgToActiveView("SetStereoQuadBuff");
 }
@@ -2233,7 +2331,7 @@ void StdCmdViewIvStereoInterleavedRows::activated(int iMsg)
     doCommand(Command::Gui,"Gui.activeDocument().activeView().setStereoType(\"InterleavedRows\")");
 }
 
-bool StdCmdViewIvStereoInterleavedRows::isActive(void)
+bool StdCmdViewIvStereoInterleavedRows::isActive()
 {
     return getGuiApplication()->sendHasMsgToActiveView("SetStereoInterleavedRows");
 }
@@ -2261,7 +2359,7 @@ void StdCmdViewIvStereoInterleavedColumns::activated(int iMsg)
     doCommand(Command::Gui,"Gui.activeDocument().activeView().setStereoType(\"InterleavedColumns\")");
 }
 
-bool StdCmdViewIvStereoInterleavedColumns::isActive(void)
+bool StdCmdViewIvStereoInterleavedColumns::isActive()
 {
     return getGuiApplication()->sendHasMsgToActiveView("SetStereoInterleavedColumns");
 }
@@ -2311,7 +2409,7 @@ void StdCmdViewIvIssueCamPos::activated(int iMsg)
     getGuiApplication()->macroManager()->addLine(MacroManager::Gui,Temp.c_str());
 }
 
-bool StdCmdViewIvIssueCamPos::isActive(void)
+bool StdCmdViewIvIssueCamPos::isActive()
 {
     return getGuiApplication()->sendHasMsgToActiveView("GetCamera");
 }
@@ -2327,9 +2425,9 @@ StdViewZoomIn::StdViewZoomIn()
 {
     sGroup        = "Standard-View";
     sMenuText     = QT_TR_NOOP("Zoom In");
-    sToolTipText  = QT_TR_NOOP("Zoom In");
+    sToolTipText  = QT_TR_NOOP("Increase the zoom factor by a fixed amount");
     sWhatsThis    = "Std_ViewZoomIn";
-    sStatusTip    = QT_TR_NOOP("Zoom In");
+    sStatusTip    = QT_TR_NOOP("Increase the zoom factor by a fixed amount");
     sPixmap       = "zoom-in";
     sAccel        = keySequenceToAccel(QKeySequence::ZoomIn);
     eType         = Alter3DView;
@@ -2338,16 +2436,12 @@ StdViewZoomIn::StdViewZoomIn()
 void StdViewZoomIn::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
-    if ( view ) {
-        View3DInventorViewer* viewer = view->getViewer();
-        viewer->navigationStyle()->zoomIn();
-    }
+    getGuiApplication()->sendMsgToFocusView("ZoomIn");
 }
 
-bool StdViewZoomIn::isActive(void)
+bool StdViewZoomIn::isActive()
 {
-    return (qobject_cast<View3DInventor*>(getMainWindow()->activeWindow()));
+    return getGuiApplication()->sendHasMsgToActiveView("ZoomIn");
 }
 
 //===========================================================================
@@ -2360,9 +2454,9 @@ StdViewZoomOut::StdViewZoomOut()
 {
     sGroup        = "Standard-View";
     sMenuText     = QT_TR_NOOP("Zoom Out");
-    sToolTipText  = QT_TR_NOOP("Zoom Out");
+    sToolTipText  = QT_TR_NOOP("Decrease the zoom factor by a fixed amount");
     sWhatsThis    = "Std_ViewZoomOut";
-    sStatusTip    = QT_TR_NOOP("Zoom Out");
+    sStatusTip    = QT_TR_NOOP("Decrease the zoom factor by a fixed amount");
     sPixmap       = "zoom-out";
     sAccel        = keySequenceToAccel(QKeySequence::ZoomOut);
     eType         = Alter3DView;
@@ -2371,16 +2465,12 @@ StdViewZoomOut::StdViewZoomOut()
 void StdViewZoomOut::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
-    if (view) {
-        View3DInventorViewer* viewer = view->getViewer();
-        viewer->navigationStyle()->zoomOut();
-    }
+    getGuiApplication()->sendMsgToFocusView("ZoomOut");
 }
 
-bool StdViewZoomOut::isActive(void)
+bool StdViewZoomOut::isActive()
 {
-    return (qobject_cast<View3DInventor*>(getMainWindow()->activeWindow()));
+    return getGuiApplication()->sendHasMsgToActiveView("ZoomOut");
 }
 
 namespace {
@@ -2389,7 +2479,7 @@ class SelectionCallbackHandler {
 private:
     static std::unique_ptr<SelectionCallbackHandler> currentSelectionHandler;
     QCursor prevSelectionCursor;
-    typedef void (*FnCb)(void * userdata, SoEventCallback * node);
+    using FnCb = void (*)(void * userdata, SoEventCallback * node);
     FnCb fnCb;
     void* userData;
     bool prevSelectionEn;
@@ -2408,7 +2498,7 @@ public:
             return;
         }
 
-        currentSelectionHandler = std::unique_ptr<SelectionCallbackHandler>(new SelectionCallbackHandler());
+        currentSelectionHandler = std::make_unique<SelectionCallbackHandler>();
         if (viewer)
         {
             currentSelectionHandler->userData = ud;
@@ -2431,15 +2521,15 @@ public:
     // Also supports aborting the selection mode by pressing (releasing) the Escape key. 
     static void selectionCallback(void * ud, SoEventCallback * n)
     {
-        SelectionCallbackHandler* selectionHandler = static_cast<SelectionCallbackHandler*>(ud);
-        Gui::View3DInventorViewer* view = static_cast<Gui::View3DInventorViewer*>(n->getUserData());
+        auto selectionHandler = static_cast<SelectionCallbackHandler*>(ud);
+        auto view = static_cast<Gui::View3DInventorViewer*>(n->getUserData());
         const SoEvent* ev = n->getEvent();
         if (ev->isOfType(SoKeyboardEvent::getClassTypeId())) {
 
             n->setHandled();
             n->getAction()->setHandled();
 
-            const SoKeyboardEvent * ke = static_cast<const SoKeyboardEvent*>(ev);
+            const auto ke = static_cast<const SoKeyboardEvent*>(ev);
             const SbBool press = ke->getState() == SoButtonEvent::DOWN ? true : false;
             if (ke->getKey() == SoKeyboardEvent::ESCAPE) {
 
@@ -2450,7 +2540,7 @@ public:
             }
         }
         else if (ev->isOfType(SoMouseButtonEvent::getClassTypeId())) {
-            const SoMouseButtonEvent * mbe = static_cast<const SoMouseButtonEvent*>(ev);
+            const auto mbe = static_cast<const SoMouseButtonEvent*>(ev);
 
             // Mark all incoming mouse button events as handled, especially, to deactivate the selection node
             n->getAction()->setHandled();
@@ -2530,9 +2620,9 @@ StdViewBoxZoom::StdViewBoxZoom()
 {
     sGroup        = "Standard-View";
     sMenuText     = QT_TR_NOOP("Box zoom");
-    sToolTipText  = QT_TR_NOOP("Box zoom");
+    sToolTipText  = QT_TR_NOOP("Activate the box zoom tool");
     sWhatsThis    = "Std_ViewBoxZoom";
-    sStatusTip    = QT_TR_NOOP("Box zoom");
+    sStatusTip    = QT_TR_NOOP("Activate the box zoom tool");
     sPixmap       = "zoom-border";
     sAccel        = "Ctrl+B";
     eType         = Alter3DView;
@@ -2541,12 +2631,12 @@ StdViewBoxZoom::StdViewBoxZoom()
 void StdViewBoxZoom::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
     if ( view ) {
         View3DInventorViewer* viewer = view->getViewer();
         if (!viewer->isSelecting()) {
             SelectionCallbackHandler::Create(viewer, View3DInventorViewer::BoxZoom, QCursor(QPixmap(cursor_box_zoom), 7, 7));
-		}
+        }
     }
 }
 
@@ -2600,15 +2690,15 @@ StdBoxSelection::StdBoxSelection()
 {
     sGroup        = "Standard-View";
     sMenuText     = QT_TR_NOOP("Box selection");
-    sToolTipText  = QT_TR_NOOP("Box selection");
+    sToolTipText  = QT_TR_NOOP("Activate the box selection tool");
     sWhatsThis    = "Std_BoxSelection";
-    sStatusTip    = QT_TR_NOOP("Box selection");
+    sStatusTip    = QT_TR_NOOP("Activate the box selection tool");
     sPixmap       = "edit-select-box";
     sAccel        = "Shift+B";
     eType         = AlterSelection;
 }
 
-typedef enum { CENTER, INTERSECT } SelectionMode;
+using SelectionMode = enum { CENTER, INTERSECT };
 
 static std::vector<std::string> getBoxSelection(
         ViewProviderDocumentObject *vp, SelectionMode mode, bool selectElement,
@@ -2721,7 +2811,7 @@ static std::vector<std::string> getBoxSelection(
             continue;
 
         const auto &sels = getBoxSelection(svp,mode,selectElement,proj,polygon,smat,false,depth+1);
-        if(sels.size()==1 && sels[0] == "")
+        if(sels.size()==1 && sels[0].empty())
             ++count;
         for(auto &sel : sels)
             ret.emplace_back(sub+sel);
@@ -2736,10 +2826,9 @@ static std::vector<std::string> getBoxSelection(
 static void doSelect(void* ud, SoEventCallback * cb)
 {
     bool selectElement = ud ? true : false;
-    Gui::View3DInventorViewer* viewer = static_cast<Gui::View3DInventorViewer*>(cb->getUserData());
+    auto viewer = static_cast<Gui::View3DInventorViewer*>(cb->getUserData());
 
-    SoNode* root = viewer->getSceneGraph();
-    static_cast<Gui::SoFCUnifiedSelection*>(root)->selectionRole.setValue(true);
+    viewer->setSelectionEnabled(true);
 
     SelectionMode selectionMode = CENTER;
 
@@ -2762,8 +2851,8 @@ static void doSelect(void* ud, SoEventCallback * cb)
             selectionMode = INTERSECT;
     }
     else {
-        for (std::vector<SbVec2f>::const_iterator it = picked.begin(); it != picked.end(); ++it)
-            polygon.Add(Base::Vector2d((*it)[0],(*it)[1]));
+        for (const auto & it : picked)
+            polygon.Add(Base::Vector2d(it[0],it[1]));
     }
 
     App::Document* doc = App::GetApplication().getActiveDocument();
@@ -2793,7 +2882,7 @@ static void doSelect(void* ud, SoEventCallback * cb)
 void StdBoxSelection::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
     if (view) {
         View3DInventorViewer* viewer = view->getViewer();
         if (!viewer->isSelecting()) {
@@ -2804,9 +2893,9 @@ void StdBoxSelection::activated(int iMsg)
                 SoKeyboardEvent ev;
                 viewer->navigationStyle()->processEvent(&ev);
             }
+
             SelectionCallbackHandler::Create(viewer, View3DInventorViewer::Rubberband, QCursor(QPixmap(cursor_box_select), 7, 7), doSelect, nullptr);
-            SoNode* root = viewer->getSceneGraph();
-            static_cast<Gui::SoFCUnifiedSelection*>(root)->selectionRole.setValue(false);
+            viewer->setSelectionEnabled(false);
         }
     }
 }
@@ -2815,7 +2904,7 @@ void StdBoxSelection::activated(int iMsg)
 // Std_BoxElementSelection
 //===========================================================================
 /* XPM */
-static char * cursor_box_element_select[] = {
+static const char * cursor_box_element_select[] = {
 "32 32 6 1",
 " 	c None",
 ".	c #FFFFFF",
@@ -2874,7 +2963,7 @@ StdBoxElementSelection::StdBoxElementSelection()
 void StdBoxElementSelection::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    View3DInventor* view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
+    auto view = qobject_cast<View3DInventor*>(getMainWindow()->activeWindow());
     if (view) {
         View3DInventorViewer* viewer = view->getViewer();
         if (!viewer->isSelecting()) {
@@ -2885,9 +2974,9 @@ void StdBoxElementSelection::activated(int iMsg)
                 SoKeyboardEvent ev;
                 viewer->navigationStyle()->processEvent(&ev);
             }
+
             SelectionCallbackHandler::Create(viewer, View3DInventorViewer::Rubberband, QCursor(QPixmap(cursor_box_element_select), 7, 7), doSelect, this);
-            SoNode* root = viewer->getSceneGraph();
-            static_cast<Gui::SoFCUnifiedSelection*>(root)->selectionRole.setValue(false);
+            viewer->setSelectionEnabled(false);
         }
     }
 }
@@ -2986,7 +3075,7 @@ StdCmdTreeSelectAllInstances::StdCmdTreeSelectAllInstances()
     eType         = AlterSelection;
 }
 
-bool StdCmdTreeSelectAllInstances::isActive(void)
+bool StdCmdTreeSelectAllInstances::isActive()
 {
     const auto &sels = Selection().getSelectionEx("*",App::DocumentObject::getClassTypeId(), ResolveMode::OldStyleElement, true);
     if(sels.empty())
@@ -3030,9 +3119,9 @@ StdCmdMeasureDistance::StdCmdMeasureDistance()
 {
     sGroup        = "View";
     sMenuText     = QT_TR_NOOP("Measure distance");
-    sToolTipText  = QT_TR_NOOP("Measure distance");
+    sToolTipText  = QT_TR_NOOP("Activate the distance measurement tool");
     sWhatsThis    = "Std_MeasureDistance";
-    sStatusTip    = QT_TR_NOOP("Measure distance");
+    sStatusTip    = QT_TR_NOOP("Activate the distance measurement tool");
     sPixmap       = "view-measurement";
     eType         = Alter3DView;
 }
@@ -3080,7 +3169,7 @@ void StdCmdMeasureDistance::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
     Gui::Document* doc = Gui::Application::Instance->activeDocument();
-    Gui::View3DInventor* view = static_cast<Gui::View3DInventor*>(doc->getActiveView());
+    auto view = static_cast<Gui::View3DInventor*>(doc->getActiveView());
     if (view) {
         Gui::View3DInventorViewer* viewer = view->getViewer();
         viewer->setEditing(true);
@@ -3088,13 +3177,13 @@ void StdCmdMeasureDistance::activated(int iMsg)
 
         // Derives from QObject and we have a parent object, so we don't
         // require a delete.
-        PointMarker* marker = new PointMarker(viewer);
+        auto marker = new PointMarker(viewer);
         viewer->addEventCallback(SoEvent::getClassTypeId(),
             ViewProviderMeasureDistance::measureDistanceCallback, marker);
      }
 }
 
-bool StdCmdMeasureDistance::isActive(void)
+bool StdCmdMeasureDistance::isActive()
 {
     App::Document* doc = App::GetApplication().getActiveDocument();
     if (!doc || doc->countObjectsOfType(App::GeoFeature::getClassTypeId()) == 0)
@@ -3167,11 +3256,11 @@ void StdCmdTextureMapping::activated(int iMsg)
     Gui::Control().showDialog(new Gui::Dialog::TaskTextureMapping);
 }
 
-bool StdCmdTextureMapping::isActive(void)
+bool StdCmdTextureMapping::isActive()
 {
     Gui::MDIView* view = getMainWindow()->activeWindow();
     return view && view->isDerivedFrom(Gui::View3DInventor::getClassTypeId())
-                && (Gui::Control().activeDialog() == nullptr);
+                && (!(Gui::Control().activeDialog()));
 }
 
 DEF_STD_CMD(StdCmdDemoMode)
@@ -3209,7 +3298,7 @@ CmdViewMeasureClearAll::CmdViewMeasureClearAll()
 {
     sGroup        = "Measure";
     sMenuText     = QT_TR_NOOP("Clear measurement");
-    sToolTipText  = QT_TR_NOOP("Clear measurement");
+    sToolTipText  = QT_TR_NOOP("Clear all visible measurements");
     sWhatsThis    = "View_Measure_Clear_All";
     sStatusTip    = sToolTipText;
     sPixmap       = "Part_Measure_Clear_All";
@@ -3218,7 +3307,7 @@ CmdViewMeasureClearAll::CmdViewMeasureClearAll()
 void CmdViewMeasureClearAll::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    Gui::View3DInventor *view = dynamic_cast<Gui::View3DInventor*>(Gui::Application::Instance->
+    auto view = dynamic_cast<Gui::View3DInventor*>(Gui::Application::Instance->
         activeDocument()->getActiveView());
     if (!view)
         return;
@@ -3239,7 +3328,7 @@ CmdViewMeasureToggleAll::CmdViewMeasureToggleAll()
 {
     sGroup        = "Measure";
     sMenuText     = QT_TR_NOOP("Toggle measurement");
-    sToolTipText  = QT_TR_NOOP("Toggle measurement");
+    sToolTipText  = QT_TR_NOOP("Turn on or off the display of all measurements");
     sWhatsThis    = "View_Measure_Toggle_All";
     sStatusTip    = sToolTipText;
     sPixmap       = "Part_Measure_Toggle_All";
@@ -3267,10 +3356,14 @@ StdCmdSelBack::StdCmdSelBack()
   :Command("Std_SelBack")
 {
   sGroup        = "View";
-  sMenuText     = QT_TR_NOOP("&Back");
-  sToolTipText  = QT_TR_NOOP("Go back to previous selection");
+  sMenuText     = QT_TR_NOOP("Selection Back");
+  static std::string toolTip = std::string("<p>")
+      + QT_TR_NOOP("Restore the previous Tree view selection. "
+      "Only works if Tree RecordSelection mode is switched on.")
+      + "</p>";
+  sToolTipText = toolTip.c_str();
   sWhatsThis    = "Std_SelBack";
-  sStatusTip    = QT_TR_NOOP("Go back to previous selection");
+  sStatusTip    = sToolTipText;
   sPixmap       = "sel-back";
   sAccel        = "S, B";
   eType         = AlterSelection;
@@ -3282,7 +3375,7 @@ void StdCmdSelBack::activated(int iMsg)
     Selection().selStackGoBack();
 }
 
-bool StdCmdSelBack::isActive(void)
+bool StdCmdSelBack::isActive()
 {
   return Selection().selStackBackSize()>1;
 }
@@ -3297,10 +3390,14 @@ StdCmdSelForward::StdCmdSelForward()
   :Command("Std_SelForward")
 {
   sGroup        = "View";
-  sMenuText     = QT_TR_NOOP("&Forward");
-  sToolTipText  = QT_TR_NOOP("Repeat the backed selection");
+  sMenuText     = QT_TR_NOOP("Selection Forward");
+  static std::string toolTip = std::string("<p>")
+      + QT_TR_NOOP("Restore the next Tree view selection. "
+      "Only works if Tree RecordSelection mode is switched on.")
+      + "</p>";
+  sToolTipText = toolTip.c_str();
   sWhatsThis    = "Std_SelForward";
-  sStatusTip    = QT_TR_NOOP("Repeat the backed selection");
+  sStatusTip    = sToolTipText;
   sPixmap       = "sel-forward";
   sAccel        = "S, F";
   eType         = AlterSelection;
@@ -3312,7 +3409,7 @@ void StdCmdSelForward::activated(int iMsg)
     Selection().selStackGoForward();
 }
 
-bool StdCmdSelForward::isActive(void)
+bool StdCmdSelForward::isActive()
 {
   return !!Selection().selStackForwardSize();
 }
@@ -3323,7 +3420,7 @@ bool StdCmdSelForward::isActive(void)
 #define TREEVIEW_DOC_CMD_DEF(_name,_v) \
 DEF_STD_CMD_AC(StdTree##_name) \
 void StdTree##_name::activated(int){ \
-    TreeParams::Instance()->setDocumentMode(_v);\
+    TreeParams::setDocumentMode(_v);\
     if(_pcAction) _pcAction->setChecked(true,true);\
 }\
 Action * StdTree##_name::createAction(void) {\
@@ -3335,7 +3432,7 @@ Action * StdTree##_name::createAction(void) {\
     return pcAction;\
 }\
 bool StdTree##_name::isActive() {\
-    bool checked = TreeParams::Instance()->DocumentMode()==_v;\
+    bool checked = TreeParams::getDocumentMode()==_v;\
     if(_pcAction && _pcAction->isChecked()!=checked)\
         _pcAction->setChecked(checked,true);\
     return true;\
@@ -3395,8 +3492,8 @@ StdTreeCollapseDocument::StdTreeCollapseDocument()
 #define TREEVIEW_CMD_DEF(_name) \
 DEF_STD_CMD_AC(StdTree##_name) \
 void StdTree##_name::activated(int){ \
-    auto checked = !TreeParams::Instance()->_name();\
-    TreeParams::Instance()->set##_name(checked);\
+    auto checked = !TreeParams::get##_name();\
+    TreeParams::set##_name(checked);\
     if(_pcAction) _pcAction->setChecked(checked,true);\
 }\
 Action * StdTree##_name::createAction(void) {\
@@ -3408,7 +3505,7 @@ Action * StdTree##_name::createAction(void) {\
     return pcAction;\
 }\
 bool StdTree##_name::isActive() {\
-    bool checked = TreeParams::Instance()->_name();\
+    bool checked = TreeParams::get##_name();\
     if(_pcAction && _pcAction->isChecked()!=checked)\
         _pcAction->setChecked(checked,true);\
     return true;\
@@ -3674,15 +3771,20 @@ public:
 
         addCommand();
 
-        addCommand(new StdTreeDrag(),cmds.size());
-        addCommand(new StdTreeSelection(),cmds.size());
+        addCommand(new StdTreeDrag(),!cmds.empty());
+        addCommand(new StdTreeSelection(),!cmds.empty());
+
+        addCommand();
+
+        addCommand(new StdCmdSelBack());
+        addCommand(new StdCmdSelForward());
 
         addCommand();
 
         addCommand(new StdGroupMoveUp());
         addCommand(new StdGroupMoveDown());
-    };
-    virtual const char* className() const {return "StdCmdTreeViewActions";}
+    }
+    const char* className() const override {return "StdCmdTreeViewActions";}
 };
 
 
@@ -3713,7 +3815,7 @@ void StdCmdSelBoundingBox::activated(int iMsg)
     }
 }
 
-bool StdCmdSelBoundingBox::isActive(void)
+bool StdCmdSelBoundingBox::isActive()
 {
     if(_pcAction) {
         bool checked = _pcAction->isChecked();
@@ -3723,11 +3825,346 @@ bool StdCmdSelBoundingBox::isActive(void)
     return true;
 }
 
-Action * StdCmdSelBoundingBox::createAction(void)
+Action * StdCmdSelBoundingBox::createAction()
 {
     Action *pcAction = Command::createAction();
     pcAction->setCheckable(true);
     return pcAction;
+}
+
+//===========================================================================
+// Std_DockOverlayAll
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayAll)
+
+StdCmdDockOverlayAll::StdCmdDockOverlayAll()
+  :Command("Std_DockOverlayAll")
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("Toggle overlay for all");
+  sToolTipText  = QT_TR_NOOP("Toggle overlay mode for all docked windows");
+  sWhatsThis    = "Std_DockOverlayAll";
+  sStatusTip    = sToolTipText;
+  sAccel        = "F4";
+  eType         = 0;
+}
+
+void StdCmdDockOverlayAll::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::OverlayMode::ToggleAll);
+}
+
+//===========================================================================
+// Std_DockOverlayTransparentAll
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayTransparentAll)
+
+StdCmdDockOverlayTransparentAll::StdCmdDockOverlayTransparentAll()
+  :Command("Std_DockOverlayTransparentAll")
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("Toggle transparent for all");
+  sToolTipText  = QT_TR_NOOP("Toggle transparent for all overlay docked window.\n"
+                             "This makes the docked widget stay transparent at all times.");
+  sWhatsThis    = "Std_DockOverlayTransparentAll";
+  sStatusTip    = sToolTipText;
+  sAccel        = "SHIFT+F4";
+  eType         = 0;
+}
+
+void StdCmdDockOverlayTransparentAll::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::OverlayMode::ToggleTransparentAll);
+}
+
+//===========================================================================
+// Std_DockOverlayToggle
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayToggle)
+
+StdCmdDockOverlayToggle::StdCmdDockOverlayToggle()
+  :Command("Std_DockOverlayToggle")
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("Toggle overlay");
+  sToolTipText  = QT_TR_NOOP("Toggle overlay mode of the docked window under cursor");
+  sWhatsThis    = "Std_DockOverlayToggle";
+  sStatusTip    = sToolTipText;
+  sAccel        = "F3";
+  eType         = 0;
+}
+
+void StdCmdDockOverlayToggle::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::OverlayMode::ToggleActive);
+}
+
+//===========================================================================
+// Std_DockOverlayToggleTransparent
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayToggleTransparent)
+
+StdCmdDockOverlayToggleTransparent::StdCmdDockOverlayToggleTransparent()
+  :Command("Std_DockOverlayToggleTransparent")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Toggle transparent");
+    sToolTipText  = QT_TR_NOOP("Toggle transparent mode for the docked widget under cursor.\n"
+                               "This makes the docked widget stay transparent at all times.");
+    sWhatsThis    = "Std_DockOverlayToggleTransparent";
+    sStatusTip    = sToolTipText;
+    sAccel        = "SHIFT+F3";
+    eType         = 0;
+}
+
+void StdCmdDockOverlayToggleTransparent::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::OverlayMode::ToggleTransparent);
+}
+
+//===========================================================================
+// Std_DockOverlayToggleLeft
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayToggleLeft)
+
+StdCmdDockOverlayToggleLeft::StdCmdDockOverlayToggleLeft()
+  :Command("Std_DockOverlayToggleLeft")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Toggle left");
+    sToolTipText  = QT_TR_NOOP("Show/hide left overlay panel");
+    sWhatsThis    = "Std_DockOverlayToggleLeft";
+    sStatusTip    = sToolTipText;
+    sAccel        = "SHIFT+Left";
+    sPixmap       = "qss:overlay/close.svg";
+    eType         = 0;
+}
+
+void StdCmdDockOverlayToggleLeft::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::OverlayMode::ToggleLeft);
+}
+
+//===========================================================================
+// Std_DockOverlayToggleRight
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayToggleRight)
+
+StdCmdDockOverlayToggleRight::StdCmdDockOverlayToggleRight()
+  :Command("Std_DockOverlayToggleRight")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Toggle right");
+    sToolTipText  = QT_TR_NOOP("Show/hide right overlay panel");
+    sWhatsThis    = "Std_DockOverlayToggleRight";
+    sStatusTip    = sToolTipText;
+    sAccel        = "SHIFT+Right";
+    sPixmap       = "qss:overlay/close.svg";
+    eType         = 0;
+}
+
+void StdCmdDockOverlayToggleRight::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::OverlayMode::ToggleRight);
+}
+
+//===========================================================================
+// Std_DockOverlayToggleTop
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayToggleTop)
+
+StdCmdDockOverlayToggleTop::StdCmdDockOverlayToggleTop()
+  :Command("Std_DockOverlayToggleTop")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Toggle top");
+    sToolTipText  = QT_TR_NOOP("Show/hide top overlay panel");
+    sWhatsThis    = "Std_DockOverlayToggleTop";
+    sStatusTip    = sToolTipText;
+    sAccel        = "SHIFT+Up";
+    sPixmap       = "qss:overlay/close.svg";
+    eType         = 0;
+}
+
+void StdCmdDockOverlayToggleTop::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::OverlayMode::ToggleTop);
+}
+
+//===========================================================================
+// Std_DockOverlayToggleBottom
+//===========================================================================
+
+DEF_STD_CMD(StdCmdDockOverlayToggleBottom)
+
+StdCmdDockOverlayToggleBottom::StdCmdDockOverlayToggleBottom()
+  :Command("Std_DockOverlayToggleBottom")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Toggle bottom");
+    sToolTipText  = QT_TR_NOOP("Show/hide bottom overlay panel");
+    sWhatsThis    = "Std_DockOverlayToggleBottom";
+    sStatusTip    = sToolTipText;
+    sAccel        = "SHIFT+Down";
+    sPixmap       = "qss:overlay/close.svg";
+    eType         = 0;
+}
+
+void StdCmdDockOverlayToggleBottom::activated(int iMsg)
+{
+    Q_UNUSED(iMsg); 
+    OverlayManager::instance()->setOverlayMode(OverlayManager::OverlayMode::ToggleBottom);
+}
+
+//===========================================================================
+// Std_DockOverlayMouseTransparent
+//===========================================================================
+
+DEF_STD_CMD_AC(StdCmdDockOverlayMouseTransparent)
+
+StdCmdDockOverlayMouseTransparent::StdCmdDockOverlayMouseTransparent()
+  :Command("Std_DockOverlayMouseTransparent")
+{
+  sGroup        = "View";
+  sMenuText     = QT_TR_NOOP("Bypass mouse events in dock overlay");
+  sToolTipText  = QT_TR_NOOP("Bypass all mouse events in dock overlay");
+  sWhatsThis    = "Std_DockOverlayMouseTransparent";
+  sStatusTip    = sToolTipText;
+  sAccel        = "T, T";
+  eType         = NoTransaction;
+}
+
+void StdCmdDockOverlayMouseTransparent::activated(int iMsg)
+{
+    (void)iMsg;
+    bool checked = !OverlayManager::instance()->isMouseTransparent();
+    OverlayManager::instance()->setMouseTransparent(checked);
+    if(_pcAction)
+        _pcAction->setChecked(checked,true);
+}
+
+Action * StdCmdDockOverlayMouseTransparent::createAction(void) {
+    Action *pcAction = Command::createAction();
+    pcAction->setCheckable(true);
+    pcAction->setIcon(QIcon());
+    _pcAction = pcAction;
+    isActive();
+    return pcAction;
+}
+
+bool StdCmdDockOverlayMouseTransparent::isActive() {
+    bool checked = OverlayManager::instance()->isMouseTransparent();
+    if(_pcAction && _pcAction->isChecked()!=checked)
+        _pcAction->setChecked(checked,true);
+    return true;
+}
+
+// ============================================================================
+
+class StdCmdDockOverlay : public GroupCommand
+{
+public:
+    StdCmdDockOverlay()
+        :GroupCommand("Std_DockOverlay")
+    {
+        sGroup        = "View";
+        sMenuText     = QT_TR_NOOP("Dock window overlay");
+        sToolTipText  = QT_TR_NOOP("Setting docked window overlay mode");
+        sWhatsThis    = "Std_DockOverlay";
+        sStatusTip    = sToolTipText;
+        eType         = 0;
+        bCanLog       = false;
+
+        addCommand(new StdCmdDockOverlayAll());
+        addCommand(new StdCmdDockOverlayTransparentAll());
+        addCommand();
+        addCommand(new StdCmdDockOverlayToggle());
+        addCommand(new StdCmdDockOverlayToggleTransparent());
+        addCommand();
+        addCommand(new StdCmdDockOverlayMouseTransparent());
+        addCommand();
+        addCommand(new StdCmdDockOverlayToggleLeft());
+        addCommand(new StdCmdDockOverlayToggleRight());
+        addCommand(new StdCmdDockOverlayToggleTop());
+        addCommand(new StdCmdDockOverlayToggleBottom());
+    };
+    virtual const char* className() const {return "StdCmdDockOverlay";}
+};
+
+//===========================================================================
+// Std_StoreWorkingView
+//===========================================================================
+DEF_STD_CMD_A(StdStoreWorkingView)
+
+StdStoreWorkingView::StdStoreWorkingView()
+  : Command("Std_StoreWorkingView")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Store working view");
+    sToolTipText  = QT_TR_NOOP("Store a document-specific temporary working view");
+    sStatusTip    = QT_TR_NOOP("Store a document-specific temporary working view");
+    sWhatsThis    = "Std_StoreWorkingView";
+    sAccel        = "Shift+End";
+    eType         = NoTransaction;
+}
+
+void StdStoreWorkingView::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+    if (auto view = dynamic_cast<Gui::View3DInventor*>(Gui::getMainWindow()->activeWindow())) {
+        view->getViewer()->saveHomePosition();
+    }
+}
+
+bool StdStoreWorkingView::isActive()
+{
+    return dynamic_cast<Gui::View3DInventor*>(Gui::getMainWindow()->activeWindow());
+}
+
+//===========================================================================
+// Std_RecallWorkingView
+//===========================================================================
+DEF_STD_CMD_A(StdRecallWorkingView)
+
+StdRecallWorkingView::StdRecallWorkingView()
+  : Command("Std_RecallWorkingView")
+{
+    sGroup        = "Standard-View";
+    sMenuText     = QT_TR_NOOP("Recall working view");
+    sToolTipText  = QT_TR_NOOP("Recall previously stored temporary working view");
+    sStatusTip    = QT_TR_NOOP("Recall previously stored temporary working view");
+    sWhatsThis    = "Std_RecallWorkingView";
+    sAccel        = "End";
+    eType         = NoTransaction;
+}
+
+void StdRecallWorkingView::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+    if (auto view = dynamic_cast<Gui::View3DInventor*>(Gui::getMainWindow()->activeWindow())) {
+        if (view->getViewer()->hasHomePosition())
+            view->getViewer()->resetToHomePosition();
+    }
+}
+
+bool StdRecallWorkingView::isActive()
+{
+    auto view = dynamic_cast<Gui::View3DInventor*>(Gui::getMainWindow()->activeWindow());
+    return view && view->getViewer()->hasHomePosition();
 }
 
 //===========================================================================
@@ -3737,8 +4174,9 @@ Action * StdCmdSelBoundingBox::createAction(void)
 
 namespace Gui {
 
-void CreateViewStdCommands(void)
+void CreateViewStdCommands()
 {
+    // NOLINTBEGIN
     CommandManager &rcCmdMgr = Application::Instance->commandManager();
 
     // views
@@ -3757,6 +4195,8 @@ void CreateViewStdCommands(void)
     rcCmdMgr.addCommand(new StdCmdViewFitSelection());
     rcCmdMgr.addCommand(new StdCmdViewRotateLeft());
     rcCmdMgr.addCommand(new StdCmdViewRotateRight());
+    rcCmdMgr.addCommand(new StdStoreWorkingView());
+    rcCmdMgr.addCommand(new StdRecallWorkingView());
 
     rcCmdMgr.addCommand(new StdCmdViewExample1());
     rcCmdMgr.addCommand(new StdCmdViewExample2());
@@ -3772,6 +4212,7 @@ void CreateViewStdCommands(void)
 
     rcCmdMgr.addCommand(new StdCmdViewCreate());
     rcCmdMgr.addCommand(new StdViewScreenShot());
+    rcCmdMgr.addCommand(new StdViewLoadImage());
     rcCmdMgr.addCommand(new StdMainFullscreen());
     rcCmdMgr.addCommand(new StdViewDockUndockFullscreen());
     rcCmdMgr.addCommand(new StdCmdSetAppearance());
@@ -3807,15 +4248,15 @@ void CreateViewStdCommands(void)
     rcCmdMgr.addCommand(new CmdViewMeasureClearAll());
     rcCmdMgr.addCommand(new CmdViewMeasureToggleAll());
     rcCmdMgr.addCommand(new StdCmdSelBoundingBox());
-    rcCmdMgr.addCommand(new StdCmdSelBack());
-    rcCmdMgr.addCommand(new StdCmdSelForward());
     rcCmdMgr.addCommand(new StdCmdTreeViewActions());
+    rcCmdMgr.addCommand(new StdCmdDockOverlay());
 
     auto hGrp = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/View");
     if(hGrp->GetASCII("GestureRollFwdCommand").empty())
         hGrp->SetASCII("GestureRollFwdCommand","Std_SelForward");
     if(hGrp->GetASCII("GestureRollBackCommand").empty())
         hGrp->SetASCII("GestureRollBackCommand","Std_SelBack");
+    // NOLINTEND
 }
 
 } // namespace Gui
