@@ -58,7 +58,7 @@ namespace {
         QMap<QString, QString> result;
 
         QStringList pairs = style.split(';', Qt::SkipEmptyParts);
-        for (QString pair : pairs) {
+        for (const QString& pair : pairs) {
             QStringList propVal = pair.split(':');
             if (propVal.length() > 1) {
                 result[propVal[0].trimmed()] = propVal[1].trimmed();
@@ -427,8 +427,8 @@ void QGISVGTemplate::createClickHandles()
 
         QString name = textElement.attribute(QStringLiteral(FREECAD_ATTR_EDITABLE));
         auto item(new TemplateTextField(this, svgTemplate, name.toStdString()));
-        auto autoValue = svgTemplate->getAutofillByEditableName(name);
-        item->setAutofill(autoValue);
+        item->setAutofillId(textElement.attribute(QStringLiteral(FREECAD_ATTR_AUTOFILL)).toStdString());
+
         constexpr double TopPadFactor{0.15};
         constexpr double BottomPadFactor{0.2};
         QMarginsF padding(

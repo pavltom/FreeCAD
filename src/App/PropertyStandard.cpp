@@ -1959,6 +1959,69 @@ int PropertyMap::getSize() const
     return static_cast<int>(_lValueList.size());
 }
 
+const std::map<std::string, std::string>& PropertyMap::getValue() const
+{
+    return _lValueList;
+}
+
+void PropertyMap::setValue()
+{
+    aboutToSetValue();
+
+    auto docObj = freecad_cast<DocumentObject*>(getContainer());
+    if (docObj) {
+        // Remove all expressions bound to keys in the map
+        for (const auto &kv : _lValueList) {
+            docObj->clearExpression(getItemPath(kv.first));
+        }
+    }
+
+    _lValueList.clear();
+    hasSetValue();
+}
+
+void PropertyMap::setValue(const std::map<std::string, std::string>& map)
+{
+    aboutToSetValue();
+
+    auto docObj = freecad_cast<DocumentObject*>(getContainer());
+    if (docObj) {
+        // Remove expressions bound to keys no longer present in the new map
+        for (const auto &kv : _lValueList) {
+            if (map.find(kv.first) == map.end()) {
+                docObj->clearExpression(getItemPath(kv.first));
+            }
+        }
+    }
+
+    _lValueList = map;
+    hasSetValue();
+}
+
+void PropertyMap::setValue(std::map<std::string, std::string>&& map)
+{
+    aboutToSetValue();
+
+    auto docObj = freecad_cast<DocumentObject*>(getContainer());
+    if (docObj) {
+        // Remove expressions bound to keys no longer present in the new map
+        for (const auto &kv : _lValueList) {
+            if (map.find(kv.first) == map.end()) {
+                docObj->clearExpression(getItemPath(kv.first));
+            }
+        }
+    }
+
+    _lValueList = std::move(map);
+    hasSetValue();
+}
+
+std::string PropertyMap::getValue(const std::string& key) const
+{
+    auto it = _lValueList.find(key);
+    return it == _lValueList.end() ? std::string() : it->second;
+}
+
 void PropertyMap::setValue(const std::string& key, const std::string& value)
 {
     aboutToSetValue();
@@ -1966,39 +2029,23 @@ void PropertyMap::setValue(const std::string& key, const std::string& value)
     hasSetValue();
 }
 
-void PropertyMap::setValue(const char* key, const char* value)
+bool PropertyMap::deleteValue(const std::string& key)
 {
-    if (!key) {
-        return;
-    }
-    if (!value) {
-        auto it = _lValueList.find(key);
-        if (it == _lValueList.end()) {
-            return;
-        }
-        aboutToSetValue();
-        _lValueList.erase(it);
-        hasSetValue();
-        return;
+    if (_lValueList.find(key) == _lValueList.end()) {
+        return false;
     }
 
     aboutToSetValue();
-    _lValueList[key] = value;
-    hasSetValue();
-}
 
-void PropertyMap::setValues(const std::map<std::string, std::string>& map)
-{
-    aboutToSetValue();
-    _lValueList = map;
-    hasSetValue();
-}
+    auto docObj = freecad_cast<DocumentObject*>(getContainer());
+    if (docObj) {
+        // Remove expressions bound to the deleted key
+        docObj->clearExpression(getItemPath(key));
+    }
 
-void PropertyMap::setValues(std::map<std::string, std::string>&& map)
-{
-    aboutToSetValue();
-    _lValueList = std::move(map);
+    _lValueList.erase(key);
     hasSetValue();
+    return true;
 }
 
 const char* PropertyMap::getValue(const char* key) const
@@ -2006,21 +2053,62 @@ const char* PropertyMap::getValue(const char* key) const
     if (!key) {
         return nullptr;
     }
+
     auto it = _lValueList.find(key);
-    if (it == _lValueList.end()) {
-        return nullptr;
-    }
-    return it->second.c_str();
+    return it == _lValueList.end() ? nullptr : it->second.c_str();
 }
 
-const std::string& PropertyMap::operator[](const std::string& key) const
+void PropertyMap::setValue(const char* key, const char* value)
 {
-    static std::string empty;
-    auto it = _lValueList.find(key);
-    if (it != _lValueList.end()) {
-        return it->second;
+    if (!key) {
+        return;
     }
-    return empty;
+
+    if (value) {
+        setValue(std::string(key), std::string(value));
+    }
+    else {
+        deleteValue(key);
+    }
+}
+
+const boost::any PropertyMap::getPathValue(const ObjectIdentifier& path) const
+{
+    if (path.numSubComponents() > 1) {
+        const App::ObjectIdentifier::Component& comp = path.getPropertyComponent(1);
+        if (comp.isMap()) {
+            auto it = _lValueList.find(comp.getName());
+            if (it == _lValueList.end()) {
+                return std::string();
+            }
+
+            return it->second;
+        }
+    }
+
+    return Property::getPathValue(path);
+}
+
+void PropertyMap::setPathValue(const ObjectIdentifier& path, const boost::any& value)
+{
+    if (path.numSubComponents() > 1) {
+        const App::ObjectIdentifier::Component& comp = path.getPropertyComponent(1);
+        if (comp.isMap() && value.type() == typeid(std::string)) {
+            aboutToSetValue();
+            _lValueList[comp.getName()] = App::any_cast<const std::string&>(value);
+            hasSetValue();
+            return;
+        }
+    }
+
+    return Property::setPathValue(path, value);
+}
+
+ObjectIdentifier PropertyMap::getItemPath(const std::string& key) const
+{
+    App::ObjectIdentifier result(*this);
+    result.addComponent(ObjectIdentifier::Component::MapComponent(ObjectIdentifier::String(key, true)));
+    return result;
 }
 
 PyObject* PropertyMap::getPyObject()
