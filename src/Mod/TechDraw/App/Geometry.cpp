@@ -136,11 +136,16 @@ void Wire::dump(std::string s)
     BRepTools::Write(toOccWire(), s.c_str());            //debug
 }
 
-Face::Face(const TopoDS_Face& f) : hole(false)
+Face::Face(const TopoDS_Face& f) : representation(FaceRepresentation::Common)
 {
+    TopoDS_Wire outerWire = BRepTools::OuterWire(f);
+    wires.push_back(new Wire(outerWire));
+
     for (TopExp_Explorer explorer(f, TopAbs_WIRE); explorer.More(); explorer.Next()) {
-        const auto wire(TopoDS::Wire(explorer.Current()));
-        wires.push_back(new Wire(wire));
+        const TopoDS_Wire& wire = TopoDS::Wire(explorer.Current());
+        if (!wire.IsSame(outerWire)) {
+            wires.push_back(new Wire(wire));
+        }
     }
 }
 

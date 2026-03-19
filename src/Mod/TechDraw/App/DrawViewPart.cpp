@@ -48,7 +48,6 @@
 #include <BRep_Tool.hxx>
 #include <Bnd_Box.hxx>
 #include <HLRAlgo_Projector.hxx>
-#include <IntCurvesFace_Intersector.hxx>
 #include <QtConcurrentRun>
 #include <ShapeAnalysis.hxx>
 #include <TopExp.hxx>
@@ -320,31 +319,30 @@ GeometryObjectPtr DrawViewPart::makeGeometryForShape(TopoDS_Shape& shape)
 
     gp_Pnt gCentroid = ShapeUtils::findCentroid(localShape, getProjectionCS());
     m_saveCentroid = Base::convertTo<Base::Vector3d>(gCentroid);
-    m_saveShape = centerScaleRotate(this, localShape, m_saveCentroid);
+    m_saveShape = ShapeUtils::centerShape(localShape, m_saveCentroid);
 
-    return buildGeometryObject(localShape, getProjectionCS());
+    return buildGeometryObject(getShapeForGeometryBuild(), getProjectionCS());
 }
 
-//! Modify a shape by centering, scaling and rotating and return the centered (but not rotated) shape
-TopoDS_Shape DrawViewPart::centerScaleRotate(const DrawViewPart *dvp, TopoDS_Shape& inOutShape,
-                                             Base::Vector3d centroid)
+//! Return the shape modified by scaling and rotating
+TopoDS_Shape DrawViewPart::scaleAndRotate(const TopoDS_Shape& input) const
 {
-    gp_Ax2 viewAxis = dvp->getProjectionCS();
-
-    //center shape on origin
-    TopoDS_Shape centeredShape = ShapeUtils::moveShape(inOutShape, centroid * -1.0);
-
-    inOutShape = ShapeUtils::scaleShape(centeredShape, dvp->getScale());
-    if (!DrawUtil::fpCompare(dvp->Rotation.getValue(), 0.0)) {
-        inOutShape = ShapeUtils::rotateShape(inOutShape, viewAxis,
-                                           dvp->Rotation.getValue());//conventional rotation
+    TopoDS_Shape result = ShapeUtils::scaleShape(input, getScale());
+    if (!DrawUtil::fpCompare(Rotation.getValue(), 0.0)) {
+        result = ShapeUtils::rotateShape(result, getProjectionCS(), Rotation.getValue());//conventional rotation
     }
     //    BRepTools::Write(inOutShape, "DVPScaled.brep");            //debug
-    return centeredShape;
+
+    return result;
+}
+
+TopoDS_Shape DrawViewPart::getShapeForGeometryBuild() const
+{
+    return scaleAndRotate(m_saveShape);
 }
 
 //! create a geometry object and trigger the HLR process in another thread
-TechDraw::GeometryObjectPtr DrawViewPart::buildGeometryObject(TopoDS_Shape& shape,
+TechDraw::GeometryObjectPtr DrawViewPart::buildGeometryObject(const TopoDS_Shape& shape,
                                                               const gp_Ax2& viewAxis)
 {
     TechDraw::GeometryObjectPtr go(
@@ -522,9 +520,13 @@ void DrawViewPart::extractFaces()
         case FaceFinderVersion::v0_21:
             findFacesV0_21(goEdges);
             break;
-        default:
+        case FaceFinderVersion::v1_2:
             findFacesV1_2(goEdges);
             break;
+        default:
+            Base::Console().warning("DVP::extractFaces - Unsupported algorithm id %d\n",
+                                    static_cast<int>(faceFinderVersion()));
+            return;
     }
 }
 
@@ -596,19 +598,16 @@ void DrawViewPart::findFacesV1_2(const std::vector<BaseGeomPtr> &goEdges)
         geometryObject->addFaceGeom(std::make_shared<Face>(faces[i]));
     }
 
+    const std::vector<FacePtr>& faceGeoms = geometryObject->getFaceGeometry();
     if (identifyVoids()) {
-        showProgressMessage(getNameInDocument(), "is identifying faces representing voids");
+        assignFaceRepresentations(faceGeoms, faces);
+    }
 
-        std::vector<FaceRepresentation> faceReps = getFaceRepresentations(faces);
-        const std::vector<FacePtr> &faceGeoms = geometryObject->getFaceGeometry();
-
-        for (unsigned int i = 0; i < faces.size(); ++i) {
-            if (faceReps[i] == FaceRepresentation::Failed) {
-                Base::Console().warning("FaceFinder v1.2: Unable to find a single point inside Face%d\n", i);
-            }
-            else {
-                faceGeoms[i]->setHole(faceReps[i] == FaceRepresentation::Hollow);
-            }
+    // Report possible face representation problems, were there any
+    for (unsigned int i = 0; i < faceGeoms.size(); ++i) {
+        if (faceGeoms[i]->getRepresentation() == FaceRepresentation::Failed) {
+            Base::Console().warning("FaceFinder v1.2: Failed to determine how to display face %s.Face%d\n",
+                                    getNameInDocument(), i);
         }
     }
 }
@@ -809,6 +808,47 @@ void DrawViewPart::onFacesFinished()
     requestPaint();
 }
 
+void DrawViewPart::assignFaceRepresentations(const std::vector<TechDraw::FacePtr>& faces,
+                                             const std::vector<TopoDS_Face>& occFaces)
+{
+    showProgressMessage(getNameInDocument(), "is identifying faces representing voids");
+
+    // Take the very same projector and shape used for HLR when building the geometry
+    HLRAlgo_Projector projector = geometryObject->getProjector(getProjectionCS());
+    TopoDS_Shape shape = getShapeForGeometryBuild();
+
+    // Collect all 3D faces of the source shape we have projected
+    std::vector<TopoDS_Face> shapeFaces;
+    for (TopExp_Explorer explorer(shape, TopAbs_FACE); explorer.More(); explorer.Next()) {
+        shapeFaces.push_back(TopoDS::Face(explorer.Current()));
+    }
+
+    // Collect all unmarked 2D faces into a new vector
+    std::vector<TopoDS_Face> unmarkedFaces;
+    for (unsigned int i = 0; i < faces.size(); ++i) {
+        if (faces[i]->getRepresentation() == FaceRepresentation::Common) {
+            unmarkedFaces.push_back(occFaces[i]);
+        }
+    }
+
+    // Attempt to map the drawing faces to shape faces and then mark the geometry faces accordingly
+    auto mapping = ShapeUtils::mapImageFacesToModelFaces(unmarkedFaces, shapeFaces, projector, false);
+    unsigned int j = 0;
+    for (unsigned int i = 0; i < faces.size(); ++i) {
+        if (faces[i]->getRepresentation() == FaceRepresentation::Common) {
+            auto it = mapping.find(j);
+            if (it == mapping.end()) {
+                // 2D faces with no 3D face assigned are the voids
+                faces[i]->setRepresentation(FaceRepresentation::Hollow);
+            }
+            else {
+                // The faces in the result were either mapped or flagged as problematic
+                faces[i]->setRepresentation(it->second < 0 ? FaceRepresentation::Failed : FaceRepresentation::Opaque);
+            }
+            j++;
+        }
+    }
+}
 
 //! returns the position of the first visible vertex within snap radius of newAnchorPoint.  newAnchorPoint
 //! should be unscaled in conventional coordinates.  if no suitable vertex is found, newAnchorPoint
@@ -1105,57 +1145,6 @@ TopoDS_Shape DrawViewPart::getEdgeCompound() const
     return TopoDS_Shape();
 }
 
-std::vector<FaceRepresentation> DrawViewPart::getFaceRepresentations(const std::vector<TopoDS_Face>& faces) const
-{
-    std::vector<FaceRepresentation> result(faces.size(), FaceRepresentation::Hollow);
-
-    // Create the projector the same way GeometryObject::projectShape() does
-    HLRAlgo_Projector projector;
-    if (this->Perspective.getValue()) {
-        double focusLength = std::max(Precision::Confusion(), this->Focus.getValue());
-        projector = HLRAlgo_Projector(getProjectionCS(), focusLength);
-    }
-    else {
-        projector = HLRAlgo_Projector(getProjectionCS());
-    }
-
-    // Take the shape used to create the projection, scale it and rotate it, as processed earlier by HLR
-    TopoDS_Shape shape = ShapeUtils::scaleShape(m_saveShape, this->getScale());
-    shape = ShapeUtils::rotateShape(shape, getProjectionCS(), this->Rotation.getValue());
-
-    // Go through all 3D faces of the source shape we are projecting
-    for (TopExp_Explorer explorer(shape, TopAbs_FACE); explorer.More(); explorer.Next()) {
-        IntCurvesFace_Intersector intersector(TopoDS::Face(explorer.Current()), FUZZYADJUST*EWTOLERANCE);
-
-        // Now for each of our 2D faces of the drawing
-        for (unsigned int i = 0; i < faces.size(); ++i) {
-            if (result[i] != FaceRepresentation::Hollow) {
-                // This drawing face has been already marked as solid or problematic
-                continue;
-            }
-
-            // Get random point lying inside the drawing face
-            std::optional<gp_Pnt> facePointOpt = ShapeUtils::findPointInsideFace(faces[i]);
-            if (!facePointOpt) {
-                result[i] = FaceRepresentation::Failed;
-                continue;
-            }
-
-            // Get the projection ray, i.e. line of all points projected on the drawing screen as our point
-            gp_Pnt facePoint = ShapeUtils::fromQt(*facePointOpt);
-            gp_Lin ray = projector.Shoot(facePoint.X(), facePoint.Y());
-
-            // If there was any intersection of our ray through the tested 3D face, mark the drawing face as solid
-            intersector.Perform(ray, -Precision::Infinite(), +Precision::Infinite());
-            if (intersector.NbPnt() > 0) {
-                result[i] = FaceRepresentation::Opaque;
-            }
-        }
-    }
-
-    return result;
-}
-
 // returns the (unscaled) size of the visible lines along the alignment vector.
 // alignment vector is already projected onto our CS, so only has X,Y components
 // used in calculating the length of a section line
@@ -1365,6 +1354,10 @@ bool DrawViewPart::handleFaces()
 
 FaceFinderVersion DrawViewPart::faceFinderVersion()
 {
+    if (!handleFaces()) {
+        return FaceFinderVersion::Off;
+    }
+
     return Preferences::faceFinderVersion();
  }
 

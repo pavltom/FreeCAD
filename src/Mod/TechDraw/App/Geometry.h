@@ -351,16 +351,24 @@ class TechDrawExport Wire
 };
 using WirePtr = std::shared_ptr<Wire>;
 
+enum class FaceRepresentation {
+    Failed = -1,
+    Hollow =  0,
+    Common = +1,
+    Opaque = +2,
+    Sliced = +3
+};
+
 /// Simple Collection of geometric features based on BaseGeom inherited classes in order
 class TechDrawExport Face
 {
     public:
-        Face() : hole(false) { };
+        Face() : representation(FaceRepresentation::Common) { };
         explicit Face(const TopoDS_Face &f);
         ~Face();
 
-        bool isHole() { return hole; }
-        void setHole(bool hole) { this->hole = hole; }
+        FaceRepresentation getRepresentation() { return representation; }
+        void setRepresentation(FaceRepresentation representation) { this->representation = representation; }
 
         TopoDS_Face toOccFace() const;
         std::vector<Wire *> wires;
@@ -369,7 +377,7 @@ class TechDrawExport Face
         Base::Vector3d getCenter() const;
 
     protected:
-        bool hole;
+        FaceRepresentation representation;
 };
 using FacePtr = std::shared_ptr<Face>;
 

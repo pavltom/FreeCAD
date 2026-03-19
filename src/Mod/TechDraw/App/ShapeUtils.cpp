@@ -47,6 +47,7 @@
 #include <HLRBRep_HLRToShape.hxx>
 #include <HLRBRep_PolyAlgo.hxx>
 #include <HLRBRep_PolyHLRToShape.hxx>
+#include <IntCurvesFace_Intersector.hxx>
 #include <TopExp.hxx>
 #include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
@@ -301,6 +302,64 @@ std::optional<gp_Pnt> ShapeUtils::findPointInsideFace(const TopoDS_Face& face)
     return std::nullopt;
 }
 
+std::unordered_map<int, int> ShapeUtils::mapImageFacesToModelFaces(const std::vector<TopoDS_Face>& image,
+    const std::vector<TopoDS_Face>& model, const HLRAlgo_Projector& projector, bool topmost)
+{
+    std::vector<std::pair<std::optional<int>, Standard_Real>> minimalDistances(image.size());
+
+   // For all image faces, get the projection ray through the face representing point
+    std::vector<gp_Lin> projectionRays(image.size());
+    for (unsigned int i = 0; i < image.size(); ++i) {
+        auto facePointOpt = ShapeUtils::findPointInsideFace(image[i]);
+        if (facePointOpt) {
+            gp_Pnt facePoint = ShapeUtils::fromQt(*facePointOpt);
+            projectionRays[i] = projector.Shoot(facePoint.X(), facePoint.Y());
+        }
+        else {
+            // Signal the error by setting the model face index to -1
+            minimalDistances[i].first = -1;
+        }
+    }
+
+    // Scan all 3D faces of the source shape we have projected earlier
+    for (unsigned int i = 0; i < model.size(); ++i) {
+        if (model[i].IsNull()) {
+            // Skip null model faces
+            continue;
+        }
+
+        // For each image projection ray, try to find intersections with the current model face
+        IntCurvesFace_Intersector intersector(model[i], FUZZYADJUST*EWTOLERANCE);
+        for (unsigned int j = 0; j < projectionRays.size(); ++j) {
+            if (minimalDistances[j].first && (!topmost || minimalDistances[j].first < 0)) {
+                // Skip already intersected faces, if finding any face is sufficient, and the image faces with errors
+                continue;
+            }
+
+            intersector.Perform(projectionRays[j], -Precision::Infinite(), +Precision::Infinite());
+
+            // Compare the intersection points with already stored distances and keep the one nearest to the observer
+            for (Standard_Integer k = 1; k <= intersector.NbPnt(); ++k) {
+                if (!minimalDistances[j].first || intersector.WParameter(k) < minimalDistances[j].second) {
+                    // Either this face had no intersections so far, or we have found a closer one
+                    minimalDistances[j].first = i;
+                    minimalDistances[j].second = intersector.WParameter(k);
+                }
+            }
+        }
+    }
+
+    // Collect the result into image_index -> model_index map
+    std::unordered_map<int, int> result;
+    for (unsigned int i = 0; i < image.size(); ++i) {
+        if (minimalDistances[i].first) {
+            result.insert({ i, *minimalDistances[i].first });
+        }
+    }
+
+    return result;
+}
+
 //!scales & mirrors a shape about a center
 TopoDS_Shape ShapeUtils::mirrorShapeVec(const TopoDS_Shape& input, const Base::Vector3d& inputCenter,
                                       double scale)
@@ -395,6 +454,11 @@ TopoDS_Shape ShapeUtils::moveShape(const TopoDS_Shape& input, const Base::Vector
         return transShape;
     }
     return transShape;
+}
+
+TopoDS_Shape ShapeUtils::centerShape(const TopoDS_Shape& input, const Base::Vector3d& centroid)
+{
+    return moveShape(input, -centroid);
 }
 
 //mirror a shape thru XZ plane for Qt's inverted Y coordinate

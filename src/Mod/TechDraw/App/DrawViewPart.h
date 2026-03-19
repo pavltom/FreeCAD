@@ -105,12 +105,6 @@ enum class SpinDirection {
     CCW
 };
 
-enum class FaceRepresentation {
-    Failed = -1,
-    Hollow =  0,
-    Opaque = +1
-};
-
 class TechDrawExport DrawViewPart: public DrawView, public CosmeticExtension
 {
     PROPERTY_HEADER_WITH_EXTENSIONS(TechDraw::DrawViewPart);
@@ -148,8 +142,7 @@ public:
     void handleChangedPropertyType(
         Base::XMLReader &reader, const char * TypeName, App::Property * prop) override;
 
-    static TopoDS_Shape centerScaleRotate(const DrawViewPart* dvp, TopoDS_Shape& inOutShape,
-                                          Base::Vector3d centroid);
+    TopoDS_Shape scaleAndRotate(const TopoDS_Shape& input) const;
 
     std::vector<TechDraw::DrawHatch*> getHatches() const;
     std::vector<TechDraw::DrawGeomHatch*> getGeomHatches() const;
@@ -182,9 +175,6 @@ public:
     virtual std::vector<TopoDS_Wire> getWireForFace(int idx) const;
     //returns a compound of all the visible projected edges
     TopoDS_Shape getEdgeCompound() const;
-
-    // Attempt to decide whether each face represents either the material or a hole
-    std::vector<FaceRepresentation> getFaceRepresentations(const std::vector<TopoDS_Face>& faces) const;
 
     // projected geometry measurements
     virtual Base::BoundBox3d getBoundingBox() const;
@@ -270,7 +260,8 @@ protected:
     void onChanged(const App::Property* prop) override;
     void unsetupObject() override;
 
-    virtual TechDraw::GeometryObjectPtr buildGeometryObject(TopoDS_Shape& shape,
+    virtual TopoDS_Shape getShapeForGeometryBuild() const;
+    virtual TechDraw::GeometryObjectPtr buildGeometryObject(const TopoDS_Shape& shape,
                                                             const gp_Ax2& viewAxis);
     virtual TechDraw::GeometryObjectPtr makeGeometryForShape(TopoDS_Shape& shape);//const??
     void partExec(TopoDS_Shape& shape);
@@ -280,6 +271,10 @@ protected:
     void findFacesV1_2(const std::vector<TechDraw::BaseGeomPtr>& goEdges);
     void findFacesV0_21(const std::vector<TechDraw::BaseGeomPtr>& goEdges);
     void findFacesV0_17(const std::vector<TechDraw::BaseGeomPtr>& goEdges);
+
+    // Attempt to decide whether each face represents either the material or a hole
+    virtual void assignFaceRepresentations(const std::vector<TechDraw::FacePtr>& faces,
+                                           const std::vector<TopoDS_Face>& occFaces);
 
     Base::Vector3d shapeCentroid;
 
