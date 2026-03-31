@@ -114,12 +114,12 @@
       <location filename="../../TaskSections.ui" line="14"/>
       <location filename="../../TaskSections.ui" line="23"/>
       <source>Sectional Edges</source>
-      <translation>Arêtes de section </translation>
+      <translation>Arêtes transversales</translation>
     </message>
     <message>
       <location filename="../../TaskSections.ui" line="20"/>
       <source>Constrains the surface to follow the selected sectional edges</source>
-      <translation>Contraint la surface à suivre les arêtes de section sélectionnées.</translation>
+      <translation>Contraint la surface à suivre les arêtes transversales sélectionnées.</translation>
     </message>
     <message>
       <location filename="../../TaskSections.ui" line="40"/>
@@ -444,7 +444,7 @@ This command only works with a mesh object.</source>
     <message>
       <location filename="../../Command.cpp" line="333"/>
       <source>Sections</source>
-      <translation>Sections</translation>
+      <translation>Créer des sections transversales</translation>
     </message>
     <message>
       <location filename="../../Command.cpp" line="334"/>
@@ -486,8 +486,8 @@ This command only works with a mesh object.</source>
   <context>
     <name>QObject</name>
     <message>
-      <location filename="../../TaskGeomFillSurface.cpp" line="61"/>
       <location filename="../../TaskFilling.cpp" line="64"/>
+      <location filename="../../TaskGeomFillSurface.cpp" line="61"/>
       <source>Edit Filling</source>
       <translation>Éditer le remplissage</translation>
     </message>
@@ -504,7 +504,7 @@ This command only works with a mesh object.</source>
     <message>
       <location filename="../../Blending/ViewProviderBlendCurve.cpp" line="47"/>
       <source>Edit %1</source>
-      <translation>Modifier %1</translation>
+      <translation>Éditer %1</translation>
     </message>
   </context>
   <context>

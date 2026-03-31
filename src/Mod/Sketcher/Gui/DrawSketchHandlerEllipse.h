@@ -23,8 +23,7 @@
  ***************************************************************************/
 
 
-#ifndef SKETCHERGUI_DrawSketchHandlerEllipse_H
-#define SKETCHERGUI_DrawSketchHandlerEllipse_H
+#pragma once
 
 #include <cmath>
 
@@ -62,6 +61,7 @@ using DSHEllipseController = DrawSketchDefaultWidgetController<
     /*WidgetParametersT =*/WidgetParameters<0, 0>,  // NOLINT
     /*WidgetCheckboxesT =*/WidgetCheckboxes<0, 0>,  // NOLINT
     /*WidgetComboboxesT =*/WidgetComboboxes<1, 1>,  // NOLINT
+    /*WidgetLineEditsT =*/WidgetLineEdits<0, 0>,
     ConstructionMethods::CircleEllipseConstructionMethod,
     /*bool PFirstComboboxIsConstructionMethod =*/true>;
 
@@ -71,6 +71,8 @@ using DrawSketchHandlerEllipseBase = DrawSketchControllableHandler<DSHEllipseCon
 
 class DrawSketchHandlerEllipse: public DrawSketchHandlerEllipseBase
 {
+    Q_DECLARE_TR_FUNCTIONS(SketcherGui::DrawSketchHandlerEllipse)
+
     friend DSHEllipseController;
     friend DSHEllipseControllerBase;
 
@@ -208,7 +210,7 @@ private:
     void executeCommands() override
     {
         try {
-            Gui::Command::openCommand(QT_TRANSLATE_NOOP("Command", "Add sketch ellipse"));
+            openCommand(QT_TRANSLATE_NOOP("Command", "Add sketch ellipse"));
 
             ellipseGeoId = getHighestCurveIndex() + 1;
 
@@ -222,7 +224,7 @@ private:
                 Gui::cmdAppObjectArgs(sketchgui->getObject(), "exposeInternalGeometry(%d)", ellipseGeoId);
             }
 
-            Gui::Command::commitCommand();
+            commitCommand();
         }
         catch (const Base::Exception&) {
             Gui::NotifyError(
@@ -231,7 +233,7 @@ private:
                 QT_TRANSLATE_NOOP("Notifications", "Failed to add ellipse")
             );
 
-            Gui::Command::abortCommand();
+            abortCommand();
             THROWM(
                 Base::RuntimeError,
                 QT_TRANSLATE_NOOP(
@@ -393,7 +395,7 @@ private:
         auto lprojy = projy.Length();  // Py = b sin t
 
         if (lprojx > firstRadius) {
-            secondRadius = 0.0;
+            secondRadius = lprojy;
         }
         else {
             double t = std::acos(lprojx / firstRadius);
@@ -1045,6 +1047,3 @@ void DSHEllipseController::addConstraints()
     // No constraint possible for 3 rim ellipse.
 }
 }  // namespace SketcherGui
-
-
-#endif  // SKETCHERGUI_DrawSketchHandlerEllipse_H

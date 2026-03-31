@@ -46,6 +46,7 @@
 #include <ranges>
 
 #include "StartupProcess.h"
+#include "PreferencePackManager.h"
 #include "Application.h"
 #include "AutoSaver.h"
 #include "Dialogs/DlgCheckableMessageBox.h"
@@ -57,6 +58,7 @@
 #include "FreeCADStyle.h"
 
 #include <App/Application.h>
+#include <App/ApplicationDirectories.h>
 #include <Base/Console.h>
 
 
@@ -224,6 +226,7 @@ void StartupPostProcess::execute()
     setWindowTitle();
     setProcessMessages();
     setAutoSaving();
+    checkQtSvgImageFormatSupport();
     setToolBarIconSize();
     setWheelEventFilter();
     setLocale();
@@ -267,6 +270,14 @@ void StartupPostProcess::setAutoSaving()
 
     AutoSaver::instance()->setTimeout(timeout * 60000);  // NOLINT
     AutoSaver::instance()->setCompressed(hDocGrp->GetBool("AutoSaveCompressed", true));
+}
+
+void StartupPostProcess::checkQtSvgImageFormatSupport()
+{
+    auto const supportedFormats = QImageReader::supportedImageFormats();
+    if (!supportedFormats.contains("svg")) {
+        Base::Console().warning("Qt SVG image format not supported; missing Qt SVG plugin?\n");
+    }
 }
 
 void StartupPostProcess::setToolBarIconSize()
@@ -331,6 +342,18 @@ void StartupPostProcess::setQtStyle()
     });
 
     setStyleFromParameters();
+}
+
+void StartupPostProcess::migrateOldTheme(const std::string& style)
+{
+    auto prefPackManager = Application::Instance->prefPackManager();
+
+    if (style == "FreeCAD Light.qss") {
+        prefPackManager->apply("FreeCAD Light");
+    }
+    else if (style == "FreeCAD Dark.qss") {
+        prefPackManager->apply("FreeCAD Dark");
+    }
 }
 
 void StartupPostProcess::checkOpenGL()
@@ -508,11 +531,6 @@ void StartupPostProcess::activateWorkbench()
         mainWindow->loadWindowSettings();
     }
 
-    // initialize spaceball.
-    if (auto fcApp = qobject_cast<GUIApplicationNativeEventAware*>(qtApp)) {
-        fcApp->initSpaceball(mainWindow);
-    }
-
     // Now run the background autoload, for workbenches that should be loaded at startup, but not
     // displayed to the user immediately
     autoloadModules(wb);
@@ -536,7 +554,11 @@ void StartupPostProcess::setStyleSheet()
         }
     }
 
-    guiApp.setStyleSheet(QLatin1String(style.c_str()), hGrp->GetBool("TiledBackground", false));
+    // In 1.1 we migrated to a common parametrized stylesheet.
+    // if we detect an old style, we need to reapply the theme pack.
+    migrateOldTheme(style);
+
+    guiApp.setStyleSheet(QString::fromStdString(style), hGrp->GetBool("TiledBackground", false));
 }
 
 void StartupPostProcess::autoloadModules(const QStringList& wb)
@@ -571,6 +593,42 @@ void StartupPostProcess::checkParameters()
             "User parameter file couldn't be opened.\n"
             "Continue with an empty configuration that won't be saved.\n"
         );
+    }
+
+    // Prior to the release of v1.1, MacroPath was stored in the config file, even if it was just
+    // set to the default value. However, for a short time during the development of v1.1, when
+    // that directory was migrated, the config value was not updated. This code block corrects for
+    // that oversight by detecting when the path is set to the old default, and updates it to the
+    // new one -- but only once, so that if the user does manually set the path to the old default
+    // intentionally after this is run, it doesn't undo that action.
+    auto macroPrefs = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Macro"
+    );
+    auto v11MacroLocationChecked = macroPrefs->GetBool("MacroPathCheckedForMigrationTov1-1", false);
+    if (!v11MacroLocationChecked) {
+        std::filesystem::path newDefaultPath {App::Application::getUserMacroDir()};
+        if (newDefaultPath.filename().empty()) {
+            newDefaultPath = newDefaultPath.parent_path();
+        }
+        int major = std::stoi(App::Application::Config()["BuildVersionMajor"]);
+        int minor = std::stoi(App::Application::Config()["BuildVersionMinor"]);
+        auto versionString = App::ApplicationDirectories::versionStringForPath(major, minor);
+        if (newDefaultPath.filename() == "Macro"
+            && (newDefaultPath.parent_path().filename() == versionString)) {
+            std::filesystem::path oldDefaultPath {newDefaultPath.parent_path().parent_path() / "Macro"};
+            std::filesystem::path macroDir
+                = macroPrefs->GetASCII("MacroPath", newDefaultPath.string().c_str());
+            if (macroDir.filename().empty()) {
+                macroDir = macroDir.parent_path();
+            }
+            if (macroDir == oldDefaultPath) {
+                Base::Console().warning(
+                    "Removing 'MacroPath' parameter in order to default to the new versioned path\n"
+                );
+                macroPrefs->RemoveASCII("MacroPath");
+            }
+        }
+        macroPrefs->SetBool("MacroPathCheckedForMigrationTov1-1", true);
     }
 }
 
