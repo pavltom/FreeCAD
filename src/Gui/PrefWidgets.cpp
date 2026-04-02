@@ -887,7 +887,8 @@ void PrefFontBox::setRequiredCharacters(const QByteArray& chars)
 
     QString reqChars = QString::fromUtf8(m_requiredChars);
     for (QString fontFamily : fontFamilies) {
-        // To QFontMetrics::inFont() return false, QFont::setStyleStrategy() must be called before QFont::setFamily()
+        // To QFontMetrics::inFont() return false, QFont::setStyleStrategy() must be called before
+        // QFont::setFamily()
         QFont font;
         font.setStyleStrategy(QFont::NoFontMerging);
         font.setFamily(fontFamily);
@@ -920,7 +921,7 @@ void PrefFontBox::onCurrentFontChanged(const QFont& font)
         return;
     }
 
-    QStringListModel *listModel = qobject_cast<QStringListModel *>(model());
+    QStringListModel* listModel = qobject_cast<QStringListModel*>(model());
     if (!listModel) {
         return;
     }
@@ -933,7 +934,8 @@ void PrefFontBox::onCurrentFontChanged(const QFont& font)
     for (QString fontFamily : listModel->stringList()) {
         bool fontAcceptable = acceptableFonts.contains(fontFamily);
         if (fontAcceptable) {
-            if (fontFamily == fontInfo.family() || fontFamily.startsWith(fontInfo.family() + QStringLiteral(" ["))) {
+            if (fontFamily == fontInfo.family()
+                || fontFamily.startsWith(fontInfo.family() + QStringLiteral(" ["))) {
                 index = filteredList.size();
             }
             filteredList.append(fontFamily);

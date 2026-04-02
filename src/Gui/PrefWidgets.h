@@ -471,9 +471,7 @@ class GuiExport PrefFontBox: public QFontComboBox, public PrefWidget
     Q_PROPERTY(
         QByteArray prefPath READ paramGrpPath WRITE setParamGrpPath
     )  // clazy:exclude=qproperty-without-notify
-    Q_PROPERTY(
-        QByteArray requiredChars READ requiredCharacters WRITE setRequiredCharacters
-    )
+    Q_PROPERTY(QByteArray requiredChars READ requiredCharacters WRITE setRequiredCharacters)
 
 public:
     explicit PrefFontBox(QWidget* parent = nullptr);
